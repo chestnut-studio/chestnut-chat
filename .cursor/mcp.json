@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "better-t-stack": {
+      "command": "pnpm",
+      "args": ["dlx", "create-better-t-stack@latest", "mcp"]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "nuxt": {
+      "url": "https://nuxt.com/mcp"
+    },
+    "nuxt-ui": {
+      "url": "https://ui.nuxt.com/mcp"
+    },
+    "neon": {
+      "url": "https://mcp.neon.tech/mcp"
+    },
+    "better-auth": {
+      "url": "https://mcp.inkeep.com/better-auth/mcp"
+    }
+  }
+}

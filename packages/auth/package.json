@@ -1,0 +1,24 @@
+{
+  "name": "@chestnut-chat/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@chestnut-chat/db": "workspace:*",
+    "@chestnut-chat/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@chestnut-chat/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

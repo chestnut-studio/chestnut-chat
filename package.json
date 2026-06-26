@@ -1,0 +1,39 @@
+{
+  "name": "chestnut-chat",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F server dev",
+    "db:push": "turbo -F @chestnut-chat/db db:push",
+    "db:studio": "turbo -F @chestnut-chat/db db:studio",
+    "db:generate": "turbo -F @chestnut-chat/db db:generate",
+    "db:migrate": "turbo -F @chestnut-chat/db db:migrate",
+    "check": "oxlint && oxfmt --write"
+  },
+  "dependencies": {
+    "@chestnut-chat/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@chestnut-chat/config": "workspace:*",
+    "@types/node": "catalog:",
+    "lefthook": "^2.1.9",
+    "oxfmt": "^0.53.0",
+    "oxlint": "^1.68.0",
+    "turbo": "^2.9.16",
+    "typescript": "catalog:"
+  },
+  "overrides": {
+    "@vue/devtools-api": "^8.0.7"
+  },
+  "packageManager": "pnpm@11.8.0"
+}

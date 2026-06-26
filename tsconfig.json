@@ -1,0 +1,3 @@
+{
+  "extends": "@chestnut-chat/config/tsconfig.base.json"
+}
