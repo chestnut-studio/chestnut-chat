@@ -32,8 +32,5 @@
     "turbo": "^2.9.16",
     "typescript": "catalog:"
   },
-  "overrides": {
-    "@vue/devtools-api": "^8.0.7"
-  },
   "packageManager": "pnpm@11.8.0"
 }

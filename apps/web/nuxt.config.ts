@@ -12,6 +12,11 @@ export default defineNuxtConfig({
   devServer: {
     port: 3011,
   },
+  vite: {
+    optimizeDeps: {
+      include: ["@tanstack/vue-query", "@tanstack/vue-query-devtools", "@vue/devtools-api"],
+    },
+  },
   runtimeConfig: {
     // server-side override for SSR fetches (NUXT_SERVER_URL); falls back to the public URL
     serverUrl: "",

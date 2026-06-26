@@ -27,6 +27,7 @@
     "@chestnut-chat/config": "workspace:*",
     "@iconify-json/lucide": "^1.2.96",
     "@tanstack/vue-query-devtools": "^6.1.5",
+    "@vue/devtools-api": "^8.0.7",
     "tailwindcss": "^4.2.1",
     "typescript": "catalog:"
   }
