@@ -7,7 +7,6 @@ const route = useRoute();
 
 const items = computed<NavigationMenuItem[]>(() => [
   { label: "Home", to: "/", active: route.path === "/" },
-  { label: "Dashboard", to: "/dashboard", active: route.path.startsWith("/dashboard") },
 ]);
 </script>
 

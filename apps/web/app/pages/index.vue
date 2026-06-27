@@ -1,69 +1,61 @@
 <script setup lang="ts">
-const { $orpc } = useNuxtApp();
-import { useQuery } from "@tanstack/vue-query";
-
-const TITLE_TEXT = `
- ██████╗ ███████╗████████╗████████╗███████╗██████╗
- ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
- ██████╔╝█████╗     ██║      ██║   █████╗  ██████╔╝
- ██╔══██╗██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗
- ██████╔╝███████╗   ██║      ██║   ███████╗██║  ██║
- ╚═════╝ ╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝
-
- ████████╗    ███████╗████████╗ █████╗  ██████╗██╗  ██╗
- ╚══██╔══╝    ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
-    ██║       ███████╗   ██║   ███████║██║     █████╔╝
-    ██║       ╚════██║   ██║   ██╔══██║██║     ██╔═██╗
-    ██║       ███████║   ██║   ██║  ██║╚██████╗██║  ██╗
-    ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
- `;
-
-const healthCheck = useQuery($orpc.healthCheck.queryOptions());
-
-onServerPrefetch(async () => {
-  try {
-    await healthCheck.suspense();
-  } catch {}
+definePageMeta({
+  layout: "dashboard",
 });
+
+const { create } = useChats();
+const authSession = useAuthSession();
+const toast = useToast();
+const { t } = useI18n();
+const { show: showLogin } = useLoginModal();
+
+const pendingPrompt = useState<{
+  text: string;
+  model: string;
+  reasoning: boolean;
+  webSearch: boolean;
+} | null>("pendingPrompt", () => null);
+
+async function requireAuth() {
+  const session = await authSession.ensure();
+  if (session?.user) return true;
+
+  showLogin();
+  return false;
+}
+
+async function onSubmit(payload: {
+  text: string;
+  model: string;
+  reasoning: boolean;
+  webSearch: boolean;
+}) {
+  if (!(await requireAuth())) return;
+
+  try {
+    const row = await create.mutateAsync({ title: payload.text.slice(0, 60) });
+    if (!row) return;
+    pendingPrompt.value = payload;
+    await navigateTo(`/chat/${row.id}`);
+  } catch (error) {
+    toast.add({
+      title: t("toast.chatCreateFailed"),
+      description: error instanceof Error ? error.message : undefined,
+      color: "error",
+    });
+  }
+}
 </script>
 
 <template>
-  <UContainer class="py-8">
-    <pre class="overflow-x-auto font-mono text-sm whitespace-pre-wrap">{{ TITLE_TEXT }}</pre>
-
-    <div class="grid gap-6 mt-6">
-      <UCard>
-        <template #header>
-          <div class="font-medium">API Status</div>
-        </template>
-
-        <div class="flex items-center gap-2">
-          <UIcon
-            :name="
-              healthCheck.isLoading.value
-                ? 'i-lucide-loader-2'
-                : healthCheck.isSuccess.value
-                  ? 'i-lucide-check-circle'
-                  : 'i-lucide-x-circle'
-            "
-            :class="[
-              healthCheck.isLoading.value ? 'animate-spin text-muted' : '',
-              healthCheck.isSuccess.value ? 'text-success' : '',
-              healthCheck.isError.value ? 'text-error' : '',
-            ]"
-          />
-          <span class="text-sm">
-            <template v-if="healthCheck.isLoading.value"> Checking... </template>
-            <template v-else-if="healthCheck.isSuccess.value">
-              Connected ({{ healthCheck.data.value }})
-            </template>
-            <template v-else-if="healthCheck.isError.value">
-              Error: {{ healthCheck.error.value?.message || "Failed to connect" }}
-            </template>
-            <template v-else> Idle </template>
-          </span>
+  <UDashboardPanel id="dashboard-chat">
+    <template #body>
+      <div class="flex h-full flex-col items-center justify-center px-4">
+        <div class="w-full max-w-2xl space-y-6">
+          <h1 class="text-center text-2xl font-semibold">{{ $t("chat.emptyTitle") }}</h1>
+          <ChatBox :before-submit="requireAuth" @submit="onSubmit" />
         </div>
-      </UCard>
-    </div>
-  </UContainer>
+      </div>
+    </template>
+  </UDashboardPanel>
 </template>

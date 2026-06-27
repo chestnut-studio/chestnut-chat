@@ -1,6 +1,29 @@
 import type { DehydratedState, VueQueryPluginOptions } from "@tanstack/vue-query";
 import { dehydrate, hydrate, QueryCache, QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
 
+function isUnauthorizedError(error: unknown) {
+  const details = error as {
+    code?: unknown;
+    data?: unknown;
+    message?: unknown;
+    status?: unknown;
+  };
+  const data =
+    typeof details.data === "object" && details.data
+      ? (details.data as { code?: unknown; status?: unknown })
+      : null;
+  const message = typeof details.message === "string" ? details.message.toLowerCase() : "";
+
+  return (
+    details.code === "UNAUTHORIZED" ||
+    details.status === 401 ||
+    data?.code === "UNAUTHORIZED" ||
+    data?.status === 401 ||
+    message.includes("unauthorized") ||
+    message.includes("not authorized")
+  );
+}
+
 export default defineNuxtPlugin((nuxt) => {
   const vueQueryState = useState<DehydratedState | null>("vue-query");
 
@@ -14,7 +37,9 @@ export default defineNuxtPlugin((nuxt) => {
     },
     queryCache: new QueryCache({
       onError: (error) => {
-        console.log(error);
+        if (isUnauthorizedError(error)) return;
+
+        console.error(error);
         toast.add({
           title: "Error",
           description: error?.message || "An unexpected error occurred.",

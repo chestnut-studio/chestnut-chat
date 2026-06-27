@@ -7,10 +7,24 @@ export default defineNuxtConfig({
   experimental: {
     payloadExtraction: "client",
   },
-  modules: ["@nuxt/ui"],
+  modules: ["@nuxt/ui", "@nuxtjs/i18n", "@comark/nuxt"],
   css: ["~/assets/css/main.css"],
   devServer: {
     port: 3011,
+  },
+  i18n: {
+    strategy: "no_prefix",
+    defaultLocale: "en",
+    langDir: "locales",
+    locales: [
+      { code: "en", name: "English", file: "en.json" },
+      { code: "zh", name: "简体中文", file: "zh.json" },
+    ],
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: "i18n_locale",
+      redirectOn: "root",
+    },
   },
   vite: {
     optimizeDeps: {

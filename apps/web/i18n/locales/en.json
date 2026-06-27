@@ -1,0 +1,79 @@
+{
+  "app": {
+    "name": "Chestnut Chat"
+  },
+  "sidebar": {
+    "newChat": "New chat",
+    "search": "Search chats",
+    "empty": "No chats yet.",
+    "signIn": "Sign in"
+  },
+  "groups": {
+    "pinned": "Pinned",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "week": "Previous 7 days",
+    "month": "Previous 30 days",
+    "earlier": "Earlier"
+  },
+  "actions": {
+    "rename": "Rename",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "archive": "Archive",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "copy": "Copy",
+    "regenerate": "Regenerate",
+    "edit": "Edit"
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "appearance": "Appearance",
+    "language": "Language",
+    "profile": "Profile",
+    "about": "About",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "version": "Version v0.1.0"
+  },
+  "login": {
+    "title": "Sign in",
+    "github": "Continue with GitHub",
+    "google": "Continue with Google",
+    "or": "or",
+    "email": "Email address",
+    "otp": "6-digit code",
+    "sendCode": "Continue with email",
+    "verify": "Verify & sign in",
+    "codeSent": "Code sent",
+    "codeSentDescription": "Check your email or the server console in dev.",
+    "sendFailed": "Failed to send code",
+    "signedIn": "Signed in",
+    "signInFailed": "Sign in failed"
+  },
+  "chat": {
+    "placeholder": "Message Chestnut Chat",
+    "reasoning": "Reasoning",
+    "webSearch": "Web search",
+    "attach": "Attach files",
+    "send": "Send",
+    "editMessage": "Edit message",
+    "emptyTitle": "Message Chestnut Chat"
+  },
+  "toast": {
+    "copied": "Copied",
+    "chatCreateFailed": "Failed to create chat",
+    "chatFailed": "Chat request failed",
+    "signedOut": "Signed out successfully",
+    "signOutFailed": "Sign out failed"
+  },
+  "confirm": {
+    "deleteTitle": "Delete chat",
+    "deleteDescription": "This permanently deletes the chat and its messages.",
+    "renameTitle": "Rename chat"
+  }
+}

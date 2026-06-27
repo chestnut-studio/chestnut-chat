@@ -1,0 +1,79 @@
+{
+  "app": {
+    "name": "Chestnut Chat"
+  },
+  "sidebar": {
+    "newChat": "新建对话",
+    "search": "搜索对话",
+    "empty": "暂无对话。",
+    "signIn": "登录"
+  },
+  "groups": {
+    "pinned": "已置顶",
+    "today": "今天",
+    "yesterday": "昨天",
+    "week": "过去 7 天",
+    "month": "过去 30 天",
+    "earlier": "更早"
+  },
+  "actions": {
+    "rename": "重命名",
+    "pin": "置顶",
+    "unpin": "取消置顶",
+    "archive": "归档",
+    "delete": "删除",
+    "cancel": "取消",
+    "save": "保存",
+    "copy": "复制",
+    "regenerate": "重新生成",
+    "edit": "编辑"
+  },
+  "settings": {
+    "title": "设置",
+    "general": "通用",
+    "appearance": "外观",
+    "language": "语言",
+    "profile": "个人资料",
+    "about": "关于",
+    "system": "跟随系统",
+    "light": "浅色",
+    "dark": "深色",
+    "version": "版本 v0.1.0"
+  },
+  "login": {
+    "title": "登录",
+    "github": "使用 GitHub 登录",
+    "google": "使用 Google 登录",
+    "or": "或",
+    "email": "邮箱地址",
+    "otp": "6 位验证码",
+    "sendCode": "发送验证码",
+    "verify": "验证并登录",
+    "codeSent": "验证码已发送",
+    "codeSentDescription": "请查看邮箱；开发环境也会输出到服务端控制台。",
+    "sendFailed": "验证码发送失败",
+    "signedIn": "已登录",
+    "signInFailed": "登录失败"
+  },
+  "chat": {
+    "placeholder": "给 Chestnut Chat 发送消息",
+    "reasoning": "推理",
+    "webSearch": "联网搜索",
+    "attach": "附加文件",
+    "send": "发送",
+    "editMessage": "编辑消息",
+    "emptyTitle": "给 Chestnut Chat 发送消息"
+  },
+  "toast": {
+    "copied": "已复制",
+    "chatCreateFailed": "创建对话失败",
+    "chatFailed": "对话请求失败",
+    "signedOut": "已退出登录",
+    "signOutFailed": "退出登录失败"
+  },
+  "confirm": {
+    "deleteTitle": "删除对话",
+    "deleteDescription": "这会永久删除该对话及其消息。",
+    "renameTitle": "重命名对话"
+  }
+}

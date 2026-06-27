@@ -1,6 +1,6 @@
 import { createContext } from "@chestnut-chat/api/context";
 import { appRouter } from "@chestnut-chat/api/routers/index";
-import { auth } from "@chestnut-chat/auth";
+import { auth, getAuthProviderOptions } from "@chestnut-chat/auth";
 import { env } from "@chestnut-chat/env/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
@@ -10,6 +10,8 @@ import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+
+import { handleAiChat } from "./ai/chat";
 
 const app = new Hono();
 
@@ -25,6 +27,8 @@ app.use(
 );
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+app.get("/api/auth-options", (c) => c.json(getAuthProviderOptions()));
+app.post("/ai/chat", (c) => handleAiChat(c));
 
 export const apiHandler = new OpenAPIHandler(appRouter, {
   plugins: [
@@ -80,7 +84,7 @@ import { serve } from "@hono/node-server";
 serve(
   {
     fetch: app.fetch,
-    port: 3010,
+    port: Number(process.env.PORT ?? 3010),
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);

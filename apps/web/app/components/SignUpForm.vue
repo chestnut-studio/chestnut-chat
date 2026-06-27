@@ -3,6 +3,7 @@ import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
 import * as z from "zod";
 
 const { $authClient } = useNuxtApp();
+const authSession = useAuthSession();
 
 const emit = defineEmits(["switchToSignIn"]);
 
@@ -51,9 +52,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         password: event.data.password,
       },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
+          await authSession.refresh();
           toast.add({ title: "Sign up successful" });
-          navigateTo("/dashboard", { replace: true });
+          await navigateTo("/", { replace: true });
         },
         onError: (error) => {
           toast.add({ title: "Sign up failed", description: error.error.message });
