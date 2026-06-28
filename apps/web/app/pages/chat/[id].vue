@@ -10,6 +10,7 @@ const { $orpc } = useNuxtApp();
 const config = useRuntimeConfig();
 const toast = useToast();
 const { t } = useI18n();
+const { invalidate: invalidateChats } = useChats();
 const chatId = computed(() => route.params.id as string);
 const serverUrl = config.public.serverUrl;
 
@@ -54,6 +55,11 @@ const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<
       description: errorDescription(error),
       color: "error",
     });
+  },
+  onFinish({ isAbort, isError }) {
+    if (!isAbort && !isError) {
+      void invalidateChats();
+    }
   },
 }));
 

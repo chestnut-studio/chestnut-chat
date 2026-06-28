@@ -33,7 +33,7 @@ async function onSubmit(payload: {
   if (!(await requireAuth())) return;
 
   try {
-    const row = await create.mutateAsync({ title: payload.text.slice(0, 60) });
+    const row = await create.mutateAsync({});
     if (!row) return;
     pendingPrompt.value = payload;
     await navigateTo(`/chat/${row.id}`);

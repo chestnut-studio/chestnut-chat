@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { isPartStreaming } from "@nuxt/ui/utils/ai";
 import { isReasoningUIPart, isTextUIPart, type ChatStatus, type UIMessage } from "ai";
+import MarkdownRender from "markstream-vue";
 
 const props = defineProps<{
   messages: UIMessage[];
@@ -87,6 +88,10 @@ function actionsFor(message: UIMessage) {
 
   return actions;
 }
+
+function isStreamingPart(part: UIMessage["parts"][number]) {
+  return isPartStreaming(part);
+}
 </script>
 
 <template>
@@ -98,36 +103,53 @@ function actionsFor(message: UIMessage) {
       class="min-h-full"
     >
       <template #content="{ message }">
-        <UChatMessage v-bind="message" :actions="actionsFor(message)">
-          <template #content>
-            <template
-              v-for="(part, index) in message.parts"
-              :key="`${message.id}-${part.type}-${index}`"
-            >
-              <UChatReasoning
-                v-if="isReasoningUIPart(part)"
-                :text="part.text"
-                :streaming="isPartStreaming(part)"
-              >
-                <Comark
-                  :markdown="part.text"
-                  :streaming="isPartStreaming(part)"
-                  class="*:first:mt-0 *:last:mb-0"
-                />
-              </UChatReasoning>
+        <template
+          v-for="(part, index) in message.parts"
+          :key="`${message.id}-${part.type}-${index}`"
+        >
+          <UChatReasoning
+            v-if="isReasoningUIPart(part)"
+            :text="part.text"
+            :streaming="isStreamingPart(part)"
+          >
+            <MarkdownRender
+              mode="chat"
+              :content="part.text"
+              :final="!isStreamingPart(part)"
+              :smooth-streaming="isStreamingPart(part) ? 'auto' : false"
+              :typewriter="isStreamingPart(part)"
+              :fade="false"
+              class="*:first:mt-0 *:last:mb-0"
+            />
+          </UChatReasoning>
 
-              <template v-else-if="isTextUIPart(part)">
-                <Comark
-                  v-if="message.role === 'assistant'"
-                  :markdown="part.text"
-                  :streaming="isPartStreaming(part)"
-                  class="*:first:mt-0 *:last:mb-0"
-                />
-                <p v-else class="whitespace-pre-wrap">{{ part.text }}</p>
-              </template>
-            </template>
+          <template v-else-if="isTextUIPart(part)">
+            <MarkdownRender
+              v-if="message.role === 'assistant'"
+              mode="chat"
+              :content="part.text"
+              :final="!isStreamingPart(part)"
+              :smooth-streaming="isStreamingPart(part) ? 'auto' : false"
+              :typewriter="isStreamingPart(part)"
+              :fade="false"
+              class="*:first:mt-0 *:last:mb-0"
+            />
+            <p v-else class="whitespace-pre-wrap">{{ part.text }}</p>
           </template>
-        </UChatMessage>
+        </template>
+      </template>
+
+      <template #actions="{ message }">
+        <UTooltip v-for="action in actionsFor(message)" :key="action.label" :text="action.label">
+          <UButton
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            :icon="action.icon"
+            :aria-label="action.label"
+            @click="action.onClick"
+          />
+        </UTooltip>
       </template>
     </UChatMessages>
   </div>
