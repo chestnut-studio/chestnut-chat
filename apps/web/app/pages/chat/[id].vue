@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useChat } from "@ai-sdk/vue";
 import { useQuery } from "@tanstack/vue-query";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { DefaultChatTransport, type ChatStatus, type UIMessage } from "ai";
 
 import { DEFAULT_MODEL } from "~/utils/models";
 
@@ -10,6 +10,7 @@ const { $orpc } = useNuxtApp();
 const config = useRuntimeConfig();
 const toast = useToast();
 const { t } = useI18n();
+const { invalidate: invalidateChats } = useChats();
 const chatId = computed(() => route.params.id as string);
 const serverUrl = config.public.serverUrl;
 
@@ -55,7 +56,13 @@ const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<
       color: "error",
     });
   },
+  onFinish({ isAbort, isError }) {
+    if (!isAbort && !isError) {
+      void invalidateChats();
+    }
+  },
 }));
+const renderedMessages = computed(() => [...messages.value]);
 
 const lastOptions = ref({
   model: DEFAULT_MODEL,
@@ -65,6 +72,14 @@ const lastOptions = ref({
 const editOpen = ref(false);
 const editTarget = ref<string | null>(null);
 const editText = ref("");
+const isRenderingResponse = ref(false);
+const abortRenderKey = ref(0);
+const isRequestActive = computed(
+  () => status.value === "submitted" || status.value === "streaming",
+);
+const promptStatus = computed<ChatStatus>(() =>
+  isRequestActive.value || isRenderingResponse.value ? "streaming" : status.value,
+);
 
 watch(
   () => history.data.value,
@@ -82,6 +97,8 @@ watch(
 
 watch(chatId, () => {
   messages.value = [];
+  isRenderingResponse.value = false;
+  abortRenderKey.value += 1;
   clearError();
 });
 
@@ -108,6 +125,11 @@ function send(payload: { text: string; model: string; reasoning: boolean; webSea
 
 function onRegenerate(messageId: string) {
   void regenerate({ messageId, body: requestBody() });
+}
+
+function abortResponse() {
+  abortRenderKey.value += 1;
+  stop();
 }
 
 function openEdit(payload: { id: string; text: string }) {
@@ -138,8 +160,10 @@ function confirmEdit() {
         class="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6"
       >
         <ChatMessages
-          :messages="messages"
+          :abort-key="abortRenderKey"
+          :messages="renderedMessages"
           :status="status"
+          @rendering-change="isRenderingResponse = $event"
           @regenerate="onRegenerate"
           @edit="openEdit"
         />
@@ -149,9 +173,9 @@ function confirmEdit() {
     <template #footer>
       <UContainer class="w-full pb-4 sm:pb-6">
         <ChatBox
-          :status="status"
+          :status="promptStatus"
           @submit="send"
-          @stop="stop()"
+          @stop="abortResponse"
           @reload="regenerate({ body: requestBody() })"
         />
       </UContainer>

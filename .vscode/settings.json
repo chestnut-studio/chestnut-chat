@@ -7,5 +7,8 @@
   },
   "oxc.fmt.configPath": ".oxfmtrc.json",
   "editor.defaultFormatter": "oxc.oxc-vscode",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+
+  "i18n-ally.localesPaths": ["apps/web/i18n/locales"],
+  "i18n-ally.enabledFrameworks": ["vue"]
 }

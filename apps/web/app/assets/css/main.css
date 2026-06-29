@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+@import "markstream-vue/index.css" layer(components);
 
 html.dark .shiki span {
   color: var(--shiki-dark) !important;
