@@ -30,6 +30,7 @@ const reasoning = ref(false);
 const webSearch = ref(false);
 const files = ref<File[]>([]);
 const fileInput = ref<HTMLInputElement | null>(null);
+const isBusy = computed(() => props.status === "submitted" || props.status === "streaming");
 
 const selectedProviderIcon = computed(
   () => MODELS.find((item) => item.value === model.value)?.providerIcon ?? "deepseek",
@@ -45,6 +46,11 @@ function onPickFiles(event: Event) {
 }
 
 async function onSubmit() {
+  if (isBusy.value) {
+    emit("stop");
+    return;
+  }
+
   const text = input.value.trim();
   if (!text) return;
 

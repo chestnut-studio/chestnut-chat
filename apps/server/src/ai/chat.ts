@@ -4,6 +4,7 @@ import { db } from "@chestnut-chat/db";
 import { chat, message } from "@chestnut-chat/db/schema/chat";
 import { env } from "@chestnut-chat/env/server";
 import {
+  consumeStream,
   convertToModelMessages,
   createUIMessageStreamResponse,
   isTextUIPart,
@@ -145,6 +146,7 @@ export async function handleAiChat(c: Context): Promise<Response> {
   const result = streamText({
     model: deepSeek(modelId),
     messages: await convertToModelMessages(messages),
+    abortSignal: c.req.raw.signal,
     experimental_transform: smoothStream({
       chunking: WORD_STREAM_CHUNKING,
       delayInMs: 12,
@@ -170,5 +172,12 @@ export async function handleAiChat(c: Context): Promise<Response> {
         await db.update(chat).set({ updatedAt: new Date() }).where(eq(chat.id, chatId));
       },
     }),
+    headers: {
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "Transfer-Encoding": "chunked",
+      "X-Accel-Buffering": "no",
+    },
+    consumeSseStream: consumeStream,
   });
 }
