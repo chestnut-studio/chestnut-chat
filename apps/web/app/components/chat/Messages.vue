@@ -30,9 +30,11 @@ type TypingState = {
   streaming: boolean;
   timer?: ReturnType<typeof setTimeout>;
 };
+type MessagePart = UIMessage["parts"][number];
 
 const typingStates = reactive<Record<string, TypingState>>({});
 const abortedTexts = reactive<Record<string, string>>({});
+const completedTexts = reactive<Record<string, string>>({});
 const sawActiveResponse = ref(false);
 const isRequestActive = computed(
   () => props.status === "submitted" || props.status === "streaming",
@@ -134,12 +136,35 @@ function actionsFor(message: UIMessage) {
   return actions;
 }
 
-function isStreamingPart(part: UIMessage["parts"][number]) {
+function isStreamingPart(part: MessagePart) {
   return isPartStreaming(part);
 }
 
-function typingKey(message: UIMessage, part: UIMessage["parts"][number], index: number) {
+function typingKey(message: UIMessage, part: MessagePart, index: number) {
   return `${message.id}:${part.type}:${index}`;
+}
+
+function isRenderableTextPart(message: UIMessage, index: number) {
+  if (message.role !== "assistant") return true;
+
+  return !message.parts
+    .slice(0, index)
+    .some(
+      (part, partIndex) =>
+        isReasoningUIPart(part) && !isPartRenderComplete(message, part, partIndex),
+    );
+}
+
+function isPartRenderComplete(message: UIMessage, part: MessagePart, index: number) {
+  if (!isTextUIPart(part) && !isReasoningUIPart(part)) return true;
+
+  const key = typingKey(message, part, index);
+  if (completedTexts[key] === part.text) return true;
+
+  const state = typingStates[key];
+  if (state) return !state.streaming && state.visible === state.target;
+
+  return !isStreamingPart(part);
 }
 
 function nextWord(value: string, offset: number) {
@@ -184,6 +209,14 @@ function clearTypingState(key: string) {
   delete typingStates[key];
 }
 
+function completeTypingState(key: string) {
+  const state = typingStates[key];
+  if (!state) return;
+
+  completedTexts[key] = state.target;
+  removeTypingState(key);
+}
+
 function abortTyping() {
   if (!import.meta.client) return;
 
@@ -221,7 +254,8 @@ function scheduleTyping(key: string) {
     }
 
     if (!latest.streaming) {
-      removeTypingState(key);
+      completeTypingState(key);
+      syncTypingStates();
     }
   }, WORD_DELAY_MS);
 }
@@ -254,8 +288,10 @@ function syncTypingStates() {
 
       const streaming = isStreamingPart(part);
       const existing = typingStates[key];
+      const completedText = completedTexts[key];
       const belongsToCurrentResponse =
         sawActiveResponse.value && lastUserIndex !== -1 && messageIndex > lastUserIndex;
+      const waitingForReasoning = isTextUIPart(part) && !isRenderableTextPart(message, index);
 
       if (key in abortedTexts) {
         removeTypingState(key);
@@ -267,17 +303,20 @@ function syncTypingStates() {
         continue;
       }
 
-      const shouldAnimate = streaming || existing || belongsToCurrentResponse;
+      const shouldAnimate =
+        streaming || existing || (belongsToCurrentResponse && completedText !== part.text);
 
       if (!shouldAnimate) continue;
 
       if (!existing) {
         typingStates[key] = {
-          visible: "",
+          visible: completedText && part.text.startsWith(completedText) ? completedText : "",
           target: part.text,
           streaming,
         };
-        scheduleTyping(key);
+        if (!waitingForReasoning) {
+          scheduleTyping(key);
+        }
         continue;
       }
 
@@ -289,7 +328,9 @@ function syncTypingStates() {
       }
 
       if (existing.visible === existing.target && !streaming) {
-        removeTypingState(key);
+        completeTypingState(key);
+      } else if (waitingForReasoning) {
+        clearTypingTimer(existing);
       } else {
         scheduleTyping(key);
       }
@@ -304,10 +345,14 @@ function syncTypingStates() {
     if (!seenKeys.has(key)) delete abortedTexts[key];
   }
 
+  for (const key of Object.keys(completedTexts)) {
+    if (!seenKeys.has(key)) delete completedTexts[key];
+  }
+
   resetTypingSessionWhenIdle();
 }
 
-function typedText(message: UIMessage, part: UIMessage["parts"][number], index: number) {
+function typedText(message: UIMessage, part: MessagePart, index: number) {
   if (!isTextUIPart(part) && !isReasoningUIPart(part)) return "";
   if (message.role !== "assistant") return part.text;
 
@@ -315,12 +360,12 @@ function typedText(message: UIMessage, part: UIMessage["parts"][number], index: 
   return abortedTexts[key] ?? typingStates[key]?.visible ?? part.text;
 }
 
-function isTypingPart(message: UIMessage, part: UIMessage["parts"][number], index: number) {
+function isTypingPart(message: UIMessage, part: MessagePart, index: number) {
   const state = typingStates[typingKey(message, part, index)];
   return Boolean(state && state.visible !== state.target);
 }
 
-function isLivePart(message: UIMessage, part: UIMessage["parts"][number], index: number) {
+function isLivePart(message: UIMessage, part: MessagePart, index: number) {
   return isStreamingPart(part) || isTypingPart(message, part, index);
 }
 
@@ -368,6 +413,7 @@ onBeforeUnmount(() => {
             v-if="isReasoningUIPart(part)"
             :text="typedText(message, part, index)"
             :streaming="isLivePart(message, part, index)"
+            :ui="{ body: 'max-h-none overflow-visible' }"
           >
             <MarkdownRender
               mode="chat"
@@ -383,7 +429,7 @@ onBeforeUnmount(() => {
 
           <template v-else-if="isTextUIPart(part)">
             <MarkdownRender
-              v-if="message.role === 'assistant'"
+              v-if="message.role === 'assistant' && isRenderableTextPart(message, index)"
               mode="chat"
               :content="typedText(message, part, index)"
               :final="!isLivePart(message, part, index)"
@@ -393,7 +439,7 @@ onBeforeUnmount(() => {
               :max-live-nodes="0"
               class="*:first:mt-0 *:last:mb-0"
             />
-            <p v-else class="whitespace-pre-wrap">{{ part.text }}</p>
+            <p v-else-if="message.role === 'user'" class="whitespace-pre-wrap">{{ part.text }}</p>
           </template>
         </template>
       </template>
