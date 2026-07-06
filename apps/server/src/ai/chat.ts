@@ -7,6 +7,7 @@ import {
   consumeStream,
   convertToModelMessages,
   createUIMessageStreamResponse,
+  generateText,
   isTextUIPart,
   smoothStream,
   streamText,
@@ -31,8 +32,6 @@ type SupportedModel = (typeof SUPPORTED_MODELS)[number];
 const DEFAULT_CHAT_TITLE = "New Chat";
 const DEFAULT_MODEL: SupportedModel = "deepseek-v4-flash";
 const TITLE_MAX_LENGTH = 60;
-const TITLE_WORD_LIMIT = 8;
-const TITLE_CHARACTER_LIMIT = 24;
 const WORD_STREAM_CHUNKING = new Intl.Segmenter(undefined, { granularity: "word" });
 
 function resolveModel(model: string | undefined): SupportedModel | null {
@@ -56,23 +55,33 @@ function cleanTitle(value: string) {
     .trim();
 }
 
-function summarizeChatTitle(value: string) {
-  const normalized = cleanTitle(value);
-  if (!normalized) return DEFAULT_CHAT_TITLE;
-
-  const [firstSentence = normalized] = normalized.split(/(?<=[.!?\u3002\uff01\uff1f])\s+/u);
-  const candidate = cleanTitle(
-    firstSentence.length <= TITLE_MAX_LENGTH ? firstSentence : normalized,
-  );
-  if (candidate.length <= TITLE_MAX_LENGTH) return candidate;
-
-  const words = candidate.split(/\s+/);
-  const title =
-    words.length > 1
-      ? words.slice(0, TITLE_WORD_LIMIT).join(" ")
-      : Array.from(candidate).slice(0, TITLE_CHARACTER_LIMIT).join("");
-
-  return cleanTitle(title).slice(0, TITLE_MAX_LENGTH) || DEFAULT_CHAT_TITLE;
+async function generateAiTitle(
+  deepSeekClient: ReturnType<typeof createDeepSeek>,
+  userMessage: string,
+  chatId: string,
+  userId: string,
+) {
+  try {
+    const { text } = await generateText({
+      model: deepSeekClient("deepseek-v4-flash"),
+      messages: [
+        {
+          role: "user",
+          content: `Generate a concise title (max 6 words) for a conversation that starts with the following message. Reply with ONLY the title, no quotes, no trailing punctuation:\n\n${userMessage.slice(0, 500)}`,
+        },
+      ],
+      maxOutputTokens: 30,
+    });
+    const title = cleanTitle(text);
+    if (title) {
+      await db
+        .update(chat)
+        .set({ title: title.slice(0, TITLE_MAX_LENGTH), updatedAt: new Date() })
+        .where(and(eq(chat.id, chatId), eq(chat.userId, userId)));
+    }
+  } catch (error) {
+    console.error("Failed to generate AI chat title:", error);
+  }
 }
 
 export async function handleAiChat(c: Context): Promise<Response> {
@@ -136,10 +145,7 @@ export async function handleAiChat(c: Context): Promise<Response> {
     });
 
     if (shouldSummarizeTitle) {
-      await db
-        .update(chat)
-        .set({ title: summarizeChatTitle(messageText(lastUser)), updatedAt: new Date() })
-        .where(and(eq(chat.id, chatId), eq(chat.userId, session.user.id)));
+      void generateAiTitle(deepSeek, messageText(lastUser), chatId, session.user.id);
     }
   }
 

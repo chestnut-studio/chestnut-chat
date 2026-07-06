@@ -30,7 +30,7 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "kimi",
     name: "Kimi",
-    icon: "i-lucide-moon-star",
+    icon: "i-simple-icons-moonshotai",
     hasBaseUrl: false,
     defaultBaseUrl: "https://api.moonshot.cn/v1",
     keyPlaceholder: "sk-...",

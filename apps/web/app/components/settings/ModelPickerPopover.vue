@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ProviderModel } from "~/composables/useProviderKeys";
-
 const props = defineProps<{
   models: readonly ProviderModel[];
   configuredModelIds: readonly string[];

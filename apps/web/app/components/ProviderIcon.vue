@@ -38,7 +38,7 @@ const CONFIGS: Record<ProviderId, ProviderConfig> = {
   openai: { icon: "i-simple-icons-openai", bg: OPENAI_BG, color: OPENAI_COLOR },
   anthropic: { icon: "i-simple-icons-anthropic", bg: ANTHROPIC_BG, color: ANTHROPIC_COLOR },
   gemini: { icon: "i-simple-icons-googlegemini", bg: "#1A73E8", color: GEMINI_COLOR },
-  kimi: { icon: "i-lucide-moon-star", bg: KIMI_BG, color: KIMI_COLOR },
+  kimi: { icon: "i-simple-icons-moonshotai", bg: KIMI_BG, color: KIMI_COLOR },
   deepseek: { icon: "i-simple-icons-deepseek", bg: DEEPSEEK_BG, color: DEEPSEEK_COLOR },
   openrouter: { icon: "i-simple-icons-openrouter", bg: OPENROUTER_BG, color: OPENROUTER_COLOR },
   custom: { icon: "i-lucide-cpu", bg: "#6B7280", color: "#fff" },
@@ -47,7 +47,7 @@ const CONFIGS: Record<ProviderId, ProviderConfig> = {
 
 <template>
   <div
-    class="flex flex-shrink-0 items-center justify-center rounded-xl"
+    class="flex shrink-0 items-center justify-center rounded-xl"
     :class="size === 'sm' ? 'size-8' : 'size-10'"
     :style="{ backgroundColor: CONFIGS[provider].bg }"
   >

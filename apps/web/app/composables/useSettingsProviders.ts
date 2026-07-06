@@ -1,6 +1,3 @@
-import type { CustomProvider, ProviderModel } from "~/composables/useProviderKeys";
-import { BUILTIN_PROVIDERS, getBuiltinProviderDef } from "~/utils/provider-defs";
-import { fetchProviderModels } from "~/utils/provider-models";
 import type {
   BuiltinProviderDef,
   ConnectionTestStatus,

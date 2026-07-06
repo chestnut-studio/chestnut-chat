@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from "@nuxt/ui";
 
-import UserMenu from "./UserMenu.vue";
-
 const route = useRoute();
 
 const items = computed<NavigationMenuItem[]>(() => [

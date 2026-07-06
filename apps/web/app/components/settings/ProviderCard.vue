@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ProviderModel } from "~/composables/useProviderKeys";
 import type {
   ConnectionTestStatus,
   ProviderEditForm,
