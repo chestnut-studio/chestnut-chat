@@ -28,7 +28,19 @@ export default defineNuxtConfig({
   },
   vite: {
     optimizeDeps: {
-      include: ["@tanstack/vue-query", "@tanstack/vue-query-devtools", "@vue/devtools-api"],
+      include: [
+        "@tanstack/vue-query",
+        "@tanstack/vue-query-devtools",
+        "@vue/devtools-api",
+        "@ai-sdk/vue",
+        "ai",
+        "markstream-vue",
+        "@orpc/client",
+        "@orpc/client/fetch",
+        "@orpc/tanstack-query",
+        "better-auth/vue",
+        "better-auth/client/plugins",
+      ],
     },
   },
   runtimeConfig: {
