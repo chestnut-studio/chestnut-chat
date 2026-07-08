@@ -14,7 +14,6 @@
     "@chestnut-chat/api": "workspace:*",
     "@chestnut-chat/auth": "workspace:*",
     "@chestnut-chat/env": "workspace:*",
-    "@lobehub/icons": "^5.10.0",
     "@nuxt/ui": "^4.5.1",
     "@nuxtjs/i18n": "^10.4.0",
     "@orpc/client": "catalog:",

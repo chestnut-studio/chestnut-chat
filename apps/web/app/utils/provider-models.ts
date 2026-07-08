@@ -1,12 +1,8 @@
 import type { ProviderModel } from "~/composables/useProviderKeys";
 import type { ProviderFetchMode } from "~/types/providers";
 
-interface OpenAIModelsResponse {
+interface OpenAICompatibleModelsResponse {
   data?: unknown[];
-}
-
-interface GeminiModelsResponse {
-  models?: unknown[];
 }
 
 export interface FetchProviderModelsOptions {
@@ -17,6 +13,21 @@ export interface FetchProviderModelsOptions {
 
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.trim().replace(/\/+$/, "");
+}
+
+function normalizeProviderApiKey(apiKey: string) {
+  return apiKey
+    .trim()
+    .replace(/^export\s+/i, "")
+    .replace(/^(?:openai_api_key|minimax_api_key|minimaxi_api_key|api_key)\s*=\s*/i, "")
+    .replace(/^authorization:\s*/i, "")
+    .replace(/^bearer\s+/i, "")
+    .trim()
+    .replace(/^authorization:\s*/i, "")
+    .replace(/^bearer\s+/i, "")
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .trim();
 }
 
 function recordFrom(value: unknown) {
@@ -54,45 +65,25 @@ async function readModelResponse(response: Response) {
 }
 
 function parseOpenAIModels(payload: unknown) {
-  const data = (payload as OpenAIModelsResponse).data;
-  return Array.isArray(data) ? data.flatMap((item) => normalizeModel(item) ?? []) : [];
-}
-
-function parseGeminiModels(payload: unknown) {
-  const data = (payload as GeminiModelsResponse).models;
+  const data = (payload as OpenAICompatibleModelsResponse).data;
   return Array.isArray(data) ? data.flatMap((item) => normalizeModel(item) ?? []) : [];
 }
 
 async function fetchOpenAICompatibleModels(apiKey: string, baseUrl: string) {
   const response = await fetch(`${normalizeBaseUrl(baseUrl)}/models`, {
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Accept: "application/json",
+      Authorization: `Bearer ${normalizeProviderApiKey(apiKey)}`,
     },
   });
   return parseOpenAIModels(await readModelResponse(response));
-}
-
-async function fetchAnthropicModels(apiKey: string) {
-  const response = await fetch("https://api.anthropic.com/v1/models", {
-    headers: {
-      "anthropic-version": "2023-06-01",
-      "x-api-key": apiKey,
-    },
-  });
-  return parseOpenAIModels(await readModelResponse(response));
-}
-
-async function fetchGeminiModels(apiKey: string) {
-  const url = new URL("https://generativelanguage.googleapis.com/v1beta/models");
-  url.searchParams.set("key", apiKey);
-  const response = await fetch(url);
-  return parseGeminiModels(await readModelResponse(response));
 }
 
 export async function fetchProviderModels(options: FetchProviderModelsOptions) {
-  if (options.fetchMode === "anthropic") return fetchAnthropicModels(options.apiKey);
-  if (options.fetchMode === "gemini") return fetchGeminiModels(options.apiKey);
   if (!options.baseUrl) return [];
 
-  return fetchOpenAICompatibleModels(options.apiKey, options.baseUrl);
+  switch (options.fetchMode) {
+    case "openai":
+      return fetchOpenAICompatibleModels(options.apiKey, options.baseUrl);
+  }
 }

@@ -3,7 +3,12 @@ import { useChat } from "@ai-sdk/vue";
 import { useQuery } from "@tanstack/vue-query";
 import { DefaultChatTransport, type ChatStatus, type UIMessage } from "ai";
 
-import { DEFAULT_MODEL } from "~/utils/models";
+import {
+  DEFAULT_MODEL,
+  builtinChatModelValue,
+  decodeChatModelValue,
+  isLegacyDeepSeekModel,
+} from "~/utils/models";
 
 const route = useRoute();
 const { $orpc } = useNuxtApp();
@@ -69,6 +74,13 @@ const lastOptions = ref({
   reasoning: false,
   webSearch: false,
 });
+const hasRestoredModel = ref(false);
+const selectedModel = computed({
+  get: () => lastOptions.value.model,
+  set: (model: string) => {
+    lastOptions.value = { ...lastOptions.value, model };
+  },
+});
 const editOpen = ref(false);
 const editTarget = ref<string | null>(null);
 const editText = ref("");
@@ -81,10 +93,35 @@ const promptStatus = computed<ChatStatus>(() =>
   isRequestActive.value || isRenderingResponse.value ? "streaming" : status.value,
 );
 
+function restoreModelValue(value: string | null) {
+  if (!value) return null;
+  if (decodeChatModelValue(value)) return value;
+  if (isLegacyDeepSeekModel(value)) return builtinChatModelValue("deepseek", value);
+
+  return value;
+}
+
+function restoreLastModel(
+  rows: NonNullable<typeof history.data.value>,
+) {
+  const model = [...rows].reverse().find((row) => row.model)?.model ?? null;
+  const restoredModel = restoreModelValue(model);
+  if (!restoredModel) return;
+
+  lastOptions.value = { ...lastOptions.value, model: restoredModel };
+}
+
 watch(
   () => history.data.value,
   (rows) => {
-    if (rows && rows.every((row) => row.chatId === chatId.value) && messages.value.length === 0) {
+    if (!rows || !rows.every((row) => row.chatId === chatId.value)) return;
+
+    if (!hasRestoredModel.value) {
+      restoreLastModel(rows);
+      hasRestoredModel.value = true;
+    }
+
+    if (messages.value.length === 0) {
       messages.value = rows.map((row) => ({
         id: row.id,
         role: row.role as UIMessage["role"],
@@ -97,6 +134,7 @@ watch(
 
 watch(chatId, () => {
   messages.value = [];
+  hasRestoredModel.value = false;
   isRenderingResponse.value = false;
   abortRenderKey.value += 1;
   clearError();
@@ -173,6 +211,7 @@ function confirmEdit() {
     <template #footer>
       <UContainer class="w-full pb-4 sm:pb-6">
         <ChatBox
+          v-model="selectedModel"
           :status="promptStatus"
           @submit="send"
           @stop="abortResponse"

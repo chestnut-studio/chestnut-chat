@@ -13,7 +13,8 @@ const emit = defineEmits<{
 }>();
 
 const canSave = computed(() => {
-  if (!props.form.displayName.trim() || !props.form.apiKey.trim()) return false;
+  if (!props.form.displayName.trim()) return false;
+  if (props.form.apiKeyRequired && !props.form.apiKey.trim()) return false;
   return !props.form.showBaseUrl || !!props.form.baseUrl.trim();
 });
 
@@ -48,8 +49,13 @@ function updateText(key: "displayName" | "baseUrl" | "apiKey", value: string | n
 
     <UFormField
       :label="$t('settings.apiKey')"
-      :description="$t('settings.apiKeyDescription')"
-      required
+      :description="
+        form.apiKeyRequired
+          ? $t('settings.apiKeyDescription')
+          : $t('settings.apiKeyEditDescription')
+      "
+      :hint="form.apiKeyRequired ? undefined : $t('settings.optional')"
+      :required="form.apiKeyRequired"
     >
       <UInput
         :model-value="form.apiKey"

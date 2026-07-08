@@ -54,12 +54,12 @@
     "noProviders": "No providers configured",
     "noProvidersDescription": "Provider configuration will be available in a future update.",
     "apiProviders": "API Providers",
-    "apiProvidersDescription": "Add your own API keys. Keys are stored locally in your browser and never sent to our servers.",
+    "apiProvidersDescription": "Add your own API keys. Keys are encrypted and stored with your account.",
     "providerSaved": "{name} key saved",
     "providerAdded": "{name} added",
     "providerRemoved": "{name} removed",
     "deleteProviderTitle": "Delete provider?",
-    "deleteProviderDescription": "Delete {name}? This removes its API key and configured models from this browser.",
+    "deleteProviderDescription": "Delete {name}? This removes its encrypted API key and configured models from your account.",
     "customProviders": "Custom Providers",
     "customProvidersDescription": "Add any OpenAI-compatible API endpoint.",
     "addProvider": "Add Provider",
@@ -85,7 +85,8 @@
     "baseUrl": "Base URL",
     "baseUrlDescription": "Include the OpenAI-compatible root URL.",
     "apiKey": "API Key",
-    "apiKeyDescription": "Stored locally in your browser.",
+    "apiKeyDescription": "Encrypted before it is stored with your account.",
+    "apiKeyEditDescription": "Leave blank to keep the existing encrypted key.",
     "noModelsConfigured": "No models configured",
     "noModelsConfiguredHint": "Sync from the endpoint or add one by ID.",
     "availableModels": "{count} models available",
@@ -107,6 +108,9 @@
     "fetchedModel": "Fetched",
     "removeModel": "Remove model",
     "modelsFetchFailed": "Failed to fetch models from {name}",
+    "modelsSaveFailed": "Failed to save models",
+    "providerSaveFailed": "Failed to save provider",
+    "providerDeleteFailed": "Failed to delete provider",
     "modelAdded": "Added {id} to {name}"
   },
   "login": {
@@ -138,7 +142,10 @@
     "chatCreateFailed": "Failed to create chat",
     "chatFailed": "Chat request failed",
     "signedOut": "Signed out successfully",
-    "signOutFailed": "Sign out failed"
+    "signOutFailed": "Sign out failed",
+    "accountDeleted": "Account deleted",
+    "deleteAccountVerificationSent": "Check your email to finish deleting your account",
+    "deleteAccountFailed": "Failed to delete account"
   },
   "confirm": {
     "deleteTitle": "Delete chat",

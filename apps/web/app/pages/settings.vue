@@ -36,6 +36,7 @@ const language = computed({
 });
 
 const deleteConfirmOpen = shallowRef(false);
+const isDeletingAccount = shallowRef(false);
 
 async function signOut() {
   await $authClient.signOut({
@@ -50,6 +51,44 @@ async function signOut() {
       },
     },
   });
+}
+
+async function deleteAccount() {
+  if (isDeletingAccount.value) return;
+
+  isDeletingAccount.value = true;
+
+  try {
+    const result = await $authClient.deleteUser({
+      callbackURL: import.meta.client ? window.location.origin : "/",
+    });
+
+    if (result.error) {
+      toast.add({
+        title: t("toast.deleteAccountFailed"),
+        description: result.error.message,
+      });
+      return;
+    }
+
+    if (result.data?.message === "Verification email sent") {
+      deleteConfirmOpen.value = false;
+      toast.add({ title: t("toast.deleteAccountVerificationSent") });
+      return;
+    }
+
+    deleteConfirmOpen.value = false;
+    authSession.clear();
+    toast.add({ title: t("toast.accountDeleted") });
+    await navigateTo("/", { replace: true, external: true });
+  } catch (cause) {
+    toast.add({
+      title: t("toast.deleteAccountFailed"),
+      description: cause instanceof Error ? cause.message : undefined,
+    });
+  } finally {
+    isDeletingAccount.value = false;
+  }
 }
 </script>
 
@@ -170,8 +209,19 @@ async function signOut() {
       :ui="{ footer: 'justify-end' }"
     >
       <template #footer="{ close }">
-        <UButton color="neutral" variant="outline" :label="$t('actions.cancel')" @click="close" />
-        <UButton color="error" :label="$t('settings.deleteAccount')" />
+        <UButton
+          color="neutral"
+          variant="outline"
+          :label="$t('actions.cancel')"
+          :disabled="isDeletingAccount"
+          @click="close"
+        />
+        <UButton
+          color="error"
+          :label="$t('settings.deleteAccount')"
+          :loading="isDeletingAccount"
+          @click="deleteAccount"
+        />
       </template>
     </UModal>
   </div>

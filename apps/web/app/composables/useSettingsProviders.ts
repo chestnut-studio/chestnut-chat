@@ -4,12 +4,19 @@ import type {
   ModelTarget,
   ProviderDraft,
   ProviderEditForm,
+  ProviderIconId,
   SettingsProviderCard,
 } from "~/types/providers";
 
 interface ManualModelFormState {
   id: string;
   name: string;
+}
+
+interface AddProviderMenuItem {
+  label: string;
+  iconProvider: ProviderIconId;
+  onSelect: () => void;
 }
 
 function targetKey(target: ModelTarget) {
@@ -48,6 +55,9 @@ export function useSettingsProviders() {
     saveCustom,
     removeCustom,
     getBuiltin,
+    fetchProviderModelsForTarget,
+    isLoading: isLoadingProviders,
+    isSaving: isSavingProvider,
   } = useProviderKeys();
 
   const fetchingModels = shallowRef<Record<string, boolean>>({});
@@ -63,20 +73,26 @@ export function useSettingsProviders() {
   const deleteTarget = shallowRef<SettingsProviderCard | null>(null);
 
   const configuredBuiltin = computed(() =>
-    BUILTIN_PROVIDERS.filter((def) => !!providerStorage.value.builtin[def.id]?.apiKey),
+    BUILTIN_PROVIDERS.filter((def) => !!providerStorage.value.builtin[def.id]?.hasApiKey),
   );
 
   const availableToAdd = computed(() =>
-    BUILTIN_PROVIDERS.filter((def) => !providerStorage.value.builtin[def.id]?.apiKey),
+    BUILTIN_PROVIDERS.filter((def) => !providerStorage.value.builtin[def.id]?.hasApiKey),
   );
 
-  const addProviderItems = computed(() => [
+  const addProviderItems = computed<AddProviderMenuItem[][]>(() => [
     availableToAdd.value.map((def) => ({
       label: def.name,
-      icon: def.icon,
+      iconProvider: def.id,
       onSelect: () => startBuiltinDraft(def),
     })),
-    [{ label: t("settings.customProvider"), icon: "i-lucide-cpu", onSelect: startCustomDraft }],
+    [
+      {
+        label: t("settings.customProvider"),
+        iconProvider: "custom",
+        onSelect: startCustomDraft,
+      },
+    ],
   ]);
 
   const providers = computed<SettingsProviderCard[]>(() => [
@@ -124,23 +140,28 @@ export function useSettingsProviders() {
     return getCustomProvider(target.id)?.models ?? [];
   }
 
-  function setModels(target: ModelTarget, models: readonly ProviderModel[]) {
+  function errorDescription(error: unknown) {
+    return error instanceof Error ? error.message : undefined;
+  }
+
+  function providerTarget(provider: SettingsProviderCard): ModelTarget {
+    return provider.kind === "builtin"
+      ? { kind: "builtin", id: provider.id }
+      : { kind: "custom", id: provider.id };
+  }
+
+  async function setModels(target: ModelTarget, models: readonly ProviderModel[]) {
     const lastModelsSyncAt = new Date().toISOString();
 
     if (target.kind === "builtin") {
       const existing = getBuiltin(target.id);
-      saveBuiltin(target.id, { ...existing, models, lastModelsSyncAt });
+      await saveBuiltin(target.id, { ...existing, models, lastModelsSyncAt });
       return;
     }
 
     const existing = getCustomProvider(target.id);
     if (!existing) return;
-    saveCustom({ ...existing, models, lastModelsSyncAt });
-  }
-
-  function effectiveBaseUrl(def: BuiltinProviderDef) {
-    const stored = getBuiltin(def.id).baseUrl?.trim();
-    return stored || def.defaultBaseUrl || "";
+    await saveCustom({ ...existing, models, lastModelsSyncAt });
   }
 
   function startBuiltinDraft(def: BuiltinProviderDef) {
@@ -152,6 +173,7 @@ export function useSettingsProviders() {
       iconProvider: def.id,
       displayName: def.name,
       apiKey: "",
+      apiKeyRequired: true,
       baseUrl: def.defaultBaseUrl ?? def.urlPlaceholder ?? "",
       keyPlaceholder: def.keyPlaceholder,
       baseUrlPlaceholder: def.urlPlaceholder ?? def.defaultBaseUrl ?? "https://api.example.com/v1",
@@ -167,6 +189,7 @@ export function useSettingsProviders() {
       iconProvider: "custom",
       displayName: "",
       apiKey: "",
+      apiKeyRequired: true,
       baseUrl: "",
       keyPlaceholder: "sk-...",
       baseUrlPlaceholder: "https://api.example.com/v1",
@@ -183,47 +206,55 @@ export function useSettingsProviders() {
     providerDraft.value = { ...providerDraft.value, ...patch };
   }
 
-  function submitProviderDraft() {
+  async function submitProviderDraft() {
     const draft = providerDraft.value;
     if (!draft || !draft.displayName.trim() || !draft.apiKey.trim()) return;
     if (draft.showBaseUrl && !draft.baseUrl.trim()) return;
 
-    if (draft.kind === "builtin" && draft.builtinId) {
-      const existing = getBuiltin(draft.builtinId);
-      const def = getBuiltinProviderDef(draft.builtinId);
-      saveBuiltin(draft.builtinId, {
-        ...existing,
-        name: draft.displayName.trim(),
-        apiKey: draft.apiKey.trim(),
-        baseUrl: draft.baseUrl.trim() || undefined,
-        enabled: existing.apiKey ? existing.enabled : true,
-      });
-      toast.add({
-        title: t("settings.providerAdded", { name: draft.displayName.trim() || def?.name }),
-      });
-    } else {
-      addCustom({
-        name: draft.displayName.trim(),
-        apiKey: draft.apiKey.trim(),
-        baseUrl: draft.baseUrl.trim(),
-        enabled: true,
-        models: [],
-      });
-      toast.add({ title: t("settings.providerAdded", { name: draft.displayName.trim() }) });
-    }
+    try {
+      if (draft.kind === "builtin" && draft.builtinId) {
+        const existing = getBuiltin(draft.builtinId);
+        const def = getBuiltinProviderDef(draft.builtinId);
+        await saveBuiltin(draft.builtinId, {
+          ...existing,
+          name: draft.displayName.trim(),
+          apiKey: draft.apiKey.trim(),
+          baseUrl: draft.baseUrl.trim() || undefined,
+          enabled: existing.hasApiKey ? existing.enabled : true,
+        });
+        toast.add({
+          title: t("settings.providerAdded", { name: draft.displayName.trim() || def?.name }),
+        });
+      } else {
+        await addCustom({
+          name: draft.displayName.trim(),
+          apiKey: draft.apiKey.trim(),
+          baseUrl: draft.baseUrl.trim(),
+          enabled: true,
+          models: [],
+        });
+        toast.add({ title: t("settings.providerAdded", { name: draft.displayName.trim() }) });
+      }
 
-    providerDraft.value = null;
+      providerDraft.value = null;
+    } catch (error) {
+      toast.add({
+        title: t("settings.providerSaveFailed"),
+        description: errorDescription(error),
+        color: "error",
+      });
+    }
   }
 
-  function deleteBuiltinProvider(id: BuiltinProviderDef["id"]) {
+  async function deleteBuiltinProvider(id: BuiltinProviderDef["id"]) {
     const def = getBuiltinProviderDef(id);
-    removeBuiltin(id);
+    await removeBuiltin(id);
     toast.add({ title: t("settings.providerRemoved", { name: def?.name ?? id }) });
   }
 
-  function deleteCustomProvider(id: string) {
+  async function deleteCustomProvider(id: string) {
     const provider = getCustomProvider(id);
-    removeCustom(id);
+    await removeCustom(id);
     toast.add({ title: t("settings.providerRemoved", { name: provider?.name ?? id }) });
   }
 
@@ -262,7 +293,8 @@ export function useSettingsProviders() {
       const existing = getBuiltin(provider.id);
       editForm.value = {
         displayName: existing.name?.trim() || def?.name || provider.name,
-        apiKey: existing.apiKey,
+        apiKey: "",
+        apiKeyRequired: false,
         baseUrl: existing.baseUrl ?? def?.defaultBaseUrl ?? def?.urlPlaceholder ?? "",
         keyPlaceholder: def?.keyPlaceholder ?? "sk-...",
         baseUrlPlaceholder:
@@ -280,7 +312,8 @@ export function useSettingsProviders() {
 
     editForm.value = {
       displayName: existing.name,
-      apiKey: existing.apiKey,
+      apiKey: "",
+      apiKeyRequired: false,
       baseUrl: existing.baseUrl,
       keyPlaceholder: "sk-...",
       baseUrlPlaceholder: "https://api.example.com/v1",
@@ -288,49 +321,66 @@ export function useSettingsProviders() {
     };
   }
 
-  function submitEditProvider(provider: SettingsProviderCard) {
+  async function submitEditProvider(provider: SettingsProviderCard) {
     const form = editForm.value;
     if (!form || !isEditingProvider(provider)) return;
-    if (!form.displayName.trim() || !form.apiKey.trim()) return;
+    if (!form.displayName.trim()) return;
+    if (form.apiKeyRequired && !form.apiKey.trim()) return;
     if (form.showBaseUrl && !form.baseUrl.trim()) return;
 
     const name = form.displayName.trim();
-    if (provider.kind === "builtin") {
-      const existing = getBuiltin(provider.id);
-      saveBuiltin(provider.id, {
-        ...existing,
-        name,
-        apiKey: form.apiKey.trim(),
-        baseUrl: form.showBaseUrl ? form.baseUrl.trim() || undefined : existing.baseUrl,
-      });
-    } else {
-      const existing = getCustomProvider(provider.id);
-      if (!existing) return;
-      saveCustom({
-        ...existing,
-        name,
-        apiKey: form.apiKey.trim(),
-        baseUrl: form.baseUrl.trim(),
+    try {
+      if (provider.kind === "builtin") {
+        const existing = getBuiltin(provider.id);
+        await saveBuiltin(provider.id, {
+          ...existing,
+          name,
+          apiKey: form.apiKey.trim() || undefined,
+          baseUrl: form.showBaseUrl ? form.baseUrl.trim() || undefined : existing.baseUrl,
+        });
+      } else {
+        const existing = getCustomProvider(provider.id);
+        if (!existing) return;
+        await saveCustom({
+          ...existing,
+          name,
+          apiKey: form.apiKey.trim() || undefined,
+          baseUrl: form.baseUrl.trim(),
+        });
+      }
+
+      toast.add({ title: t("settings.providerSaved", { name }) });
+      resetConnectionStatus(provider);
+      resetModelCatalog(provider);
+      cancelEditProvider();
+    } catch (error) {
+      toast.add({
+        title: t("settings.providerSaveFailed"),
+        description: errorDescription(error),
+        color: "error",
       });
     }
-
-    toast.add({ title: t("settings.providerSaved", { name }) });
-    resetConnectionStatus(provider);
-    resetModelCatalog(provider);
-    cancelEditProvider();
   }
 
-  function deleteProvider(provider: SettingsProviderCard) {
+  async function deleteProvider(provider: SettingsProviderCard) {
     if (isEditingProvider(provider)) cancelEditProvider();
     resetConnectionStatus(provider);
     resetModelCatalog(provider);
 
-    if (provider.kind === "builtin") {
-      deleteBuiltinProvider(provider.id);
-      return;
-    }
+    try {
+      if (provider.kind === "builtin") {
+        await deleteBuiltinProvider(provider.id);
+        return;
+      }
 
-    deleteCustomProvider(provider.id);
+      await deleteCustomProvider(provider.id);
+    } catch (error) {
+      toast.add({
+        title: t("settings.providerDeleteFailed"),
+        description: errorDescription(error),
+        color: "error",
+      });
+    }
   }
 
   function requestDeleteProvider(provider: SettingsProviderCard) {
@@ -343,11 +393,11 @@ export function useSettingsProviders() {
     deleteTarget.value = null;
   }
 
-  function confirmDeleteProvider() {
+  async function confirmDeleteProvider() {
     const provider = deleteTarget.value;
     if (!provider) return;
 
-    deleteProvider(provider);
+    await deleteProvider(provider);
     cancelDeleteProvider();
   }
 
@@ -356,10 +406,7 @@ export function useSettingsProviders() {
     fetchingModels.value = { ...fetchingModels.value, [key]: true };
 
     try {
-      const models =
-        provider.kind === "builtin"
-          ? await fetchBuiltinModels(provider.id)
-          : await fetchCustomModels(provider.id);
+      const models = await fetchProviderModelsForTarget(providerTarget(provider));
 
       modelCatalogs.value = { ...modelCatalogs.value, [key]: models };
     } catch (error) {
@@ -371,29 +418,6 @@ export function useSettingsProviders() {
     } finally {
       fetchingModels.value = { ...fetchingModels.value, [key]: false };
     }
-  }
-
-  async function fetchBuiltinModels(id: BuiltinProviderDef["id"]) {
-    const def = getBuiltinProviderDef(id);
-    const existing = getBuiltin(id);
-    if (!def || !existing.apiKey) return [];
-
-    return fetchProviderModels({
-      apiKey: existing.apiKey,
-      baseUrl: effectiveBaseUrl(def),
-      fetchMode: def.fetchMode,
-    });
-  }
-
-  async function fetchCustomModels(id: string) {
-    const provider = getCustomProvider(id);
-    if (!provider) return [];
-
-    return fetchProviderModels({
-      apiKey: provider.apiKey,
-      baseUrl: provider.baseUrl,
-      fetchMode: "openai",
-    });
   }
 
   function isFetchingModels(provider: SettingsProviderCard) {
@@ -416,8 +440,19 @@ export function useSettingsProviders() {
     void fetchModelsForProvider(provider);
   }
 
-  function addFetchedModel(provider: SettingsProviderCard, model: ProviderModel) {
-    setModels(provider, mergeModels(getModels(provider), [{ ...model, source: "fetched" }]));
+  async function addFetchedModel(provider: SettingsProviderCard, model: ProviderModel) {
+    try {
+      await setModels(
+        provider,
+        mergeModels(getModels(provider), [{ ...model, source: "fetched" }]),
+      );
+    } catch (error) {
+      toast.add({
+        title: t("settings.modelsSaveFailed"),
+        description: errorDescription(error),
+        color: "error",
+      });
+    }
   }
 
   async function testConnectionForProvider(provider: SettingsProviderCard) {
@@ -427,11 +462,7 @@ export function useSettingsProviders() {
     };
 
     try {
-      if (provider.kind === "builtin") {
-        await fetchBuiltinModels(provider.id);
-      } else {
-        await fetchCustomModels(provider.id);
-      }
+      await fetchProviderModelsForTarget(providerTarget(provider));
       connectionStatuses.value = {
         ...connectionStatuses.value,
         [targetKey(provider)]: "success",
@@ -458,7 +489,7 @@ export function useSettingsProviders() {
     manualModelOpen.value = true;
   }
 
-  function submitManualModel() {
+  async function submitManualModel() {
     const target = manualModelTarget.value;
     if (!target || !manualModelForm.id.trim()) return;
 
@@ -467,27 +498,45 @@ export function useSettingsProviders() {
       name: manualModelForm.name.trim() || undefined,
       source: "manual",
     };
-    setModels(target, mergeModels(getModels(target), [model]));
-    toast.add({
-      title: t("settings.modelAdded", {
-        id: model.id,
-        name: manualModelProviderName.value,
-      }),
-    });
-    manualModelOpen.value = false;
+    try {
+      await setModels(target, mergeModels(getModels(target), [model]));
+      toast.add({
+        title: t("settings.modelAdded", {
+          id: model.id,
+          name: manualModelProviderName.value,
+        }),
+      });
+      manualModelOpen.value = false;
+    } catch (error) {
+      toast.add({
+        title: t("settings.modelsSaveFailed"),
+        description: errorDescription(error),
+        color: "error",
+      });
+    }
   }
 
-  function removeModel(provider: SettingsProviderCard, modelId: string) {
-    setModels(
-      provider,
-      getModels(provider).filter((model) => model.id !== modelId),
-    );
+  async function removeModel(provider: SettingsProviderCard, modelId: string) {
+    try {
+      await setModels(
+        provider,
+        getModels(provider).filter((model) => model.id !== modelId),
+      );
+    } catch (error) {
+      toast.add({
+        title: t("settings.modelsSaveFailed"),
+        description: errorDescription(error),
+        color: "error",
+      });
+    }
   }
 
   return {
     addProviderItems,
     providers,
     hasAnyProvider,
+    isLoadingProviders,
+    isSavingProvider,
     providerDraft,
     cancelProviderDraft,
     submitProviderDraft,

@@ -3,6 +3,8 @@ const {
   addProviderItems,
   providers,
   hasAnyProvider,
+  isLoadingProviders,
+  isSavingProvider,
   providerDraft,
   cancelProviderDraft,
   submitProviderDraft,
@@ -44,17 +46,27 @@ const {
         </p>
       </div>
       <UDropdownMenu :items="addProviderItems">
+        <template #item-leading="{ item }">
+          <ProviderIcon :provider="item.iconProvider" size="sm" variant="glyph" />
+        </template>
+
         <UButton
           icon="i-lucide-plus"
           variant="outline"
           color="neutral"
           :label="$t('settings.addProvider')"
+          :disabled="isLoadingProviders || isSavingProvider"
         />
       </UDropdownMenu>
     </div>
 
+    <div v-if="isLoadingProviders" class="space-y-3">
+      <USkeleton class="h-28 w-full rounded-xl" />
+      <USkeleton class="h-28 w-full rounded-xl" />
+    </div>
+
     <div
-      v-if="!hasAnyProvider && !providerDraft"
+      v-else-if="!hasAnyProvider && !providerDraft"
       class="border-default rounded-xl border border-dashed py-14 text-center"
     >
       <UIcon name="i-lucide-key-round" class="text-muted mx-auto mb-3 size-10" />
@@ -105,7 +117,12 @@ const {
           :label="$t('actions.cancel')"
           @click="cancelDeleteProvider"
         />
-        <UButton color="error" :label="$t('actions.delete')" @click="confirmDeleteProvider" />
+        <UButton
+          color="error"
+          :label="$t('actions.delete')"
+          :loading="isSavingProvider"
+          @click="confirmDeleteProvider"
+        />
       </template>
     </UModal>
 

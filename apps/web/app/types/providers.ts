@@ -1,12 +1,13 @@
+import type { Component } from "vue";
 import type { BuiltinProviderId, ProviderModel } from "~/composables/useProviderKeys";
 
-export type ProviderFetchMode = "openai" | "anthropic" | "gemini";
+export type ProviderFetchMode = "openai";
 export type ProviderIconId = BuiltinProviderId | "custom";
 
 export interface BuiltinProviderDef {
   id: BuiltinProviderId;
   name: string;
-  icon: string;
+  icon: string | Component;
   hasBaseUrl: boolean;
   defaultBaseUrl?: string;
   keyPlaceholder: string;
@@ -42,6 +43,7 @@ export type ProviderDraftKind = "builtin" | "custom";
 export interface ProviderFormFields {
   displayName: string;
   apiKey: string;
+  apiKeyRequired: boolean;
   baseUrl: string;
   keyPlaceholder: string;
   baseUrlPlaceholder: string;
