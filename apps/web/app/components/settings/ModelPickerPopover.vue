@@ -121,13 +121,12 @@ function isConfigured(modelId: string) {
           </div>
         </div>
 
-        <div class="border-default border-t p-2">
+        <div v-if="!loading" class="border-default border-t p-2">
           <UButton
             icon="i-lucide-refresh-cw"
             color="neutral"
             variant="ghost"
             block
-            :loading="loading"
             :label="$t('settings.refreshCatalog')"
             @click="emit('refresh')"
           />

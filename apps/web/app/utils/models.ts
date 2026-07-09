@@ -67,23 +67,16 @@ export function builtinChatModelValue(providerId: BuiltinProviderId, modelId: st
 
 export const MODELS: ModelOption[] = [
   {
-    value: builtinChatModelValue("deepseek", "deepseek-v4-flash"),
-    label: "DeepSeek V4 Flash",
-    providerIcon: "deepseek",
-    providerName: "DeepSeek",
+    value: builtinChatModelValue("openrouter", "openrouter/free"),
+    label: "OpenRouter Free",
+    providerIcon: "openrouter",
+    providerName: "OpenRouter",
     reasoning: false,
-  },
-  {
-    value: builtinChatModelValue("deepseek", "deepseek-v4-pro"),
-    label: "DeepSeek V4 Pro",
-    providerIcon: "deepseek",
-    providerName: "DeepSeek",
-    reasoning: true,
   },
 ];
 
 export const DEFAULT_MODEL =
-  MODELS[0]?.value ?? builtinChatModelValue("deepseek", "deepseek-v4-flash");
+  MODELS[0]?.value ?? builtinChatModelValue("openrouter", "openrouter/free");
 
 export function isLegacyDeepSeekModel(value: string) {
   return LEGACY_DEEPSEEK_MODEL_IDS.includes(value as (typeof LEGACY_DEEPSEEK_MODEL_IDS)[number]);

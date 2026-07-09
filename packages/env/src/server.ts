@@ -16,6 +16,7 @@ export const env = createEnv({
     RESEND_API_KEY: z.string().optional(),
     RESEND_FROM_EMAIL: z.string().optional(),
     DEEPSEEK_API_KEY: z.string().optional(),
+    OPENROUTER_API_KEY: z.string().optional(),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

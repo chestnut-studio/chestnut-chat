@@ -67,7 +67,7 @@ function findModelOption(value: string) {
 }
 
 const selectedProviderIcon = computed(
-  () => findModelOption(model.value)?.providerIcon ?? "deepseek",
+  () => findModelOption(model.value)?.providerIcon ?? "openrouter",
 );
 
 watch(

@@ -47,7 +47,7 @@ const {
       </div>
       <UDropdownMenu :items="addProviderItems">
         <template #item-leading="{ item }">
-          <ProviderIcon :provider="item.iconProvider" size="sm" variant="glyph" />
+          <ProviderIcon :provider="item.iconProvider" size="xs" />
         </template>
 
         <UButton

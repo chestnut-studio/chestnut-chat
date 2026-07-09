@@ -34,8 +34,8 @@ type ChatRequestBody = {
   webSearch?: boolean;
 };
 
-const SUPPORTED_MODELS = ["deepseek-v4-flash", "deepseek-v4-pro"] as const;
-type SupportedModel = (typeof SUPPORTED_MODELS)[number];
+const SUPPORTED_DEEPSEEK_MODELS = ["deepseek-v4-flash", "deepseek-v4-pro"] as const;
+type SupportedDeepSeekModel = (typeof SUPPORTED_DEEPSEEK_MODELS)[number];
 type ChatProviderKind = "builtin" | "custom";
 type ChatModelTarget = {
   kind: ChatProviderKind;
@@ -48,10 +48,13 @@ type MiniMaxReasoningDetail = {
 };
 
 const DEFAULT_CHAT_TITLE = "New Chat";
-const DEFAULT_MODEL: SupportedModel = "deepseek-v4-flash";
+const DEFAULT_MODEL = "builtin:openrouter:openrouter%2Ffree";
 const TITLE_MAX_LENGTH = 60;
 const WORD_STREAM_CHUNKING = new Intl.Segmenter(undefined, { granularity: "word" });
 const MINIMAX_PROVIDER_ID = "minimax";
+const OPENROUTER_PROVIDER_ID = "openrouter";
+const OPENROUTER_FREE_MODEL_ID = "openrouter/free";
+const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 const MINIMAX_BASE_URLS = ["https://api.minimaxi.com/v1", "https://api.minimax.io/v1"] as const;
 
 type FetchInput = Parameters<typeof fetch>[0];
@@ -236,8 +239,8 @@ async function normalizeMiniMaxReasoningResponse(response: Response) {
   });
 }
 
-function isSupportedDeepSeekModel(modelId: string): modelId is SupportedModel {
-  return SUPPORTED_MODELS.includes(modelId as SupportedModel);
+function isSupportedDeepSeekModel(modelId: string): modelId is SupportedDeepSeekModel {
+  return SUPPORTED_DEEPSEEK_MODELS.includes(modelId as SupportedDeepSeekModel);
 }
 
 function decodeChatModelValue(value: string): ChatModelTarget | null {
@@ -334,6 +337,32 @@ async function resolveChatModel(model: string | undefined, userId: string) {
   const target = decodeChatModelValue(modelValue);
 
   if (target) {
+    if (
+      target.kind === "builtin" &&
+      target.providerId === OPENROUTER_PROVIDER_ID &&
+      target.modelId === OPENROUTER_FREE_MODEL_ID
+    ) {
+      const [row] = await db.select().from(providerSetting).where(providerWhere(userId, target));
+      if (!row) {
+        if (!env.OPENROUTER_API_KEY) {
+          throw new Error(
+            "OpenRouter is not configured. Set OPENROUTER_API_KEY in apps/server/.env.",
+          );
+        }
+        const openRouter = createOpenAICompatible({
+          name: OPENROUTER_PROVIDER_ID,
+          apiKey: normalizeProviderApiKey(env.OPENROUTER_API_KEY),
+          baseURL: OPENROUTER_BASE_URL,
+        });
+        return {
+          model: openRouter.chatModel(target.modelId),
+          modelId: target.modelId,
+          providerId: OPENROUTER_PROVIDER_ID,
+          providerOptions: undefined,
+        };
+      }
+    }
+
     if (target.kind === "builtin" && target.providerId === "deepseek") {
       const [row] = await db.select().from(providerSetting).where(providerWhere(userId, target));
       if (!row && isSupportedDeepSeekModel(target.modelId)) {

@@ -77,7 +77,9 @@ export function useSettingsProviders() {
   );
 
   const availableToAdd = computed(() =>
-    BUILTIN_PROVIDERS.filter((def) => !providerStorage.value.builtin[def.id]?.hasApiKey),
+    BUILTIN_PROVIDERS.filter((def) => !providerStorage.value.builtin[def.id]?.hasApiKey).sort(
+      (first, second) => first.name.localeCompare(second.name),
+    ),
   );
 
   const addProviderItems = computed<AddProviderMenuItem[][]>(() => [

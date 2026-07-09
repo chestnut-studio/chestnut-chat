@@ -14,7 +14,7 @@ import type { ProviderIconId } from "~/types/providers";
 const props = withDefaults(
   defineProps<{
     provider: ProviderIconId;
-    size?: "sm" | "md";
+    size?: "xs" | "sm" | "md";
     variant?: "badge" | "glyph";
   }>(),
   {
@@ -67,7 +67,11 @@ const CONFIGS: Record<ProviderIconId, ProviderConfig> = {
 };
 
 const config = computed(() => CONFIGS[props.provider]);
-const iconClass = computed(() => (props.size === "sm" ? "size-4" : "size-5"));
+const iconClass = computed(() => (props.size === "md" ? "size-5" : "size-4"));
+const badgeClass = computed(() => {
+  if (props.size === "xs") return "size-6 rounded-lg";
+  return props.size === "sm" ? "size-8 rounded-xl" : "size-10 rounded-xl";
+});
 </script>
 
 <template>
@@ -83,8 +87,8 @@ const iconClass = computed(() => (props.size === "sm" ? "size-4" : "size-5"));
   />
   <div
     v-else
-    class="flex shrink-0 items-center justify-center rounded-xl"
-    :class="size === 'sm' ? 'size-8' : 'size-10'"
+    class="flex shrink-0 items-center justify-center"
+    :class="badgeClass"
     :style="{ background: config.background, boxShadow: config.shadow }"
   >
     <component
