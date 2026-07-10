@@ -1,7 +1,7 @@
 import type { Component } from "vue";
 import type { BuiltinProviderId, ProviderModel } from "~/composables/useProviderKeys";
 
-export type ProviderFetchMode = "openai";
+export type ProviderFetchMode = "openai" | "catalog";
 export type ProviderIconId = BuiltinProviderId | "custom";
 
 export interface BuiltinProviderDef {

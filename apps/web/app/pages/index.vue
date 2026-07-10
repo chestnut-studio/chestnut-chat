@@ -9,6 +9,10 @@ const toast = useToast();
 const { t } = useI18n();
 const { show: showLogin } = useLoginModal();
 
+useHead(() => ({
+  title: t("app.name"),
+}));
+
 const pendingPrompt = useState<{
   text: string;
   model: string;

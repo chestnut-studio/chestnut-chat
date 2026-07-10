@@ -147,6 +147,8 @@ function resolveFetchOptions(row: typeof providerSetting.$inferSelect) {
     baseUrl: row.baseUrl ?? def.defaultBaseUrl,
     fetchMode: def.fetchMode,
     authModes: def.authModes,
+    modelCatalog: def.modelCatalog,
+    providerId: def.id,
   };
 }
 

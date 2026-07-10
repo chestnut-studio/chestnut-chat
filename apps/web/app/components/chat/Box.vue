@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { ChatStatus } from "ai";
 
-import ModelIcon from "./ModelIcon.vue";
-
 import { DEFAULT_MODEL, buildProviderModelOptions, decodeChatModelValue } from "~/utils/models";
 
 type ChatBoxPayload = {
@@ -65,10 +63,6 @@ function findModelOption(value: string) {
 
   return modelOptions.value.find((item) => decodeChatModelValue(item.value)?.modelId === value);
 }
-
-const selectedProviderIcon = computed(
-  () => findModelOption(model.value)?.providerIcon ?? "openrouter",
-);
 
 watch(
   model,
@@ -148,22 +142,7 @@ async function onSubmit() {
 
       <template #footer>
         <div class="flex flex-wrap items-center gap-1.5">
-          <USelect
-            v-model="model"
-            :items="modelOptions"
-            value-key="value"
-            size="sm"
-            class="w-52"
-            :ui="{ value: 'ps-6', itemLeadingIcon: 'size-4' }"
-          >
-            <template #leading>
-              <ModelIcon :icon="selectedProviderIcon" />
-            </template>
-
-            <template #item-leading="{ item }">
-              <ModelIcon :icon="item.providerIcon" />
-            </template>
-          </USelect>
+          <ChatModelSelector v-model="model" :items="modelOptions" :loading="areProvidersLoading" />
 
           <UTooltip :text="$t('chat.reasoning')">
             <UButton

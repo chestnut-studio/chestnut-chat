@@ -10,6 +10,11 @@ const colorMode = useColorMode();
 const toast = useToast();
 const { locale, locales, setLocale, t } = useI18n();
 
+useHead(() => ({
+  title: t("settings.title"),
+  titleTemplate: "%s - Chestnut Chat",
+}));
+
 const tabs = computed(() => [
   { label: t("settings.account"), slot: "account" as const },
   { label: t("settings.customization"), slot: "customization" as const },

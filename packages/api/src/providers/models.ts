@@ -17,7 +17,7 @@ export const BUILTIN_PROVIDER_IDS = [
 ] as const;
 
 export type BuiltinProviderId = (typeof BUILTIN_PROVIDER_IDS)[number];
-export type ProviderFetchMode = "openai";
+export type ProviderFetchMode = "openai" | "catalog";
 export type ProviderAuthMode = "bearer" | "raw";
 
 export interface BuiltinProviderDef {
@@ -25,6 +25,7 @@ export interface BuiltinProviderDef {
   defaultBaseUrl?: string;
   fetchMode: ProviderFetchMode;
   authModes?: readonly ProviderAuthMode[];
+  modelCatalog?: readonly ProviderModel[];
 }
 
 interface OpenAICompatibleModelsResponse {
@@ -36,6 +37,8 @@ export interface FetchProviderModelsOptions {
   baseUrl?: string | null;
   fetchMode: ProviderFetchMode;
   authModes?: readonly ProviderAuthMode[];
+  modelCatalog?: readonly ProviderModel[];
+  providerId?: BuiltinProviderId;
 }
 
 export class ProviderModelsFetchError extends Error {
@@ -47,6 +50,19 @@ export class ProviderModelsFetchError extends Error {
     this.name = "ProviderModelsFetchError";
   }
 }
+
+const SPARK_STANDARD_MODEL_CATALOG: readonly ProviderModel[] = [
+  { id: "4.0Ultra", name: "Spark 4.0 Ultra", source: "fetched" },
+  { id: "generalv3.5", name: "Spark Max", source: "fetched" },
+  { id: "max-32k", name: "Spark Max-32K", source: "fetched" },
+  { id: "generalv3", name: "Spark Pro", source: "fetched" },
+  { id: "pro-128k", name: "Spark Pro-128K", source: "fetched" },
+  { id: "lite", name: "Spark Lite", source: "fetched" },
+];
+
+const SPARK_REASONING_MODEL_CATALOG: readonly ProviderModel[] = [
+  { id: "spark-x", name: "Spark X", source: "fetched" },
+];
 
 export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
@@ -87,7 +103,10 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "spark",
     defaultBaseUrl: "https://spark-api-open.xf-yun.com/v1",
-    fetchMode: "openai",
+    // Spark implements the chat-completions API but does not expose GET /v1/models.
+    // Keep this catalog in sync with Spark's HTTP API documentation.
+    fetchMode: "catalog",
+    modelCatalog: SPARK_STANDARD_MODEL_CATALOG,
   },
   {
     id: "stepfun",
@@ -124,6 +143,15 @@ const MINIMAX_BASE_URLS = ["https://api.minimaxi.com/v1", "https://api.minimax.i
 
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.trim().replace(/\/+$/, "");
+}
+
+export function getSparkModelCatalog(baseUrl: string | null | undefined) {
+  const normalized = baseUrl ? normalizeBaseUrl(baseUrl).toLowerCase() : "";
+  const isReasoningEndpoint = ["/x2", "/v2", "/agent/v1"].some((path) => normalized.endsWith(path));
+
+  return isReasoningEndpoint
+    ? [...SPARK_REASONING_MODEL_CATALOG]
+    : [...SPARK_STANDARD_MODEL_CATALOG];
 }
 
 function getAlternateMiniMaxBaseUrl(baseUrl: string) {
@@ -247,10 +275,12 @@ async function fetchOpenAICompatibleModels(
 }
 
 export async function fetchProviderModels(options: FetchProviderModelsOptions) {
-  if (!options.baseUrl) return [];
-
   switch (options.fetchMode) {
+    case "catalog":
+      if (options.providerId === "spark") return getSparkModelCatalog(options.baseUrl);
+      return options.modelCatalog ? [...options.modelCatalog] : [];
     case "openai":
+      if (!options.baseUrl) return [];
       return fetchOpenAICompatibleModels(options.apiKey, options.baseUrl, options.authModes);
   }
 }

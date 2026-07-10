@@ -15,9 +15,17 @@ const { $orpc } = useNuxtApp();
 const config = useRuntimeConfig();
 const toast = useToast();
 const { t } = useI18n();
-const { invalidate: invalidateChats } = useChats();
+const { list: chats, invalidate: invalidateChats } = useChats();
 const chatId = computed(() => route.params.id as string);
+const chatTitle = computed(
+  () => chats.data.value?.find((chat) => chat.id === chatId.value)?.title ?? t("sidebar.newChat"),
+);
 const serverUrl = config.public.serverUrl;
+
+useHead(() => ({
+  title: chatTitle.value,
+  titleTemplate: "%s - Chestnut Chat",
+}));
 
 definePageMeta({
   layout: "dashboard",
@@ -35,15 +43,30 @@ const pendingPrompt = useState<{
   webSearch: boolean;
 } | null>("pendingPrompt", () => null);
 
-function errorDescription(error: Error) {
+const MAX_TOAST_ERROR_LENGTH = 160;
+
+function errorMessage(error: Error) {
   try {
-    const parsed = JSON.parse(error.message) as { error?: unknown };
+    const parsed = JSON.parse(error.message) as { error?: unknown; message?: unknown };
     if (typeof parsed.error === "string") return parsed.error;
+    if (typeof parsed.message === "string") return parsed.message;
   } catch {
     // The transport uses plain text for some network errors.
   }
 
   return error.message;
+}
+
+function errorDescription(error: Error) {
+  const message = errorMessage(error);
+  if (/has not activated the model/i.test(message)) {
+    return t("toast.modelNotActivated");
+  }
+
+  const withoutRequestId = message.replace(/\s*Request id:\s*\S+\.?$/i, "").trim();
+  if (withoutRequestId.length <= MAX_TOAST_ERROR_LENGTH) return withoutRequestId;
+
+  return `${withoutRequestId.slice(0, MAX_TOAST_ERROR_LENGTH).trimEnd()}…`;
 }
 
 const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<UIMessage>(() => ({
@@ -101,9 +124,7 @@ function restoreModelValue(value: string | null) {
   return value;
 }
 
-function restoreLastModel(
-  rows: NonNullable<typeof history.data.value>,
-) {
+function restoreLastModel(rows: NonNullable<typeof history.data.value>) {
   const model = [...rows].reverse().find((row) => row.model)?.model ?? null;
   const restoredModel = restoreModelValue(model);
   if (!restoredModel) return;

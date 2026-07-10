@@ -130,6 +130,10 @@
   },
   "chat": {
     "placeholder": "Message Chestnut Chat",
+    "selectModel": "Select model",
+    "selectedModel": "Selected model",
+    "searchModels": "Search models...",
+    "noMatchingModels": "No matching models",
     "reasoning": "Reasoning",
     "webSearch": "Web search",
     "attach": "Attach files",
@@ -141,6 +145,7 @@
     "copied": "Copied",
     "chatCreateFailed": "Failed to create chat",
     "chatFailed": "Chat request failed",
+    "modelNotActivated": "The selected model is not activated. Enable it in the provider console.",
     "signedOut": "Signed out successfully",
     "signOutFailed": "Sign out failed",
     "accountDeleted": "Account deleted",

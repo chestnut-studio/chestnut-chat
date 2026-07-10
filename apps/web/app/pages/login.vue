@@ -4,6 +4,12 @@ import SignUpForm from "~/components/SignUpForm.vue";
 
 const authSession = useAuthSession();
 const showSignIn = ref(true);
+const { t } = useI18n();
+
+useHead(() => ({
+  title: t("login.title"),
+  titleTemplate: "%s - Chestnut Chat",
+}));
 
 onMounted(() => {
   authSession.ensure();

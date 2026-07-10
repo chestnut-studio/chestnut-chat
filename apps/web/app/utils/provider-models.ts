@@ -9,6 +9,7 @@ export interface FetchProviderModelsOptions {
   apiKey: string;
   baseUrl?: string;
   fetchMode: ProviderFetchMode;
+  modelCatalog?: readonly ProviderModel[];
 }
 
 function normalizeBaseUrl(baseUrl: string) {
@@ -80,10 +81,11 @@ async function fetchOpenAICompatibleModels(apiKey: string, baseUrl: string) {
 }
 
 export async function fetchProviderModels(options: FetchProviderModelsOptions) {
-  if (!options.baseUrl) return [];
-
   switch (options.fetchMode) {
+    case "catalog":
+      return options.modelCatalog ? [...options.modelCatalog] : [];
     case "openai":
+      if (!options.baseUrl) return [];
       return fetchOpenAICompatibleModels(options.apiKey, options.baseUrl);
   }
 }

@@ -130,6 +130,10 @@
   },
   "chat": {
     "placeholder": "给 Chestnut Chat 发送消息",
+    "selectModel": "选择模型",
+    "selectedModel": "当前模型",
+    "searchModels": "搜索模型...",
+    "noMatchingModels": "没有匹配的模型",
     "reasoning": "推理",
     "webSearch": "联网搜索",
     "attach": "附加文件",
@@ -141,6 +145,7 @@
     "copied": "已复制",
     "chatCreateFailed": "创建对话失败",
     "chatFailed": "对话请求失败",
+    "modelNotActivated": "所选模型尚未开通，请在服务商控制台开通。",
     "signedOut": "已退出登录",
     "signOutFailed": "退出登录失败",
     "accountDeleted": "账户已删除",

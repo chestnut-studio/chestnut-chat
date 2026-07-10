@@ -6,6 +6,7 @@ allowBuilds:
   "@parcel/watcher": true
   vue-demi: true
   lefthook: true
+  sharp: set this to true or false
 overrides:
   "@vue/devtools-api": ^8.0.7
 catalog:
