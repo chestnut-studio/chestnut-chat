@@ -43,6 +43,8 @@ const isRenderingResponse = computed(
   () => isRequestActive.value || Object.keys(typingStates).length > 0,
 );
 let scrollFrame: number | undefined;
+let scrollContainer: HTMLElement | Element | null = null;
+const isUserScrolledUp = ref(false);
 
 function scrollParent(node: HTMLElement | null) {
   const overflowRegex = /auto|scroll/;
@@ -57,18 +59,31 @@ function scrollParent(node: HTMLElement | null) {
   return document.documentElement;
 }
 
+function isNearBottom(container: HTMLElement | Element, threshold = 80) {
+  if (container === document.documentElement) {
+    return document.documentElement.scrollHeight - window.scrollY - window.innerHeight <= threshold;
+  }
+  const el = container as HTMLElement;
+  return el.scrollHeight - el.scrollTop - el.clientHeight <= threshold;
+}
+
+function onContainerScroll() {
+  if (!scrollContainer) return;
+  isUserScrolledUp.value = !isNearBottom(scrollContainer);
+}
+
 function scrollToBottom(smooth = false) {
   if (!import.meta.client) return;
 
-  const parent = scrollParent(root.value);
+  const parent = scrollContainer ?? scrollParent(root.value);
   parent.scrollTo({
-    top: parent.scrollHeight,
+    top: (parent as HTMLElement).scrollHeight,
     behavior: smooth ? "smooth" : "auto",
   });
 }
 
 function queueScrollToBottom() {
-  if (!import.meta.client || scrollFrame !== undefined) return;
+  if (!import.meta.client || scrollFrame !== undefined || isUserScrolledUp.value) return;
 
   scrollFrame = requestAnimationFrame(() => {
     scrollFrame = undefined;
@@ -79,11 +94,21 @@ function queueScrollToBottom() {
 watch(
   () => props.messages.length,
   async (length, previousLength) => {
-    if (!import.meta.client || !length || previousLength !== 0) return;
+    if (!import.meta.client || !length) return;
 
-    await nextTick();
-    scrollToBottom(false);
-    requestAnimationFrame(() => scrollToBottom(false));
+    if (previousLength === 0) {
+      await nextTick();
+      scrollToBottom(false);
+      requestAnimationFrame(() => scrollToBottom(false));
+      return;
+    }
+
+    const lastMessage = props.messages[length - 1];
+    if (lastMessage?.role === "user") {
+      isUserScrolledUp.value = false;
+      await nextTick();
+      scrollToBottom(false);
+    }
   },
   { flush: "post" },
 );
@@ -385,9 +410,20 @@ watch(
   },
 );
 
+onMounted(() => {
+  nextTick(() => {
+    scrollContainer = scrollParent(root.value);
+    scrollContainer.addEventListener("scroll", onContainerScroll, { passive: true });
+  });
+});
+
 onBeforeUnmount(() => {
   if (scrollFrame !== undefined) {
     cancelAnimationFrame(scrollFrame);
+  }
+
+  if (scrollContainer) {
+    scrollContainer.removeEventListener("scroll", onContainerScroll);
   }
 
   for (const key of Object.keys(typingStates)) {
@@ -398,12 +434,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="root" class="min-h-full">
-    <UChatMessages
-      :messages="props.messages"
-      :status="props.status"
-      should-auto-scroll
-      class="min-h-full"
-    >
+    <UChatMessages :messages="props.messages" :status="props.status" class="min-h-full">
       <template #content="{ message }">
         <template
           v-for="(part, index) in message.parts"

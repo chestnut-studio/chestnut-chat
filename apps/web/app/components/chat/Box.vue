@@ -3,7 +3,7 @@ import type { ChatStatus } from "ai";
 
 import ModelIcon from "./ModelIcon.vue";
 
-import { DEFAULT_MODEL, MODELS } from "~/utils/models";
+import { DEFAULT_MODEL, buildProviderModelOptions, decodeChatModelValue } from "~/utils/models";
 
 type ChatBoxPayload = {
   text: string;
@@ -25,20 +25,77 @@ const emit = defineEmits<{
 }>();
 
 const input = ref("");
-const model = ref(DEFAULT_MODEL);
+const model = defineModel<string>({ default: DEFAULT_MODEL });
 const reasoning = ref(false);
 const webSearch = ref(false);
 const files = ref<File[]>([]);
 const fileInput = ref<HTMLInputElement | null>(null);
+const { storage: providerStorage, isLoading: areProvidersLoading } = useProviderKeys();
 const isBusy = computed(() => props.status === "submitted" || props.status === "streaming");
 
-const selectedProviderIcon = computed(
-  () => MODELS.find((item) => item.value === model.value)?.providerIcon ?? "deepseek",
+const configuredProviderModelSources = computed(() => [
+  ...BUILTIN_PROVIDERS.map((def) => {
+    const entry = providerStorage.value.builtin[def.id];
+    return {
+      kind: "builtin" as const,
+      id: def.id,
+      name: entry?.name?.trim() || def.name,
+      iconProvider: def.id,
+      enabled: !!entry?.enabled,
+      models: entry?.models ?? [],
+    };
+  }),
+  ...providerStorage.value.custom.map((provider) => ({
+    kind: "custom" as const,
+    id: provider.id,
+    name: provider.name,
+    iconProvider: "custom" as const,
+    enabled: provider.enabled,
+    models: provider.models ?? [],
+  })),
+]);
+
+const modelOptions = computed(() =>
+  buildProviderModelOptions(configuredProviderModelSources.value),
 );
 
-watch(model, (value) => {
-  reasoning.value = MODELS.find((item) => item.value === value)?.reasoning ?? false;
-});
+function findModelOption(value: string) {
+  const exactOption = modelOptions.value.find((item) => item.value === value);
+  if (exactOption) return exactOption;
+
+  return modelOptions.value.find((item) => decodeChatModelValue(item.value)?.modelId === value);
+}
+
+const selectedProviderIcon = computed(
+  () => findModelOption(model.value)?.providerIcon ?? "openrouter",
+);
+
+watch(
+  model,
+  (value) => {
+    reasoning.value = findModelOption(value)?.reasoning ?? false;
+  },
+  { immediate: true },
+);
+
+watch(
+  [model, modelOptions, areProvidersLoading],
+  ([value, options, isLoading]) => {
+    const option = findModelOption(value);
+    if (option) {
+      if (option.value !== value) {
+        model.value = option.value;
+      }
+      return;
+    }
+
+    if (isLoading) return;
+    if (value) return;
+
+    model.value = options[0]?.value ?? DEFAULT_MODEL;
+  },
+  { immediate: true },
+);
 
 function onPickFiles(event: Event) {
   const target = event.target as HTMLInputElement;
@@ -93,7 +150,7 @@ async function onSubmit() {
         <div class="flex flex-wrap items-center gap-1.5">
           <USelect
             v-model="model"
-            :items="MODELS"
+            :items="modelOptions"
             value-key="value"
             size="sm"
             class="w-52"
@@ -116,7 +173,11 @@ async function onSubmit() {
               size="sm"
               square
               :aria-label="$t('chat.reasoning')"
-              @click="reasoning = !reasoning"
+              @click="
+                () => {
+                  reasoning = !reasoning;
+                }
+              "
             />
           </UTooltip>
 
@@ -128,7 +189,11 @@ async function onSubmit() {
               size="sm"
               square
               :aria-label="$t('chat.webSearch')"
-              @click="webSearch = !webSearch"
+              @click="
+                () => {
+                  webSearch = !webSearch;
+                }
+              "
             />
           </UTooltip>
 

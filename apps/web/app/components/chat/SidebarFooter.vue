@@ -11,7 +11,6 @@ const toast = useToast();
 const { t } = useI18n();
 const { show: showLogin } = useLoginModal();
 
-const settingsOpen = ref(false);
 const hydrated = ref(false);
 
 onMounted(() => {
@@ -24,9 +23,7 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     {
       label: t("settings.title"),
       icon: "i-lucide-settings",
-      onSelect: () => {
-        settingsOpen.value = true;
-      },
+      to: "/settings",
     },
   ],
   [
@@ -59,7 +56,12 @@ async function signOut() {
   <div class="w-full">
     <USkeleton v-if="!hydrated || authSession.isPending" class="h-9 w-full" />
 
-    <UDropdownMenu v-else-if="authSession.data" :items="menuItems" class="w-full">
+    <UDropdownMenu
+      v-else-if="authSession.data"
+      :items="menuItems"
+      class="w-full"
+      :ui="{ content: 'min-w-52' }"
+    >
       <UButton
         :avatar="{
           src: authSession.data.user.image ?? undefined,
@@ -83,7 +85,5 @@ async function signOut() {
       :square="collapsed"
       @click="showLogin"
     />
-
-    <SettingsModal v-model:open="settingsOpen" />
   </div>
 </template>

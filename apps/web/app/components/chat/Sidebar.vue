@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { groupChats } from "~/utils/group-chats";
-
-const { list, create, rename, setPinned, setArchived, remove } = useChats();
+const { list, rename, setPinned, setArchived, remove } = useChats();
 const authSession = useAuthSession();
 const { show: showLogin } = useLoginModal();
 const route = useRoute();
@@ -29,10 +27,7 @@ async function onNewChat() {
     return;
   }
 
-  const row = await create.mutateAsync({});
-  if (row) {
-    await navigateTo(`/chat/${row.id}`);
-  }
+  await navigateTo("/");
 }
 
 function openRename(chat: { id: string; title: string }) {
@@ -97,7 +92,7 @@ async function onArchive(chat: { id: string }) {
           variant="outline"
           block
           :square="isCollapsed"
-          :loading="create.isPending.value || authSession.isPending"
+          :loading="authSession.isPending"
           @click="onNewChat"
         />
 
