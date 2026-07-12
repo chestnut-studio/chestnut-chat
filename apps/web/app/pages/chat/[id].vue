@@ -101,9 +101,7 @@ function restoreModelValue(value: string | null) {
   return value;
 }
 
-function restoreLastModel(
-  rows: NonNullable<typeof history.data.value>,
-) {
+function restoreLastModel(rows: NonNullable<typeof history.data.value>) {
   const model = [...rows].reverse().find((row) => row.model)?.model ?? null;
   const restoredModel = restoreModelValue(model);
   if (!restoredModel) return;
