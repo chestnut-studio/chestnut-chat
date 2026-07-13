@@ -1,4 +1,5 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { createDeepSeek } from "@ai-sdk/deepseek";
 import { decryptApiKey } from "@chestnut-chat/api/providers/encryption";
 import {
   getBuiltinProviderDef,
@@ -15,6 +16,7 @@ import type { ChatModelTarget, ResolvedChatModel } from "./chat-types";
 import { createMiniMaxRetryFetch, transformMiniMaxChatRequestBody } from "./minimax";
 
 const DEFAULT_MODEL = "builtin:openrouter:openrouter%2Ffree";
+const DEEPSEEK_PROVIDER_ID = "deepseek";
 const MINIMAX_PROVIDER_ID = "minimax";
 const OPENROUTER_PROVIDER_ID = "openrouter";
 const SPARK_PROVIDER_ID = "spark";
@@ -82,9 +84,20 @@ async function configuredProviderModel(
       `Spark model "${target.modelId}" is incompatible with ${normalizedBaseUrl}. Choose: ${availableModelIds}.`,
     );
   }
+  const apiKey = normalizeProviderApiKey(decryptApiKey(row.apiKeyEncrypted));
+  if (row.providerId === DEEPSEEK_PROVIDER_ID) {
+    const provider = createDeepSeek({ apiKey, baseURL: normalizedBaseUrl });
+
+    return {
+      model: provider.chat(target.modelId),
+      modelId: target.modelId,
+      providerId: row.providerId,
+    };
+  }
+
   const provider = createOpenAICompatible({
     name: row.providerId,
-    apiKey: normalizeProviderApiKey(decryptApiKey(row.apiKeyEncrypted)),
+    apiKey,
     baseURL: normalizedBaseUrl,
     fetch: isMiniMax ? createMiniMaxRetryFetch(normalizedBaseUrl) : undefined,
     transformRequestBody: isMiniMax ? transformMiniMaxChatRequestBody : undefined,

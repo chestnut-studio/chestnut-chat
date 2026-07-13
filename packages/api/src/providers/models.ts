@@ -61,7 +61,7 @@ const SPARK_STANDARD_MODEL_CATALOG: readonly ProviderModel[] = [
 ];
 
 const SPARK_REASONING_MODEL_CATALOG: readonly ProviderModel[] = [
-  { id: "spark-x", name: "Spark X", source: "fetched" },
+  { id: "spark-x", name: "Spark X", supportsReasoning: true, source: "fetched" },
 ];
 
 export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
@@ -203,6 +203,72 @@ function textFrom(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
+function booleanFrom(value: unknown) {
+  return typeof value === "boolean" ? value : undefined;
+}
+
+function stringsFrom(value: unknown, maximum: number) {
+  if (!Array.isArray(value)) return undefined;
+
+  const strings = value.flatMap((item) => {
+    const trimmed = typeof item === "string" ? item.trim() : "";
+    return trimmed ? [trimmed] : [];
+  });
+  const unique = Array.from(new Set(strings)).slice(0, maximum);
+  return unique.length ? unique : undefined;
+}
+
+function includesImageInput(modalities: readonly string[] | undefined) {
+  return modalities?.some((modality) => /^(image|video)$/i.test(modality));
+}
+
+function reasoningSupportFrom(record: Record<string, unknown>) {
+  const capabilities = recordFrom(record.capabilities);
+  const reasoning = recordFrom(record.reasoning);
+  const declaredSupport =
+    booleanFrom(record.supports_reasoning) ??
+    booleanFrom(record.supportsReasoning) ??
+    booleanFrom(record.reasoning) ??
+    booleanFrom(capabilities?.reasoning) ??
+    booleanFrom(capabilities?.thinking);
+  if (declaredSupport !== undefined) return declaredSupport;
+  if (reasoning) return true;
+
+  const supportedParameters = record.supported_parameters ?? record.supportedParameters;
+  if (!Array.isArray(supportedParameters)) return undefined;
+
+  const exposesReasoningParameter = supportedParameters.some(
+    (parameter) =>
+      typeof parameter === "string" &&
+      [
+        "enable_thinking",
+        "include_reasoning",
+        "reasoning",
+        "reasoning_effort",
+        "thinking",
+      ].includes(parameter.toLowerCase()),
+  );
+
+  // Parameter lists describe accepted request fields, not every intrinsic
+  // capability. Absence therefore cannot prove that a model never reasons.
+  return exposesReasoningParameter ? true : undefined;
+}
+
+function visionSupportFrom(
+  record: Record<string, unknown>,
+  inputModalities: readonly string[] | undefined,
+) {
+  const capabilities = recordFrom(record.capabilities);
+  const declaredSupport =
+    booleanFrom(record.supports_vision) ??
+    booleanFrom(record.supportsVision) ??
+    booleanFrom(record.vision) ??
+    booleanFrom(capabilities?.vision) ??
+    booleanFrom(capabilities?.image);
+
+  return declaredSupport ?? includesImageInput(inputModalities);
+}
+
 function normalizeModel(item: unknown): ProviderModel | null {
   const record = recordFrom(item);
   if (!record) return null;
@@ -210,10 +276,32 @@ function normalizeModel(item: unknown): ProviderModel | null {
   const rawId = textFrom(record.id) ?? textFrom(record.name);
   if (!rawId) return null;
 
+  const architecture = recordFrom(record.architecture);
+  const inputModalities =
+    stringsFrom(record.input_modalities, 20) ??
+    stringsFrom(record.inputModalities, 20) ??
+    stringsFrom(architecture?.input_modalities, 20) ??
+    stringsFrom(architecture?.inputModalities, 20) ??
+    stringsFrom(record.modalities, 20);
+  const outputModalities =
+    stringsFrom(record.output_modalities, 20) ??
+    stringsFrom(record.outputModalities, 20) ??
+    stringsFrom(architecture?.output_modalities, 20) ??
+    stringsFrom(architecture?.outputModalities, 20);
+  const supportedParameters = stringsFrom(
+    record.supported_parameters ?? record.supportedParameters,
+    100,
+  );
+
   return {
     id: rawId.replace(/^models\//, ""),
     name: textFrom(record.display_name) ?? textFrom(record.displayName),
     ownedBy: textFrom(record.owned_by) ?? textFrom(record.ownedBy),
+    supportsReasoning: reasoningSupportFrom(record),
+    supportsVision: visionSupportFrom(record, inputModalities),
+    inputModalities,
+    outputModalities,
+    supportedParameters,
     source: "fetched",
   };
 }

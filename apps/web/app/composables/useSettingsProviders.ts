@@ -37,6 +37,29 @@ function mergeModels(
   return Array.from(models.values());
 }
 
+function mergeFetchedMetadata(
+  configured: readonly ProviderModel[],
+  fetched: readonly ProviderModel[],
+) {
+  const fetchedById = new Map(fetched.map((model) => [model.id, model]));
+
+  return configured.map((model) => {
+    const fetchedModel = fetchedById.get(model.id);
+    if (!fetchedModel) return { ...model };
+
+    return {
+      ...model,
+      name: fetchedModel.name ?? model.name,
+      ownedBy: fetchedModel.ownedBy ?? model.ownedBy,
+      supportsReasoning: fetchedModel.supportsReasoning ?? model.supportsReasoning,
+      supportsVision: fetchedModel.supportsVision ?? model.supportsVision,
+      inputModalities: fetchedModel.inputModalities ?? model.inputModalities,
+      outputModalities: fetchedModel.outputModalities ?? model.outputModalities,
+      supportedParameters: fetchedModel.supportedParameters ?? model.supportedParameters,
+    };
+  });
+}
+
 function cloneCustomProvider(provider: Readonly<CustomProvider>): CustomProvider {
   return {
     ...provider,
@@ -411,6 +434,12 @@ export function useSettingsProviders() {
       const models = await fetchProviderModelsForTarget(providerTarget(provider));
 
       modelCatalogs.value = { ...modelCatalogs.value, [key]: models };
+
+      const configuredModels = getModels(providerTarget(provider));
+      const modelsWithFetchedMetadata = mergeFetchedMetadata(configuredModels, models);
+      if (JSON.stringify(modelsWithFetchedMetadata) !== JSON.stringify(configuredModels)) {
+        await setModels(providerTarget(provider), modelsWithFetchedMetadata);
+      }
     } catch (error) {
       toast.add({
         title: t("settings.modelsFetchFailed", { name: provider.name }),

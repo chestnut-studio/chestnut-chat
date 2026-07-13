@@ -1,3 +1,10 @@
+import {
+  modelReasoningEfforts,
+  modelRequiresReasoning,
+  modelSupportsReasoning,
+  type ReasoningEffort,
+} from "@chestnut-chat/api/providers/model-capabilities";
+
 import type { BuiltinProviderId, ProviderModel } from "~/composables/useProviderKeys";
 import type { ProviderIconId } from "~/types/providers";
 
@@ -15,6 +22,8 @@ export type ModelOption = {
   providerIcon: ProviderIconId;
   providerName: string;
   reasoning: boolean;
+  reasoningRequired: boolean;
+  reasoningEfforts: readonly ReasoningEffort[];
 };
 
 interface ConfiguredProviderModelSource {
@@ -34,10 +43,6 @@ function encodeChatModelPart(value: string) {
 
 function modelOptionLabel(providerName: string, model: ProviderModel) {
   return `${providerName} - ${model.name?.trim() || model.id}`;
-}
-
-function modelSupportsReasoning(provider: ConfiguredProviderModelSource, model: ProviderModel) {
-  return provider.id === "minimax" && /^MiniMax-M\d/i.test(model.id);
 }
 
 export function encodeChatModelValue(target: ChatModelTarget) {
@@ -72,6 +77,8 @@ export const MODELS: ModelOption[] = [
     providerIcon: "openrouter",
     providerName: "OpenRouter",
     reasoning: false,
+    reasoningRequired: false,
+    reasoningEfforts: [],
   },
 ];
 
@@ -97,7 +104,9 @@ export function buildProviderModelOptions(
       label: modelOptionLabel(provider.name, model),
       providerIcon: provider.iconProvider,
       providerName: provider.name,
-      reasoning: modelSupportsReasoning(provider, model),
+      reasoning: modelSupportsReasoning(provider.id, model.id, model.supportsReasoning),
+      reasoningRequired: modelRequiresReasoning(provider.id, model.id),
+      reasoningEfforts: modelReasoningEfforts(provider.id),
     }));
   });
 

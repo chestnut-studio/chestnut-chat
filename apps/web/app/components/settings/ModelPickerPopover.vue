@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
+  providerId: string;
   models: readonly ProviderModel[];
   configuredModelIds: readonly string[];
   loading: boolean;
@@ -113,6 +114,7 @@ function isConfigured(modelId: string) {
                   {{ model.name || model.ownedBy }}
                 </span>
               </span>
+              <SettingsModelCapabilityIcons :provider-id="providerId" :model="model" />
               <UIcon
                 :name="isConfigured(model.id) ? 'i-lucide-check' : 'i-lucide-plus'"
                 class="text-muted size-4 shrink-0"

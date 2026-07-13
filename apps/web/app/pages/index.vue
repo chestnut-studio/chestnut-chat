@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
+
 definePageMeta({
   layout: "dashboard",
 });
@@ -8,17 +10,11 @@ const authSession = useAuthSession();
 const toast = useToast();
 const { t } = useI18n();
 const { show: showLogin } = useLoginModal();
+const pendingChatPrompt = usePendingChatPrompt();
 
 useHead(() => ({
   title: t("app.name"),
 }));
-
-const pendingPrompt = useState<{
-  text: string;
-  model: string;
-  reasoning: boolean;
-  webSearch: boolean;
-} | null>("pendingPrompt", () => null);
 
 async function requireAuth() {
   const session = await authSession.ensure();
@@ -32,6 +28,7 @@ async function onSubmit(payload: {
   text: string;
   model: string;
   reasoning: boolean;
+  reasoningEffort: ReasoningEffort;
   webSearch: boolean;
 }) {
   if (!(await requireAuth())) return;
@@ -39,7 +36,7 @@ async function onSubmit(payload: {
   try {
     const row = await create.mutateAsync({});
     if (!row) return;
-    pendingPrompt.value = payload;
+    pendingChatPrompt.set(row.id, payload);
     await navigateTo(`/chat/${row.id}`);
   } catch (error) {
     toast.add({

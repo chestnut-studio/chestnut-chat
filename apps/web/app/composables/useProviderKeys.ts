@@ -19,6 +19,11 @@ export interface ProviderModel {
   id: string;
   name?: string;
   ownedBy?: string;
+  supportsReasoning?: boolean;
+  supportsVision?: boolean;
+  inputModalities?: string[];
+  outputModalities?: string[];
+  supportedParameters?: string[];
   source: "fetched" | "manual";
 }
 

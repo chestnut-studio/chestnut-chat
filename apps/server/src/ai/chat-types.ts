@@ -1,10 +1,20 @@
 import type { LanguageModel, UIMessage } from "ai";
+import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
+import type { WebSearchProgress } from "@chestnut-chat/api/chat/web-search";
+
+export type ChatUIMessage = UIMessage<
+  unknown,
+  {
+    "web-search": WebSearchProgress;
+  }
+>;
 
 export type ChatRequestBody = {
-  messages: UIMessage[];
+  messages: ChatUIMessage[];
   chatId: string;
   model?: string;
   reasoning?: boolean;
+  reasoningEffort?: ReasoningEffort;
   trigger?: "submit-message" | "regenerate-message";
   webSearch?: boolean;
 };

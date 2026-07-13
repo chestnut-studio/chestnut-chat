@@ -70,7 +70,7 @@ function selectModel(value: string) {
           <p class="text-muted mb-1 text-xs font-medium">{{ $t("chat.selectedModel") }}</p>
           <div class="flex items-start gap-2">
             <ModelIcon :icon="selectedProviderIcon" />
-            <p class="min-w-0 flex-1 break-words text-sm font-medium">
+            <p class="min-w-0 flex-1 wrap-break-word text-sm font-medium">
               {{ selectedLabel }}
             </p>
           </div>
@@ -113,11 +113,19 @@ function selectModel(value: string) {
               <ModelIcon :icon="item.providerIcon" />
 
               <span class="min-w-0 flex-1">
-                <span class="block break-words font-medium">{{ item.label }}</span>
+                <span class="block wrap-break-word font-medium">{{ item.label }}</span>
                 <span class="text-muted mt-0.5 block truncate text-xs">
                   {{ item.providerName }}
                 </span>
               </span>
+
+              <UIcon
+                v-if="item.reasoning"
+                name="i-lucide-brain"
+                class="size-4 shrink-0 text-primary"
+                role="img"
+                :aria-label="$t('chat.reasoningSupported')"
+              />
 
               <UIcon
                 v-if="item.value === model"

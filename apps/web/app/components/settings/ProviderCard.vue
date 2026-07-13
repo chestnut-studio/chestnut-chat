@@ -132,6 +132,7 @@ const connectionLabel = computed(() => {
         </div>
         <div class="flex shrink-0 items-center gap-1">
           <SettingsModelPickerPopover
+            :provider-id="provider.id"
             :models="modelCatalog"
             :configured-model-ids="configuredModelIds"
             :loading="fetchingModels"
@@ -172,6 +173,7 @@ const connectionLabel = computed(() => {
               {{ model.name || model.ownedBy }}
             </p>
           </div>
+          <SettingsModelCapabilityIcons :provider-id="provider.id" :model="model" />
           <UButton
             icon="i-lucide-trash-2"
             size="xs"
