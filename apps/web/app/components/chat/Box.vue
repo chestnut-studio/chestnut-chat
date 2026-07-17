@@ -113,6 +113,14 @@ function onPickFiles(event: Event) {
   files.value = Array.from(target.files ?? []);
 }
 
+function onPaste(event: ClipboardEvent) {
+  const textarea = event.currentTarget as HTMLTextAreaElement;
+
+  requestAnimationFrame(() => {
+    textarea.scrollTop = textarea.scrollHeight;
+  });
+}
+
 async function onSubmit() {
   if (isBusy.value) {
     emit("stop");
@@ -155,7 +163,13 @@ async function onSubmit() {
       />
     </div>
 
-    <UChatPrompt v-model="input" :placeholder="$t('chat.placeholder')" @submit="onSubmit">
+    <UChatPrompt
+      v-model="input"
+      :placeholder="$t('chat.placeholder')"
+      :maxrows="8"
+      @paste="onPaste"
+      @submit="onSubmit"
+    >
       <UChatPromptSubmit :status="status" @stop="emit('stop')" @reload="emit('reload')" />
 
       <template #footer>
