@@ -3,6 +3,7 @@ import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabil
 import { useChat } from "@ai-sdk/vue";
 import { useQuery } from "@tanstack/vue-query";
 import { DefaultChatTransport, type ChatStatus } from "ai";
+import { toast } from "vue-sonner";
 
 import {
   DEFAULT_MODEL,
@@ -15,7 +16,6 @@ import type { ChatUIMessage } from "~/types/chat";
 const route = useRoute();
 const { $orpc } = useNuxtApp();
 const config = useRuntimeConfig();
-const toast = useToast();
 const { t } = useI18n();
 const { list: chats, invalidate: invalidateChats } = useChats();
 const chatId = computed(() => route.params.id as string);
@@ -85,10 +85,8 @@ const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<
     }),
     onError(error) {
       console.error(error);
-      toast.add({
-        title: t("toast.chatFailed"),
+      toast.error(t("toast.chatFailed"), {
         description: errorDescription(error),
-        color: "error",
       });
     },
     onFinish({ isAbort, isError }) {

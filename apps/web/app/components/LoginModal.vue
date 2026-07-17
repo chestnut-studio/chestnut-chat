@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { toast } from "vue-sonner";
+
 const open = defineModel<boolean>("open", { default: false });
 
 const { $authClient } = useNuxtApp();
 const config = useRuntimeConfig();
 const authSession = useAuthSession();
-const toast = useToast();
 const { t } = useI18n();
 
 type AuthProviderOptions = {
@@ -67,9 +68,9 @@ async function sendOtp() {
   try {
     await $authClient.emailOtp.sendVerificationOtp({ email: email.value, type: "sign-in" });
     otpSent.value = true;
-    toast.add({ title: t("login.codeSent"), description: t("login.codeSentDescription") });
+    toast.success(t("login.codeSent"), { description: t("login.codeSentDescription") });
   } catch (error: any) {
-    toast.add({ title: t("login.sendFailed"), description: error?.message });
+    toast.error(t("login.sendFailed"), { description: error?.message });
   } finally {
     loading.value = false;
   }
@@ -84,12 +85,12 @@ async function verifyOtp() {
       {
         onSuccess: async () => {
           await authSession.refresh();
-          toast.add({ title: t("login.signedIn") });
+          toast.success(t("login.signedIn"));
           open.value = false;
           await navigateTo("/", { replace: true });
         },
         onError: (error) => {
-          toast.add({ title: t("login.signInFailed"), description: error.error.message });
+          toast.error(t("login.signInFailed"), { description: error.error.message });
         },
       },
     );

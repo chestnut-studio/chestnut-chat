@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
+import { toast } from "vue-sonner";
 
 definePageMeta({
   layout: "dashboard",
@@ -7,7 +8,6 @@ definePageMeta({
 
 const { create } = useChats();
 const authSession = useAuthSession();
-const toast = useToast();
 const { t } = useI18n();
 const { show: showLogin } = useLoginModal();
 const pendingChatPrompt = usePendingChatPrompt();
@@ -39,10 +39,8 @@ async function onSubmit(payload: {
     pendingChatPrompt.set(row.id, payload);
     await navigateTo(`/chat/${row.id}`);
   } catch (error) {
-    toast.add({
-      title: t("toast.chatCreateFailed"),
+    toast.error(t("toast.chatCreateFailed"), {
       description: error instanceof Error ? error.message : undefined,
-      color: "error",
     });
   }
 }

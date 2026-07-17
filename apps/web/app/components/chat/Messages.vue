@@ -2,6 +2,7 @@
 import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
 import { isPartStreaming, isToolStreaming } from "@nuxt/ui/utils/ai";
 import { getToolName, isReasoningUIPart, isTextUIPart, isToolUIPart, type ChatStatus } from "ai";
+import { toast } from "vue-sonner";
 
 import type { ChatUIMessage } from "~/types/chat";
 
@@ -17,7 +18,6 @@ const emit = defineEmits<{
   renderingChange: [boolean];
 }>();
 
-const toast = useToast();
 const { t } = useI18n();
 const root = useTemplateRef<HTMLElement>("root");
 const WORD_DELAY_MS = 32;
@@ -139,7 +139,7 @@ function messageText(message: ChatUIMessage) {
 
 async function copy(message: ChatUIMessage) {
   await navigator.clipboard.writeText(messageText(message));
-  toast.add({ title: t("toast.copied") });
+  toast.success(t("toast.copied"));
 }
 
 function actionsFor(message: ChatUIMessage) {

@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   experimental: {
     payloadExtraction: "client",
   },
-  modules: ["@nuxt/ui", "@nuxtjs/i18n", "@nuxt/image"],
+  modules: ["@nuxt/ui", "vue-sonner/nuxt", "@nuxtjs/i18n", "@nuxt/image"],
   app: {
     head: {
       link: [

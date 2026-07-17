@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
+import { toast } from "vue-sonner";
 import * as z from "zod";
 
 const { $authClient } = useNuxtApp();
@@ -7,7 +8,6 @@ const authSession = useAuthSession();
 
 const emit = defineEmits(["switchToSignUp"]);
 
-const toast = useToast();
 const loading = ref(false);
 
 const fields: AuthFormField[] = [
@@ -45,17 +45,16 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       {
         onSuccess: async () => {
           await authSession.refresh();
-          toast.add({ title: "Sign in successful" });
+          toast.success("Sign in successful");
           await navigateTo("/", { replace: true });
         },
         onError: (error) => {
-          toast.add({ title: "Sign in failed", description: error.error.message });
+          toast.error("Sign in failed", { description: error.error.message });
         },
       },
     );
   } catch (error: any) {
-    toast.add({
-      title: "An unexpected error occurred",
+    toast.error("An unexpected error occurred", {
       description: error.message || "Please try again.",
     });
   } finally {
