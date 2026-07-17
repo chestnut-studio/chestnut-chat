@@ -99,6 +99,9 @@ const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<
   }),
 );
 const renderedMessages = computed(() => [...messages.value]);
+const isHistoryLoading = computed(
+  () => history.isPending.value && renderedMessages.value.length === 0,
+);
 
 const lastOptions = ref(
   initialPromptOptions ?? {
@@ -253,7 +256,10 @@ function confirmEdit() {
       <div
         class="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6"
       >
+        <ChatHistoryLoading v-if="isHistoryLoading" />
         <ChatMessages
+          v-else
+          :key="chatId"
           :abort-key="abortRenderKey"
           :messages="renderedMessages"
           :status="status"

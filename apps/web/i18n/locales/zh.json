@@ -131,6 +131,7 @@
     "signInFailed": "登录失败"
   },
   "chat": {
+    "loadingHistory": "正在加载对话记录",
     "placeholder": "给 Chestnut Chat 发送消息",
     "selectModel": "选择模型",
     "selectedModel": "当前模型",

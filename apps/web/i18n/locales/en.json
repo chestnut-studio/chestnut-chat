@@ -131,6 +131,7 @@
     "signInFailed": "Sign in failed"
   },
   "chat": {
+    "loadingHistory": "Loading chat history",
     "placeholder": "Message Chestnut Chat",
     "selectModel": "Select model",
     "selectedModel": "Selected model",

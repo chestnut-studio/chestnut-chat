@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 const toast = useToast();
 const { t } = useI18n();
-const root = ref<HTMLElement | null>(null);
+const root = useTemplateRef<HTMLElement>("root");
 const WORD_DELAY_MS = 32;
 const wordSegmenter =
   typeof Intl !== "undefined" && "Segmenter" in Intl
@@ -46,6 +46,7 @@ const isRenderingResponse = computed(
 );
 let scrollFrame: number | undefined;
 let scrollContainer: HTMLElement | Element | null = null;
+let contentResizeObserver: ResizeObserver | null = null;
 const isUserScrolledUp = ref(false);
 
 function scrollParent(node: HTMLElement | null) {
@@ -84,6 +85,12 @@ function scrollToBottom(smooth = false) {
   });
 }
 
+function scrollToLatestMessage() {
+  isUserScrolledUp.value = false;
+  scrollToBottom(false);
+  queueScrollToBottom();
+}
+
 function queueScrollToBottom() {
   if (!import.meta.client || scrollFrame !== undefined || isUserScrolledUp.value) return;
 
@@ -100,8 +107,7 @@ watch(
 
     if (previousLength === 0) {
       await nextTick();
-      scrollToBottom(false);
-      requestAnimationFrame(() => scrollToBottom(false));
+      scrollToLatestMessage();
       return;
     }
 
@@ -462,6 +468,15 @@ onMounted(() => {
   nextTick(() => {
     scrollContainer = scrollParent(root.value);
     scrollContainer.addEventListener("scroll", onContainerScroll, { passive: true });
+
+    if (root.value && "ResizeObserver" in window) {
+      contentResizeObserver = new ResizeObserver(() => queueScrollToBottom());
+      contentResizeObserver.observe(root.value);
+    }
+
+    if (props.messages.length > 0) {
+      scrollToLatestMessage();
+    }
   });
 });
 
@@ -475,6 +490,8 @@ onBeforeUnmount(() => {
   if (scrollContainer) {
     scrollContainer.removeEventListener("scroll", onContainerScroll);
   }
+
+  contentResizeObserver?.disconnect();
 
   for (const key of Object.keys(typingStates)) {
     removeTypingState(key);
