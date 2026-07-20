@@ -76,14 +76,13 @@ Receives the `Chat` instance and emits action events to the page.
 import type { Chat } from "@ai-sdk/vue";
 import { isPartStreaming } from "@nuxt/ui/utils/ai";
 import { isReasoningUIPart, isTextUIPart } from "ai";
+import { toast } from "vue-sonner";
 
 const props = defineProps<{ chat: Chat }>();
 const emit = defineEmits<{
   regenerate: [string];
   edit: [{ id: string; text: string }];
 }>();
-
-const toast = useToast();
 
 function messageText(message: { parts: { type: string; text?: string }[] }) {
   return message.parts
@@ -94,7 +93,7 @@ function messageText(message: { parts: { type: string; text?: string }[] }) {
 
 async function copy(message: { parts: { type: string; text?: string }[] }) {
   await navigator.clipboard.writeText(messageText(message));
-  toast.add({ title: "Copied" });
+  toast.success("Copied");
 }
 
 function actionsFor(message: { id: string; role: string; parts: any[] }) {

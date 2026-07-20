@@ -80,7 +80,7 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
     defaultBaseUrl: "https://spark-api-open.xf-yun.com/v1",
     keyPlaceholder: "...",
     urlPlaceholder: "https://spark-api-open.xf-yun.com/v1",
-    fetchMode: "openai",
+    fetchMode: "catalog",
   },
   {
     id: "stepfun",

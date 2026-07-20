@@ -1,3 +1,5 @@
+import { toast } from "vue-sonner";
+
 import type {
   BuiltinProviderDef,
   ConnectionTestStatus,
@@ -37,6 +39,29 @@ function mergeModels(
   return Array.from(models.values());
 }
 
+function mergeFetchedMetadata(
+  configured: readonly ProviderModel[],
+  fetched: readonly ProviderModel[],
+) {
+  const fetchedById = new Map(fetched.map((model) => [model.id, model]));
+
+  return configured.map((model) => {
+    const fetchedModel = fetchedById.get(model.id);
+    if (!fetchedModel) return { ...model };
+
+    return {
+      ...model,
+      name: fetchedModel.name ?? model.name,
+      ownedBy: fetchedModel.ownedBy ?? model.ownedBy,
+      supportsReasoning: fetchedModel.supportsReasoning ?? model.supportsReasoning,
+      supportsVision: fetchedModel.supportsVision ?? model.supportsVision,
+      inputModalities: fetchedModel.inputModalities ?? model.inputModalities,
+      outputModalities: fetchedModel.outputModalities ?? model.outputModalities,
+      supportedParameters: fetchedModel.supportedParameters ?? model.supportedParameters,
+    };
+  });
+}
+
 function cloneCustomProvider(provider: Readonly<CustomProvider>): CustomProvider {
   return {
     ...provider,
@@ -45,7 +70,6 @@ function cloneCustomProvider(provider: Readonly<CustomProvider>): CustomProvider
 }
 
 export function useSettingsProviders() {
-  const toast = useToast();
   const { t } = useI18n();
   const {
     storage: providerStorage,
@@ -224,9 +248,7 @@ export function useSettingsProviders() {
           baseUrl: draft.baseUrl.trim() || undefined,
           enabled: existing.hasApiKey ? existing.enabled : true,
         });
-        toast.add({
-          title: t("settings.providerAdded", { name: draft.displayName.trim() || def?.name }),
-        });
+        toast.success(t("settings.providerAdded", { name: draft.displayName.trim() || def?.name }));
       } else {
         await addCustom({
           name: draft.displayName.trim(),
@@ -235,15 +257,13 @@ export function useSettingsProviders() {
           enabled: true,
           models: [],
         });
-        toast.add({ title: t("settings.providerAdded", { name: draft.displayName.trim() }) });
+        toast.success(t("settings.providerAdded", { name: draft.displayName.trim() }));
       }
 
       providerDraft.value = null;
     } catch (error) {
-      toast.add({
-        title: t("settings.providerSaveFailed"),
+      toast.error(t("settings.providerSaveFailed"), {
         description: errorDescription(error),
-        color: "error",
       });
     }
   }
@@ -251,13 +271,13 @@ export function useSettingsProviders() {
   async function deleteBuiltinProvider(id: BuiltinProviderDef["id"]) {
     const def = getBuiltinProviderDef(id);
     await removeBuiltin(id);
-    toast.add({ title: t("settings.providerRemoved", { name: def?.name ?? id }) });
+    toast.success(t("settings.providerRemoved", { name: def?.name ?? id }));
   }
 
   async function deleteCustomProvider(id: string) {
     const provider = getCustomProvider(id);
     await removeCustom(id);
-    toast.add({ title: t("settings.providerRemoved", { name: provider?.name ?? id }) });
+    toast.success(t("settings.providerRemoved", { name: provider?.name ?? id }));
   }
 
   function updateEditForm(patch: Partial<ProviderEditForm>) {
@@ -351,15 +371,13 @@ export function useSettingsProviders() {
         });
       }
 
-      toast.add({ title: t("settings.providerSaved", { name }) });
+      toast.success(t("settings.providerSaved", { name }));
       resetConnectionStatus(provider);
       resetModelCatalog(provider);
       cancelEditProvider();
     } catch (error) {
-      toast.add({
-        title: t("settings.providerSaveFailed"),
+      toast.error(t("settings.providerSaveFailed"), {
         description: errorDescription(error),
-        color: "error",
       });
     }
   }
@@ -377,10 +395,8 @@ export function useSettingsProviders() {
 
       await deleteCustomProvider(provider.id);
     } catch (error) {
-      toast.add({
-        title: t("settings.providerDeleteFailed"),
+      toast.error(t("settings.providerDeleteFailed"), {
         description: errorDescription(error),
-        color: "error",
       });
     }
   }
@@ -411,11 +427,15 @@ export function useSettingsProviders() {
       const models = await fetchProviderModelsForTarget(providerTarget(provider));
 
       modelCatalogs.value = { ...modelCatalogs.value, [key]: models };
+
+      const configuredModels = getModels(providerTarget(provider));
+      const modelsWithFetchedMetadata = mergeFetchedMetadata(configuredModels, models);
+      if (JSON.stringify(modelsWithFetchedMetadata) !== JSON.stringify(configuredModels)) {
+        await setModels(providerTarget(provider), modelsWithFetchedMetadata);
+      }
     } catch (error) {
-      toast.add({
-        title: t("settings.modelsFetchFailed", { name: provider.name }),
+      toast.error(t("settings.modelsFetchFailed", { name: provider.name }), {
         description: error instanceof Error ? error.message : undefined,
-        color: "error",
       });
     } finally {
       fetchingModels.value = { ...fetchingModels.value, [key]: false };
@@ -449,10 +469,8 @@ export function useSettingsProviders() {
         mergeModels(getModels(provider), [{ ...model, source: "fetched" }]),
       );
     } catch (error) {
-      toast.add({
-        title: t("settings.modelsSaveFailed"),
+      toast.error(t("settings.modelsSaveFailed"), {
         description: errorDescription(error),
-        color: "error",
       });
     }
   }
@@ -502,18 +520,16 @@ export function useSettingsProviders() {
     };
     try {
       await setModels(target, mergeModels(getModels(target), [model]));
-      toast.add({
-        title: t("settings.modelAdded", {
+      toast.success(
+        t("settings.modelAdded", {
           id: model.id,
           name: manualModelProviderName.value,
         }),
-      });
+      );
       manualModelOpen.value = false;
     } catch (error) {
-      toast.add({
-        title: t("settings.modelsSaveFailed"),
+      toast.error(t("settings.modelsSaveFailed"), {
         description: errorDescription(error),
-        color: "error",
       });
     }
   }
@@ -525,10 +541,8 @@ export function useSettingsProviders() {
         getModels(provider).filter((model) => model.id !== modelId),
       );
     } catch (error) {
-      toast.add({
-        title: t("settings.modelsSaveFailed"),
+      toast.error(t("settings.modelsSaveFailed"), {
         description: errorDescription(error),
-        color: "error",
       });
     }
   }

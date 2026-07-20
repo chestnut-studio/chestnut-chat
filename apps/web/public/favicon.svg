@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Chestnut Chat</title>
+  <style>
+    .surface { fill: #fffaf5; }
+    .chestnut { fill: #b45328; }
+    .circuit { stroke: #fffaf5; }
+
+    @media (prefers-color-scheme: dark) {
+      .surface { fill: #101827; }
+      .chestnut { fill: #f59e5b; }
+      .circuit { stroke: #101827; }
+    }
+  </style>
+  <rect class="surface" width="64" height="64" rx="16" />
+  <path class="chestnut" d="M32 9c-10.55 0-19 8.4-19 19.34C13 42.32 21.36 55 32 55s19-12.68 19-26.66C51 17.4 42.55 9 32 9Z" />
+  <path class="circuit" d="M32 18v5m0 18v5M18 32h5m18 0h5" fill="none" stroke-linecap="round" stroke-width="3.5" />
+  <rect class="circuit" x="23" y="23" width="18" height="18" rx="4" fill="none" stroke-width="3.5" />
+  <path class="circuit" d="M29 32h6M32 29v6" fill="none" stroke-linecap="round" stroke-width="3" />
+</svg>

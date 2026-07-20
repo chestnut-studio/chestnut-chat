@@ -100,8 +100,8 @@ prerequisites, but the happy path is simply 01 -> 10.
 
 - **Match existing style.** Before writing a component, open a sibling file
   (e.g. `apps/web/app/components/UserMenu.vue`) and copy its conventions:
-  `<script setup lang="ts">`, `useNuxtApp()`, `useToast()`, Nuxt UI `U*`
-  components, lucide icons.
+  `<script setup lang="ts">`, `useNuxtApp()`, `toast` from `vue-sonner`, Nuxt
+  UI `U*` components, lucide icons.
 - **Prefer Nuxt UI components** (`UButton`, `UInput`, `UModal`, `UDropdownMenu`,
   `UDashboardSidebar`, etc.) over hand-rolled HTML/CSS.
 - **Use the catalog / workspace versions.** Add deps with

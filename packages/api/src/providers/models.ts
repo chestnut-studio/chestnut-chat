@@ -17,7 +17,7 @@ export const BUILTIN_PROVIDER_IDS = [
 ] as const;
 
 export type BuiltinProviderId = (typeof BUILTIN_PROVIDER_IDS)[number];
-export type ProviderFetchMode = "openai";
+export type ProviderFetchMode = "openai" | "catalog";
 export type ProviderAuthMode = "bearer" | "raw";
 
 export interface BuiltinProviderDef {
@@ -25,6 +25,7 @@ export interface BuiltinProviderDef {
   defaultBaseUrl?: string;
   fetchMode: ProviderFetchMode;
   authModes?: readonly ProviderAuthMode[];
+  modelCatalog?: readonly ProviderModel[];
 }
 
 interface OpenAICompatibleModelsResponse {
@@ -36,6 +37,8 @@ export interface FetchProviderModelsOptions {
   baseUrl?: string | null;
   fetchMode: ProviderFetchMode;
   authModes?: readonly ProviderAuthMode[];
+  modelCatalog?: readonly ProviderModel[];
+  providerId?: BuiltinProviderId;
 }
 
 export class ProviderModelsFetchError extends Error {
@@ -47,6 +50,19 @@ export class ProviderModelsFetchError extends Error {
     this.name = "ProviderModelsFetchError";
   }
 }
+
+const SPARK_STANDARD_MODEL_CATALOG: readonly ProviderModel[] = [
+  { id: "4.0Ultra", name: "Spark 4.0 Ultra", source: "fetched" },
+  { id: "generalv3.5", name: "Spark Max", source: "fetched" },
+  { id: "max-32k", name: "Spark Max-32K", source: "fetched" },
+  { id: "generalv3", name: "Spark Pro", source: "fetched" },
+  { id: "pro-128k", name: "Spark Pro-128K", source: "fetched" },
+  { id: "lite", name: "Spark Lite", source: "fetched" },
+];
+
+const SPARK_REASONING_MODEL_CATALOG: readonly ProviderModel[] = [
+  { id: "spark-x", name: "Spark X", supportsReasoning: true, source: "fetched" },
+];
 
 export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
@@ -87,7 +103,10 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "spark",
     defaultBaseUrl: "https://spark-api-open.xf-yun.com/v1",
-    fetchMode: "openai",
+    // Spark implements the chat-completions API but does not expose GET /v1/models.
+    // Keep this catalog in sync with Spark's HTTP API documentation.
+    fetchMode: "catalog",
+    modelCatalog: SPARK_STANDARD_MODEL_CATALOG,
   },
   {
     id: "stepfun",
@@ -124,6 +143,15 @@ const MINIMAX_BASE_URLS = ["https://api.minimaxi.com/v1", "https://api.minimax.i
 
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.trim().replace(/\/+$/, "");
+}
+
+export function getSparkModelCatalog(baseUrl: string | null | undefined) {
+  const normalized = baseUrl ? normalizeBaseUrl(baseUrl).toLowerCase() : "";
+  const isReasoningEndpoint = ["/x2", "/v2", "/agent/v1"].some((path) => normalized.endsWith(path));
+
+  return isReasoningEndpoint
+    ? [...SPARK_REASONING_MODEL_CATALOG]
+    : [...SPARK_STANDARD_MODEL_CATALOG];
 }
 
 function getAlternateMiniMaxBaseUrl(baseUrl: string) {
@@ -175,6 +203,72 @@ function textFrom(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
+function booleanFrom(value: unknown) {
+  return typeof value === "boolean" ? value : undefined;
+}
+
+function stringsFrom(value: unknown, maximum: number) {
+  if (!Array.isArray(value)) return undefined;
+
+  const strings = value.flatMap((item) => {
+    const trimmed = typeof item === "string" ? item.trim() : "";
+    return trimmed ? [trimmed] : [];
+  });
+  const unique = Array.from(new Set(strings)).slice(0, maximum);
+  return unique.length ? unique : undefined;
+}
+
+function includesImageInput(modalities: readonly string[] | undefined) {
+  return modalities?.some((modality) => /^(image|video)$/i.test(modality));
+}
+
+function reasoningSupportFrom(record: Record<string, unknown>) {
+  const capabilities = recordFrom(record.capabilities);
+  const reasoning = recordFrom(record.reasoning);
+  const declaredSupport =
+    booleanFrom(record.supports_reasoning) ??
+    booleanFrom(record.supportsReasoning) ??
+    booleanFrom(record.reasoning) ??
+    booleanFrom(capabilities?.reasoning) ??
+    booleanFrom(capabilities?.thinking);
+  if (declaredSupport !== undefined) return declaredSupport;
+  if (reasoning) return true;
+
+  const supportedParameters = record.supported_parameters ?? record.supportedParameters;
+  if (!Array.isArray(supportedParameters)) return undefined;
+
+  const exposesReasoningParameter = supportedParameters.some(
+    (parameter) =>
+      typeof parameter === "string" &&
+      [
+        "enable_thinking",
+        "include_reasoning",
+        "reasoning",
+        "reasoning_effort",
+        "thinking",
+      ].includes(parameter.toLowerCase()),
+  );
+
+  // Parameter lists describe accepted request fields, not every intrinsic
+  // capability. Absence therefore cannot prove that a model never reasons.
+  return exposesReasoningParameter ? true : undefined;
+}
+
+function visionSupportFrom(
+  record: Record<string, unknown>,
+  inputModalities: readonly string[] | undefined,
+) {
+  const capabilities = recordFrom(record.capabilities);
+  const declaredSupport =
+    booleanFrom(record.supports_vision) ??
+    booleanFrom(record.supportsVision) ??
+    booleanFrom(record.vision) ??
+    booleanFrom(capabilities?.vision) ??
+    booleanFrom(capabilities?.image);
+
+  return declaredSupport ?? includesImageInput(inputModalities);
+}
+
 function normalizeModel(item: unknown): ProviderModel | null {
   const record = recordFrom(item);
   if (!record) return null;
@@ -182,10 +276,32 @@ function normalizeModel(item: unknown): ProviderModel | null {
   const rawId = textFrom(record.id) ?? textFrom(record.name);
   if (!rawId) return null;
 
+  const architecture = recordFrom(record.architecture);
+  const inputModalities =
+    stringsFrom(record.input_modalities, 20) ??
+    stringsFrom(record.inputModalities, 20) ??
+    stringsFrom(architecture?.input_modalities, 20) ??
+    stringsFrom(architecture?.inputModalities, 20) ??
+    stringsFrom(record.modalities, 20);
+  const outputModalities =
+    stringsFrom(record.output_modalities, 20) ??
+    stringsFrom(record.outputModalities, 20) ??
+    stringsFrom(architecture?.output_modalities, 20) ??
+    stringsFrom(architecture?.outputModalities, 20);
+  const supportedParameters = stringsFrom(
+    record.supported_parameters ?? record.supportedParameters,
+    100,
+  );
+
   return {
     id: rawId.replace(/^models\//, ""),
     name: textFrom(record.display_name) ?? textFrom(record.displayName),
     ownedBy: textFrom(record.owned_by) ?? textFrom(record.ownedBy),
+    supportsReasoning: reasoningSupportFrom(record),
+    supportsVision: visionSupportFrom(record, inputModalities),
+    inputModalities,
+    outputModalities,
+    supportedParameters,
     source: "fetched",
   };
 }
@@ -247,10 +363,12 @@ async function fetchOpenAICompatibleModels(
 }
 
 export async function fetchProviderModels(options: FetchProviderModelsOptions) {
-  if (!options.baseUrl) return [];
-
   switch (options.fetchMode) {
+    case "catalog":
+      if (options.providerId === "spark") return getSparkModelCatalog(options.baseUrl);
+      return options.modelCatalog ? [...options.modelCatalog] : [];
     case "openai":
+      if (!options.baseUrl) return [];
       return fetchOpenAICompatibleModels(options.apiKey, options.baseUrl, options.authModes);
   }
 }

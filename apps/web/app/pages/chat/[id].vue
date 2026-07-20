@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
 import { useChat } from "@ai-sdk/vue";
 import { useQuery } from "@tanstack/vue-query";
-import { DefaultChatTransport, type ChatStatus, type UIMessage } from "ai";
+import { DefaultChatTransport, type ChatStatus } from "ai";
+import { toast } from "vue-sonner";
 
 import {
   DEFAULT_MODEL,
@@ -9,15 +11,24 @@ import {
   decodeChatModelValue,
   isLegacyDeepSeekModel,
 } from "~/utils/models";
+import type { ChatUIMessage } from "~/types/chat";
 
 const route = useRoute();
 const { $orpc } = useNuxtApp();
 const config = useRuntimeConfig();
-const toast = useToast();
 const { t } = useI18n();
-const { invalidate: invalidateChats } = useChats();
+const { list: chats, invalidate: invalidateChats } = useChats();
 const chatId = computed(() => route.params.id as string);
+const pendingChatPrompt = usePendingChatPrompt();
+const chatTitle = computed(
+  () => chats.data.value?.find((chat) => chat.id === chatId.value)?.title ?? t("sidebar.newChat"),
+);
 const serverUrl = config.public.serverUrl;
+
+useHead(() => ({
+  title: chatTitle.value,
+  titleTemplate: "%s - Chestnut Chat",
+}));
 
 definePageMeta({
   layout: "dashboard",
@@ -28,17 +39,23 @@ const history = useQuery(
   computed(() => $orpc.chat.messages.queryOptions({ input: { chatId: chatId.value } })),
 );
 
-const pendingPrompt = useState<{
-  text: string;
-  model: string;
-  reasoning: boolean;
-  webSearch: boolean;
-} | null>("pendingPrompt", () => null);
+const initialPrompt = pendingChatPrompt.peek(chatId.value);
+const initialPromptOptions = initialPrompt
+  ? {
+      model: initialPrompt.model,
+      reasoning: initialPrompt.reasoning,
+      reasoningEffort: initialPrompt.reasoningEffort,
+      webSearch: initialPrompt.webSearch,
+    }
+  : null;
 
-function errorDescription(error: Error) {
+const MAX_TOAST_ERROR_LENGTH = 160;
+
+function errorMessage(error: Error) {
   try {
-    const parsed = JSON.parse(error.message) as { error?: unknown };
+    const parsed = JSON.parse(error.message) as { error?: unknown; message?: unknown };
     if (typeof parsed.error === "string") return parsed.error;
+    if (typeof parsed.message === "string") return parsed.message;
   } catch {
     // The transport uses plain text for some network errors.
   }
@@ -46,39 +63,75 @@ function errorDescription(error: Error) {
   return error.message;
 }
 
-const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<UIMessage>(() => ({
-  id: chatId.value,
-  messages: [],
-  transport: new DefaultChatTransport({
-    api: `${serverUrl}/ai/chat`,
-    credentials: "include",
-  }),
-  onError(error) {
-    console.error(error);
-    toast.add({
-      title: t("toast.chatFailed"),
-      description: errorDescription(error),
-      color: "error",
-    });
-  },
-  onFinish({ isAbort, isError }) {
-    if (!isAbort && !isError) {
-      void invalidateChats();
-    }
-  },
-}));
-const renderedMessages = computed(() => [...messages.value]);
+function errorDescription(error: Error) {
+  const message = errorMessage(error);
+  if (/has not activated the model/i.test(message)) {
+    return t("toast.modelNotActivated");
+  }
 
-const lastOptions = ref({
-  model: DEFAULT_MODEL,
-  reasoning: false,
-  webSearch: false,
-});
+  const withoutRequestId = message.replace(/\s*Request id:\s*\S+\.?$/i, "").trim();
+  if (withoutRequestId.length <= MAX_TOAST_ERROR_LENGTH) return withoutRequestId;
+
+  return `${withoutRequestId.slice(0, MAX_TOAST_ERROR_LENGTH).trimEnd()}…`;
+}
+
+const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<ChatUIMessage>(
+  () => ({
+    id: chatId.value,
+    messages: [],
+    transport: new DefaultChatTransport({
+      api: `${serverUrl}/ai/chat`,
+      credentials: "include",
+    }),
+    onError(error) {
+      console.error(error);
+      toast.error(t("toast.chatFailed"), {
+        description: errorDescription(error),
+      });
+    },
+    onFinish({ isAbort, isError }) {
+      if (!isAbort && !isError) {
+        void invalidateChats();
+      }
+    },
+  }),
+);
+const renderedMessages = computed(() => [...messages.value]);
+const isHistoryLoading = computed(
+  () => history.isPending.value && renderedMessages.value.length === 0,
+);
+
+const lastOptions = ref(
+  initialPromptOptions ?? {
+    model: DEFAULT_MODEL,
+    reasoning: false,
+    reasoningEffort: "high" as ReasoningEffort,
+    webSearch: false,
+  },
+);
 const hasRestoredModel = ref(false);
 const selectedModel = computed({
   get: () => lastOptions.value.model,
   set: (model: string) => {
     lastOptions.value = { ...lastOptions.value, model };
+  },
+});
+const selectedReasoning = computed({
+  get: () => lastOptions.value.reasoning,
+  set: (reasoning: boolean) => {
+    lastOptions.value = { ...lastOptions.value, reasoning };
+  },
+});
+const selectedReasoningEffort = computed({
+  get: () => lastOptions.value.reasoningEffort,
+  set: (reasoningEffort: ReasoningEffort) => {
+    lastOptions.value = { ...lastOptions.value, reasoningEffort };
+  },
+});
+const selectedWebSearch = computed({
+  get: () => lastOptions.value.webSearch,
+  set: (webSearch: boolean) => {
+    lastOptions.value = { ...lastOptions.value, webSearch };
   },
 });
 const editOpen = ref(false);
@@ -122,8 +175,8 @@ watch(
     if (messages.value.length === 0) {
       messages.value = rows.map((row) => ({
         id: row.id,
-        role: row.role as UIMessage["role"],
-        parts: row.parts as UIMessage["parts"],
+        role: row.role as ChatUIMessage["role"],
+        parts: row.parts as ChatUIMessage["parts"],
       }));
     }
   },
@@ -139,9 +192,8 @@ watch(chatId, () => {
 });
 
 onMounted(() => {
-  if (pendingPrompt.value) {
-    const payload = pendingPrompt.value;
-    pendingPrompt.value = null;
+  const payload = pendingChatPrompt.consume(chatId.value);
+  if (payload) {
     send(payload);
   }
 });
@@ -150,10 +202,17 @@ function requestBody() {
   return { chatId: chatId.value, ...lastOptions.value };
 }
 
-function send(payload: { text: string; model: string; reasoning: boolean; webSearch: boolean }) {
+function send(payload: {
+  text: string;
+  model: string;
+  reasoning: boolean;
+  reasoningEffort: ReasoningEffort;
+  webSearch: boolean;
+}) {
   lastOptions.value = {
     model: payload.model,
     reasoning: payload.reasoning,
+    reasoningEffort: payload.reasoningEffort,
     webSearch: payload.webSearch,
   };
   void sendMessage({ text: payload.text }, { body: requestBody() });
@@ -195,7 +254,10 @@ function confirmEdit() {
       <div
         class="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6"
       >
+        <ChatHistoryLoading v-if="isHistoryLoading" />
         <ChatMessages
+          v-else
+          :key="chatId"
           :abort-key="abortRenderKey"
           :messages="renderedMessages"
           :status="status"
@@ -210,6 +272,9 @@ function confirmEdit() {
       <UContainer class="w-full pb-4 sm:pb-6">
         <ChatBox
           v-model="selectedModel"
+          v-model:reasoning="selectedReasoning"
+          v-model:reasoning-effort="selectedReasoningEffort"
+          v-model:web-search="selectedWebSearch"
           :status="promptStatus"
           @submit="send"
           @stop="abortResponse"

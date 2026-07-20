@@ -1,5 +1,6 @@
 import type { DehydratedState, VueQueryPluginOptions } from "@tanstack/vue-query";
 import { dehydrate, hydrate, QueryCache, QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import { toast } from "vue-sonner";
 
 function isUnauthorizedError(error: unknown) {
   const details = error as {
@@ -27,8 +28,6 @@ function isUnauthorizedError(error: unknown) {
 export default defineNuxtPlugin((nuxt) => {
   const vueQueryState = useState<DehydratedState | null>("vue-query");
 
-  const toast = useToast();
-
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -40,10 +39,11 @@ export default defineNuxtPlugin((nuxt) => {
         if (isUnauthorizedError(error)) return;
 
         console.error(error);
-        toast.add({
-          title: "Error",
-          description: error?.message || "An unexpected error occurred.",
-        });
+        if (import.meta.client) {
+          toast.error("Error", {
+            description: error?.message || "An unexpected error occurred.",
+          });
+        }
       },
     }),
   });

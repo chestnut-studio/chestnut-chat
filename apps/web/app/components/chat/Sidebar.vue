@@ -79,8 +79,23 @@ async function onArchive(chat: { id: string }) {
     :ui="{ header: 'border-b border-default', footer: 'border-t border-default' }"
   >
     <template #header="{ collapsed: isCollapsed }">
+      <NuxtImg
+        src="/favicon.svg"
+        alt="Chestnut Chat"
+        class="size-6"
+        :class="{
+          'cursor-pointer mx-auto': isCollapsed,
+        }"
+        @click="
+          () => {
+            if (isCollapsed) {
+              collapsed = false;
+            }
+          }
+        "
+      />
       <span v-if="!isCollapsed" class="truncate font-semibold">{{ $t("app.name") }}</span>
-      <UDashboardSidebarCollapse class="ms-auto" />
+      <UDashboardSidebarCollapse v-if="!isCollapsed" class="ms-auto" />
     </template>
 
     <template #default="{ collapsed: isCollapsed }">

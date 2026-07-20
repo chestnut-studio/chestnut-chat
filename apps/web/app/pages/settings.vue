@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { toast } from "vue-sonner";
+
 definePageMeta({
   layout: false,
   middleware: ["auth"],
@@ -7,8 +9,12 @@ definePageMeta({
 const { $authClient } = useNuxtApp();
 const authSession = useAuthSession();
 const colorMode = useColorMode();
-const toast = useToast();
 const { locale, locales, setLocale, t } = useI18n();
+
+useHead(() => ({
+  title: t("settings.title"),
+  titleTemplate: "%s - Chestnut Chat",
+}));
 
 const tabs = computed(() => [
   { label: t("settings.account"), slot: "account" as const },
@@ -43,11 +49,11 @@ async function signOut() {
     fetchOptions: {
       onSuccess: async () => {
         authSession.clear();
-        toast.add({ title: t("toast.signedOut") });
+        toast.success(t("toast.signedOut"));
         await navigateTo("/", { replace: true, external: true });
       },
       onError: (error) => {
-        toast.add({ title: t("toast.signOutFailed"), description: error?.error?.message });
+        toast.error(t("toast.signOutFailed"), { description: error?.error?.message });
       },
     },
   });
@@ -64,8 +70,7 @@ async function deleteAccount() {
     });
 
     if (result.error) {
-      toast.add({
-        title: t("toast.deleteAccountFailed"),
+      toast.error(t("toast.deleteAccountFailed"), {
         description: result.error.message,
       });
       return;
@@ -73,17 +78,16 @@ async function deleteAccount() {
 
     if (result.data?.message === "Verification email sent") {
       deleteConfirmOpen.value = false;
-      toast.add({ title: t("toast.deleteAccountVerificationSent") });
+      toast.success(t("toast.deleteAccountVerificationSent"));
       return;
     }
 
     deleteConfirmOpen.value = false;
     authSession.clear();
-    toast.add({ title: t("toast.accountDeleted") });
+    toast.success(t("toast.accountDeleted"));
     await navigateTo("/", { replace: true, external: true });
   } catch (cause) {
-    toast.add({
-      title: t("toast.deleteAccountFailed"),
+    toast.error(t("toast.deleteAccountFailed"), {
       description: cause instanceof Error ? cause.message : undefined,
     });
   } finally {

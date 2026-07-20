@@ -14,6 +14,7 @@
     "@chestnut-chat/api": "workspace:*",
     "@chestnut-chat/auth": "workspace:*",
     "@chestnut-chat/env": "workspace:*",
+    "@nuxt/image": "2.0.0",
     "@nuxt/ui": "^4.5.1",
     "@nuxtjs/i18n": "^10.4.0",
     "@orpc/client": "catalog:",
@@ -26,6 +27,7 @@
     "markstream-vue": "1.0.5-beta.0",
     "nuxt": "^4.4.4",
     "vue": "^3.5.38",
+    "vue-sonner": "^2.0.9",
     "zod": "catalog:"
   },
   "devDependencies": {

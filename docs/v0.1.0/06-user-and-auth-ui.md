@@ -138,10 +138,11 @@ Social buttons + an Email OTP two-step form.
 
 ```vue
 <script setup lang="ts">
+import { toast } from "vue-sonner";
+
 const open = defineModel<boolean>("open", { default: false });
 
 const { $authClient } = useNuxtApp();
-const toast = useToast();
 
 const email = ref("");
 const otp = ref("");
@@ -158,9 +159,9 @@ async function sendOtp() {
   try {
     await $authClient.emailOtp.sendVerificationOtp({ email: email.value, type: "sign-in" });
     otpSent.value = true;
-    toast.add({ title: "Code sent", description: "Check your email (or server console in dev)." });
+    toast.success("Code sent", { description: "Check your email (or server console in dev)." });
   } catch (e: any) {
-    toast.add({ title: "Failed to send code", description: e?.message });
+    toast.error("Failed to send code", { description: e?.message });
   } finally {
     loading.value = false;
   }
@@ -173,11 +174,11 @@ async function verifyOtp() {
       { email: email.value, otp: otp.value },
       {
         onSuccess: () => {
-          toast.add({ title: "Signed in" });
+          toast.success("Signed in");
           open.value = false;
           navigateTo("/dashboard", { replace: true });
         },
-        onError: (err) => toast.add({ title: "Sign in failed", description: err.error.message }),
+        onError: (err) => toast.error("Sign in failed", { description: err.error.message }),
       },
     );
   } finally {
@@ -244,12 +245,12 @@ two modals.
 ```vue
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
+import { toast } from "vue-sonner";
 
 const props = defineProps<{ collapsed?: boolean }>();
 
 const { $authClient } = useNuxtApp();
 const session = $authClient.useSession();
-const toast = useToast();
 
 const settingsOpen = ref(false);
 const loginOpen = ref(false);
@@ -263,11 +264,11 @@ async function signOut() {
   await $authClient.signOut({
     fetchOptions: {
       onSuccess: async () => {
-        toast.add({ title: "Signed out successfully" });
+        toast.success("Signed out successfully");
         await navigateTo("/", { replace: true, external: true });
       },
       onError: (error) =>
-        toast.add({ title: "Sign out failed", description: error?.error?.message }),
+        toast.error("Sign out failed", { description: error?.error?.message }),
     },
   });
 }

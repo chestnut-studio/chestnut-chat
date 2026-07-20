@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { toast } from "vue-sonner";
+
 const { $authClient } = useNuxtApp();
 const authSession = useAuthSession();
-const toast = useToast();
 const hydrated = ref(false);
 
 onMounted(() => {
@@ -15,20 +16,18 @@ const handleSignOut = async () => {
       fetchOptions: {
         onSuccess: async () => {
           authSession.clear();
-          toast.add({ title: "Signed out successfully" });
+          toast.success("Signed out successfully");
           await navigateTo("/", { replace: true, external: true });
         },
         onError: (error) => {
-          toast.add({
-            title: "Sign out failed",
+          toast.error("Sign out failed", {
             description: error?.error?.message || "Unknown error",
           });
         },
       },
     });
   } catch (error: any) {
-    toast.add({
-      title: "An unexpected error occurred during sign out",
+    toast.error("An unexpected error occurred during sign out", {
       description: error.message || "Please try again.",
     });
   }

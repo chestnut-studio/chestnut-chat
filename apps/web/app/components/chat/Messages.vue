@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { isPartStreaming } from "@nuxt/ui/utils/ai";
-import { isReasoningUIPart, isTextUIPart, type ChatStatus, type UIMessage } from "ai";
-import MarkdownRender from "markstream-vue";
+import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
+import { isPartStreaming, isToolStreaming } from "@nuxt/ui/utils/ai";
+import { getToolName, isReasoningUIPart, isTextUIPart, isToolUIPart, type ChatStatus } from "ai";
+import { toast } from "vue-sonner";
+
+import type { ChatUIMessage } from "~/types/chat";
 
 const props = defineProps<{
   abortKey?: number;
-  messages: UIMessage[];
+  messages: ChatUIMessage[];
   status?: ChatStatus;
 }>();
 
@@ -15,9 +18,8 @@ const emit = defineEmits<{
   renderingChange: [boolean];
 }>();
 
-const toast = useToast();
 const { t } = useI18n();
-const root = ref<HTMLElement | null>(null);
+const root = useTemplateRef<HTMLElement>("root");
 const WORD_DELAY_MS = 32;
 const wordSegmenter =
   typeof Intl !== "undefined" && "Segmenter" in Intl
@@ -30,7 +32,7 @@ type TypingState = {
   streaming: boolean;
   timer?: ReturnType<typeof setTimeout>;
 };
-type MessagePart = UIMessage["parts"][number];
+type MessagePart = ChatUIMessage["parts"][number];
 
 const typingStates = reactive<Record<string, TypingState>>({});
 const abortedTexts = reactive<Record<string, string>>({});
@@ -44,6 +46,7 @@ const isRenderingResponse = computed(
 );
 let scrollFrame: number | undefined;
 let scrollContainer: HTMLElement | Element | null = null;
+let contentResizeObserver: ResizeObserver | null = null;
 const isUserScrolledUp = ref(false);
 
 function scrollParent(node: HTMLElement | null) {
@@ -82,6 +85,12 @@ function scrollToBottom(smooth = false) {
   });
 }
 
+function scrollToLatestMessage() {
+  isUserScrolledUp.value = false;
+  scrollToBottom(false);
+  queueScrollToBottom();
+}
+
 function queueScrollToBottom() {
   if (!import.meta.client || scrollFrame !== undefined || isUserScrolledUp.value) return;
 
@@ -98,8 +107,7 @@ watch(
 
     if (previousLength === 0) {
       await nextTick();
-      scrollToBottom(false);
-      requestAnimationFrame(() => scrollToBottom(false));
+      scrollToLatestMessage();
       return;
     }
 
@@ -122,19 +130,19 @@ watch(
   { flush: "post" },
 );
 
-function messageText(message: UIMessage) {
+function messageText(message: ChatUIMessage) {
   return message.parts
     .filter(isTextUIPart)
     .map((part) => part.text)
     .join("");
 }
 
-async function copy(message: UIMessage) {
+async function copy(message: ChatUIMessage) {
   await navigator.clipboard.writeText(messageText(message));
-  toast.add({ title: t("toast.copied") });
+  toast.success(t("toast.copied"));
 }
 
-function actionsFor(message: UIMessage) {
+function actionsFor(message: ChatUIMessage) {
   if (message.role === "assistant" && isRenderingResponse.value) return [];
 
   const actions = [
@@ -162,25 +170,26 @@ function actionsFor(message: UIMessage) {
 }
 
 function isStreamingPart(part: MessagePart) {
-  return isPartStreaming(part);
+  return "state" in part && isPartStreaming(part);
 }
 
-function typingKey(message: UIMessage, part: MessagePart, index: number) {
+function typingKey(message: ChatUIMessage, part: MessagePart, index: number) {
   return `${message.id}:${part.type}:${index}`;
 }
 
-function isRenderableTextPart(message: UIMessage, index: number) {
+function isRenderableAnimatedPart(message: ChatUIMessage, index: number) {
   if (message.role !== "assistant") return true;
 
   return !message.parts
     .slice(0, index)
     .some(
       (part, partIndex) =>
-        isReasoningUIPart(part) && !isPartRenderComplete(message, part, partIndex),
+        (isTextUIPart(part) || isReasoningUIPart(part)) &&
+        !isPartRenderComplete(message, part, partIndex),
     );
 }
 
-function isPartRenderComplete(message: UIMessage, part: MessagePart, index: number) {
+function isPartRenderComplete(message: ChatUIMessage, part: MessagePart, index: number) {
   if (!isTextUIPart(part) && !isReasoningUIPart(part)) return true;
 
   const key = typingKey(message, part, index);
@@ -200,8 +209,10 @@ function nextWord(value: string, offset: number) {
     const first = wordSegmenter.segment(rest)[Symbol.iterator]().next().value?.segment;
     if (first) {
       let token = first;
-      while (offset + token.length < value.length && /\s/u.test(value[offset + token.length])) {
-        token += value[offset + token.length];
+      let nextCharacter = value[offset + token.length];
+      while (nextCharacter && /\s/u.test(nextCharacter)) {
+        token += nextCharacter;
+        nextCharacter = value[offset + token.length];
       }
       return token;
     }
@@ -259,9 +270,21 @@ function resetTypingSessionWhenIdle() {
   }
 }
 
+function isPageHidden() {
+  return document.visibilityState !== "visible";
+}
+
 function scheduleTyping(key: string) {
   const state = typingStates[key];
   if (!state || state.timer) return;
+
+  if (isPageHidden()) {
+    state.visible = state.target;
+    if (!state.streaming) {
+      completeTypingState(key);
+    }
+    return;
+  }
 
   state.timer = setTimeout(() => {
     const latest = typingStates[key];
@@ -283,6 +306,21 @@ function scheduleTyping(key: string) {
       syncTypingStates();
     }
   }, WORD_DELAY_MS);
+}
+
+function onVisibilityChange() {
+  if (isPageHidden()) {
+    for (const [key, state] of Object.entries(typingStates)) {
+      clearTypingTimer(state);
+      state.visible = state.target;
+
+      if (!state.streaming) {
+        completeTypingState(key);
+      }
+    }
+  }
+
+  syncTypingStates();
 }
 
 function syncTypingStates() {
@@ -316,7 +354,7 @@ function syncTypingStates() {
       const completedText = completedTexts[key];
       const belongsToCurrentResponse =
         sawActiveResponse.value && lastUserIndex !== -1 && messageIndex > lastUserIndex;
-      const waitingForReasoning = isTextUIPart(part) && !isRenderableTextPart(message, index);
+      const waitingForPreviousPart = !isRenderableAnimatedPart(message, index);
 
       if (key in abortedTexts) {
         removeTypingState(key);
@@ -339,7 +377,7 @@ function syncTypingStates() {
           target: part.text,
           streaming,
         };
-        if (!waitingForReasoning) {
+        if (!waitingForPreviousPart) {
           scheduleTyping(key);
         }
         continue;
@@ -354,7 +392,7 @@ function syncTypingStates() {
 
       if (existing.visible === existing.target && !streaming) {
         completeTypingState(key);
-      } else if (waitingForReasoning) {
+      } else if (waitingForPreviousPart) {
         clearTypingTimer(existing);
       } else {
         scheduleTyping(key);
@@ -377,7 +415,7 @@ function syncTypingStates() {
   resetTypingSessionWhenIdle();
 }
 
-function typedText(message: UIMessage, part: MessagePart, index: number) {
+function typedText(message: ChatUIMessage, part: MessagePart, index: number) {
   if (!isTextUIPart(part) && !isReasoningUIPart(part)) return "";
   if (message.role !== "assistant") return part.text;
 
@@ -385,13 +423,27 @@ function typedText(message: UIMessage, part: MessagePart, index: number) {
   return abortedTexts[key] ?? typingStates[key]?.visible ?? part.text;
 }
 
-function isTypingPart(message: UIMessage, part: MessagePart, index: number) {
+function isTypingPart(message: ChatUIMessage, part: MessagePart, index: number) {
   const state = typingStates[typingKey(message, part, index)];
   return Boolean(state && state.visible !== state.target);
 }
 
-function isLivePart(message: UIMessage, part: MessagePart, index: number) {
+function isLivePart(message: ChatUIMessage, part: MessagePart, index: number) {
   return isStreamingPart(part) || isTypingPart(message, part, index);
+}
+
+function webSearchSources(message: ChatUIMessage): WebSearchSource[] {
+  return message.parts.flatMap((part) =>
+    part.type === "source-url"
+      ? [
+          {
+            sourceId: part.sourceId,
+            url: part.url,
+            ...(part.title ? { title: part.title } : {}),
+          },
+        ]
+      : [],
+  );
 }
 
 watch([() => props.messages, () => props.status], syncTypingStates, {
@@ -411,13 +463,26 @@ watch(
 );
 
 onMounted(() => {
+  document.addEventListener("visibilitychange", onVisibilityChange);
+
   nextTick(() => {
     scrollContainer = scrollParent(root.value);
     scrollContainer.addEventListener("scroll", onContainerScroll, { passive: true });
+
+    if (root.value && "ResizeObserver" in window) {
+      contentResizeObserver = new ResizeObserver(() => queueScrollToBottom());
+      contentResizeObserver.observe(root.value);
+    }
+
+    if (props.messages.length > 0) {
+      scrollToLatestMessage();
+    }
   });
 });
 
 onBeforeUnmount(() => {
+  document.removeEventListener("visibilitychange", onVisibilityChange);
+
   if (scrollFrame !== undefined) {
     cancelAnimationFrame(scrollFrame);
   }
@@ -425,6 +490,8 @@ onBeforeUnmount(() => {
   if (scrollContainer) {
     scrollContainer.removeEventListener("scroll", onContainerScroll);
   }
+
+  contentResizeObserver?.disconnect();
 
   for (const key of Object.keys(typingStates)) {
     removeTypingState(key);
@@ -434,41 +501,48 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="root" class="min-h-full">
-    <UChatMessages :messages="props.messages" :status="props.status" class="min-h-full">
+    <UChatMessages
+      :messages="props.messages"
+      :status="props.status"
+      :assistant="{ ui: { body: 'w-full' } }"
+      class="min-h-full"
+    >
       <template #content="{ message }">
         <template
           v-for="(part, index) in message.parts"
           :key="`${message.id}-${part.type}-${index}`"
         >
+          <ChatWebSearch
+            v-if="part.type === 'data-web-search'"
+            :progress="part.data"
+            :sources="webSearchSources(message)"
+          />
+
           <UChatReasoning
-            v-if="isReasoningUIPart(part)"
+            v-else-if="isReasoningUIPart(part) && isRenderableAnimatedPart(message, index)"
             :text="typedText(message, part, index)"
             :streaming="isLivePart(message, part, index)"
             :ui="{ body: 'max-h-none overflow-visible' }"
           >
-            <MarkdownRender
-              mode="chat"
+            <ChatMarkdown
               :content="typedText(message, part, index)"
-              :final="!isLivePart(message, part, index)"
-              :smooth-streaming="false"
-              :typewriter="isLivePart(message, part, index)"
-              :fade="false"
-              :max-live-nodes="0"
-              class="*:first:mt-0 *:last:mb-0"
+              :live="isLivePart(message, part, index)"
+              :sources="webSearchSources(message)"
             />
           </UChatReasoning>
 
+          <UChatTool
+            v-else-if="isToolUIPart(part)"
+            :text="getToolName(part)"
+            :streaming="isToolStreaming(part)"
+          />
+
           <template v-else-if="isTextUIPart(part)">
-            <MarkdownRender
-              v-if="message.role === 'assistant' && isRenderableTextPart(message, index)"
-              mode="chat"
+            <ChatMarkdown
+              v-if="message.role === 'assistant' && isRenderableAnimatedPart(message, index)"
               :content="typedText(message, part, index)"
-              :final="!isLivePart(message, part, index)"
-              :smooth-streaming="false"
-              :typewriter="isLivePart(message, part, index)"
-              :fade="false"
-              :max-live-nodes="0"
-              class="*:first:mt-0 *:last:mb-0"
+              :live="isLivePart(message, part, index)"
+              :sources="webSearchSources(message)"
             />
             <p v-else-if="message.role === 'user'" class="whitespace-pre-wrap">{{ part.text }}</p>
           </template>

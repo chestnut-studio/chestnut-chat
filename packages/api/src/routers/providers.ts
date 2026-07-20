@@ -29,6 +29,11 @@ const providerModelSchema = z.object({
   id: z.string().trim().min(1).max(300),
   name: z.string().trim().min(1).max(300).optional(),
   ownedBy: z.string().trim().min(1).max(300).optional(),
+  supportsReasoning: z.boolean().optional(),
+  supportsVision: z.boolean().optional(),
+  inputModalities: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
+  outputModalities: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
+  supportedParameters: z.array(z.string().trim().min(1).max(100)).max(100).optional(),
   source: z.enum(["fetched", "manual"]),
 });
 
@@ -147,6 +152,8 @@ function resolveFetchOptions(row: typeof providerSetting.$inferSelect) {
     baseUrl: row.baseUrl ?? def.defaultBaseUrl,
     fetchMode: def.fetchMode,
     authModes: def.authModes,
+    modelCatalog: def.modelCatalog,
+    providerId: def.id,
   };
 }
 

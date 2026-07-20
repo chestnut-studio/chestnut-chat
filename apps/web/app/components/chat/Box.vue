@@ -1,7 +1,6 @@
 <script setup lang="ts">
+import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
 import type { ChatStatus } from "ai";
-
-import ModelIcon from "./ModelIcon.vue";
 
 import { DEFAULT_MODEL, buildProviderModelOptions, decodeChatModelValue } from "~/utils/models";
 
@@ -9,6 +8,7 @@ type ChatBoxPayload = {
   text: string;
   model: string;
   reasoning: boolean;
+  reasoningEffort: ReasoningEffort;
   webSearch: boolean;
 };
 type MaybePromise<T> = T | Promise<T>;
@@ -26,8 +26,9 @@ const emit = defineEmits<{
 
 const input = ref("");
 const model = defineModel<string>({ default: DEFAULT_MODEL });
-const reasoning = ref(false);
-const webSearch = ref(false);
+const reasoning = defineModel<boolean>("reasoning", { default: false });
+const reasoningEffort = defineModel<ReasoningEffort>("reasoningEffort", { default: "high" });
+const webSearch = defineModel<boolean>("webSearch", { default: false });
 const files = ref<File[]>([]);
 const fileInput = ref<HTMLInputElement | null>(null);
 const { storage: providerStorage, isLoading: areProvidersLoading } = useProviderKeys();
@@ -66,16 +67,19 @@ function findModelOption(value: string) {
   return modelOptions.value.find((item) => decodeChatModelValue(item.value)?.modelId === value);
 }
 
-const selectedProviderIcon = computed(
-  () => findModelOption(model.value)?.providerIcon ?? "openrouter",
+const selectedModelSupportsReasoning = computed(
+  () => findModelOption(model.value)?.reasoning ?? false,
 );
-
-watch(
-  model,
-  (value) => {
-    reasoning.value = findModelOption(value)?.reasoning ?? false;
-  },
-  { immediate: true },
+const selectedModelReasoningEfforts = computed(
+  () => findModelOption(model.value)?.reasoningEfforts ?? [],
+);
+const selectedModelRequiresReasoning = computed(
+  () => findModelOption(model.value)?.reasoningRequired ?? false,
+);
+const selectedReasoningEnabled = computed(
+  () =>
+    selectedModelSupportsReasoning.value &&
+    (selectedModelRequiresReasoning.value || reasoning.value),
 );
 
 watch(
@@ -97,9 +101,24 @@ watch(
   { immediate: true },
 );
 
+function onSelectModel(value: string) {
+  const option = findModelOption(value);
+  model.value = value;
+  reasoning.value = option?.reasoning ?? false;
+  reasoningEffort.value = option?.reasoningEfforts[0] ?? "high";
+}
+
 function onPickFiles(event: Event) {
   const target = event.target as HTMLInputElement;
   files.value = Array.from(target.files ?? []);
+}
+
+function onPaste(event: ClipboardEvent) {
+  const textarea = event.currentTarget as HTMLTextAreaElement;
+
+  requestAnimationFrame(() => {
+    textarea.scrollTop = textarea.scrollHeight;
+  });
 }
 
 async function onSubmit() {
@@ -114,7 +133,8 @@ async function onSubmit() {
   const payload = {
     text,
     model: model.value,
-    reasoning: reasoning.value,
+    reasoning: selectedReasoningEnabled.value,
+    reasoningEffort: reasoningEffort.value,
     webSearch: webSearch.value,
   };
 
@@ -143,43 +163,31 @@ async function onSubmit() {
       />
     </div>
 
-    <UChatPrompt v-model="input" :placeholder="$t('chat.placeholder')" @submit="onSubmit">
+    <UChatPrompt
+      v-model="input"
+      :placeholder="$t('chat.placeholder')"
+      :maxrows="8"
+      @paste="onPaste"
+      @submit="onSubmit"
+    >
       <UChatPromptSubmit :status="status" @stop="emit('stop')" @reload="emit('reload')" />
 
       <template #footer>
         <div class="flex flex-wrap items-center gap-1.5">
-          <USelect
-            v-model="model"
+          <ChatModelSelector
+            :model-value="model"
             :items="modelOptions"
-            value-key="value"
-            size="sm"
-            class="w-52"
-            :ui="{ value: 'ps-6', itemLeadingIcon: 'size-4' }"
-          >
-            <template #leading>
-              <ModelIcon :icon="selectedProviderIcon" />
-            </template>
+            :loading="areProvidersLoading"
+            @update:model-value="onSelectModel"
+          />
 
-            <template #item-leading="{ item }">
-              <ModelIcon :icon="item.providerIcon" />
-            </template>
-          </USelect>
-
-          <UTooltip :text="$t('chat.reasoning')">
-            <UButton
-              :color="reasoning ? 'primary' : 'neutral'"
-              :variant="reasoning ? 'soft' : 'ghost'"
-              icon="i-lucide-brain"
-              size="sm"
-              square
-              :aria-label="$t('chat.reasoning')"
-              @click="
-                () => {
-                  reasoning = !reasoning;
-                }
-              "
-            />
-          </UTooltip>
+          <ChatReasoningSelector
+            v-model="reasoning"
+            v-model:effort="reasoningEffort"
+            :supported="selectedModelSupportsReasoning"
+            :required="selectedModelRequiresReasoning"
+            :efforts="selectedModelReasoningEfforts"
+          />
 
           <UTooltip :text="$t('chat.webSearch')">
             <UButton
@@ -189,6 +197,7 @@ async function onSubmit() {
               size="sm"
               square
               :aria-label="$t('chat.webSearch')"
+              :aria-pressed="webSearch"
               @click="
                 () => {
                   webSearch = !webSearch;
