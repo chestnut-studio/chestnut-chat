@@ -117,15 +117,12 @@ export async function handleAiChat(c: Context): Promise<Response> {
 
   const lastUserMessage = [...messages].reverse().find((message) => message.role === "user");
   const isRegeneration = trigger === "regenerate-message";
-  let titleGeneration: Promise<void> | undefined;
+  let shouldGenerateTitle = false;
   if (lastUserMessage && !isRegeneration) {
     const isFirstMessage = !(await hasMessages(chatId));
     await saveUserMessage(chatId, lastUserMessage);
-
-    titleGeneration =
-      isFirstMessage && title === DEFAULT_CHAT_TITLE && env.OPENROUTER_API_KEY
-        ? generateAiTitle(lastUserMessage, chatId, session.user.id)
-        : undefined;
+    shouldGenerateTitle =
+      isFirstMessage && title === DEFAULT_CHAT_TITLE && Boolean(env.DEEPSEEK_API_KEY);
   }
 
   const searchQuery = lastUserMessage ? messageText(lastUserMessage) : "";
@@ -139,6 +136,18 @@ export async function handleAiChat(c: Context): Promise<Response> {
     onError: streamErrorMessage,
     execute: async ({ writer }) => {
       writer.write({ type: "start", messageId: responseMessageId });
+
+      const titleTask =
+        shouldGenerateTitle && lastUserMessage
+          ? generateAiTitle(lastUserMessage, chatId, session.user.id).then((nextTitle) => {
+              if (!nextTitle) return;
+              writer.write({
+                type: "data-chat-title",
+                data: { title: nextTitle },
+                transient: true,
+              });
+            })
+          : Promise.resolve();
 
       let webSearchInstructions: string | undefined;
       if (searchProgressId) {
@@ -155,9 +164,13 @@ export async function handleAiChat(c: Context): Promise<Response> {
           writer.write({
             type: "data-web-search",
             id: searchProgressId,
-            data: { query: searchQuery, status: "complete" },
+            data: {
+              query: searchQuery,
+              status: "complete",
+              sources: searchResult.sources,
+            },
           });
-          for (const source of searchResult.sources) {
+          for (const { excerpt: _, ...source } of searchResult.sources) {
             writer.write({ type: "source-url", ...source });
           }
         } catch (error) {
@@ -198,10 +211,10 @@ export async function handleAiChat(c: Context): Promise<Response> {
       });
 
       writer.merge(toUIMessageStream({ stream: result.stream, sendStart: false }));
+      await titleTask;
     },
     onEnd: async ({ responseMessage }) => {
       await saveAssistantMessage(chatId, responseMessage, body.model ?? resolvedModel.modelId);
-      await titleGeneration;
     },
   });
 

@@ -463,6 +463,11 @@ function isLivePart(message: ChatUIMessage, part: MessagePart, index: number) {
 }
 
 function webSearchSources(message: ChatUIMessage): WebSearchSource[] {
+  const fromProgress = message.parts.flatMap((part) =>
+    part.type === "data-web-search" && part.data.sources?.length ? part.data.sources : [],
+  );
+  if (fromProgress.length) return fromProgress;
+
   return message.parts.flatMap((part) =>
     part.type === "source-url"
       ? [

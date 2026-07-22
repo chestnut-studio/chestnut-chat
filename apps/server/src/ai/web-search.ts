@@ -220,6 +220,9 @@ export async function searchWeb(query: string, userId: string, abortSignal: Abor
 
   return {
     instructions: searchInstructions(summary, citations),
-    sources: citations.map(({ content: _, ...source }) => source),
+    sources: citations.map(({ content, ...source }) => ({
+      ...source,
+      ...(content ? { excerpt: content.slice(0, 500) } : {}),
+    })),
   } satisfies WebSearchResult;
 }

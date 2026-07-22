@@ -20,7 +20,7 @@ const route = useRoute();
 const { $orpc } = useNuxtApp();
 const config = useRuntimeConfig();
 const { t } = useI18n();
-const { list: chats, invalidate: invalidateChats } = useChats();
+const { list: chats, invalidate: invalidateChats, applyTitle } = useChats();
 const chatId = computed(() => route.params.id as string);
 const pendingChatPrompt = usePendingChatPrompt();
 const chatTitle = computed(
@@ -91,6 +91,11 @@ const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<
       toast.error(t("toast.chatFailed"), {
         description: errorDescription(error),
       });
+    },
+    onData(dataPart) {
+      if (dataPart.type === "data-chat-title") {
+        applyTitle(chatId.value, dataPart.data.title);
+      }
     },
     onFinish({ isAbort, isError }) {
       if (!isAbort && !isError) {
