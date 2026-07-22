@@ -5,6 +5,9 @@ import { useQuery } from "@tanstack/vue-query";
 import { DefaultChatTransport, type ChatStatus } from "ai";
 import { toast } from "vue-sonner";
 
+import type { DocumentAttachment } from "@chestnut-chat/api/chat/attachments";
+import type { FileUIPart } from "ai";
+
 import {
   DEFAULT_MODEL,
   builtinChatModelValue,
@@ -17,7 +20,7 @@ const route = useRoute();
 const { $orpc } = useNuxtApp();
 const config = useRuntimeConfig();
 const { t } = useI18n();
-const { list: chats, invalidate: invalidateChats } = useChats();
+const { list: chats, invalidate: invalidateChats, applyTitle } = useChats();
 const chatId = computed(() => route.params.id as string);
 const pendingChatPrompt = usePendingChatPrompt();
 const chatTitle = computed(
@@ -88,6 +91,11 @@ const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<
       toast.error(t("toast.chatFailed"), {
         description: errorDescription(error),
       });
+    },
+    onData(dataPart) {
+      if (dataPart.type === "data-chat-title") {
+        applyTitle(chatId.value, dataPart.data.title);
+      }
     },
     onFinish({ isAbort, isError }) {
       if (!isAbort && !isError) {
@@ -208,6 +216,8 @@ function send(payload: {
   reasoning: boolean;
   reasoningEffort: ReasoningEffort;
   webSearch: boolean;
+  files?: FileUIPart[];
+  documents?: DocumentAttachment[];
 }) {
   lastOptions.value = {
     model: payload.model,
@@ -215,7 +225,32 @@ function send(payload: {
     reasoningEffort: payload.reasoningEffort,
     webSearch: payload.webSearch,
   };
-  void sendMessage({ text: payload.text }, { body: requestBody() });
+
+  const files = payload.files ?? [];
+  const documents = payload.documents ?? [];
+
+  if (documents.length === 0) {
+    void sendMessage(
+      files.length > 0 ? { text: payload.text, files } : { text: payload.text },
+      { body: requestBody() },
+    );
+    return;
+  }
+
+  void sendMessage(
+    {
+      role: "user",
+      parts: [
+        { type: "text", text: payload.text },
+        ...documents.map((document) => ({
+          type: "data-document" as const,
+          data: document,
+        })),
+        ...files,
+      ],
+    },
+    { body: requestBody() },
+  );
 }
 
 function onRegenerate(messageId: string) {

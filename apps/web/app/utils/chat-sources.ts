@@ -63,10 +63,28 @@ export function sourceSiteLabel(source: WebSearchSource, linkLabel?: string) {
   );
 }
 
+export function sourceTitle(source: WebSearchSource) {
+  return source.title?.trim() || sourceSiteLabel(source) || source.url;
+}
+
 export function sourceFaviconUrl(url: string) {
   try {
     return new URL("/favicon.ico", url).toString();
   } catch {
     return undefined;
   }
+}
+
+export function mergeWebSearchSources(
+  preferred: readonly WebSearchSource[],
+  fallback: readonly WebSearchSource[],
+) {
+  if (preferred.length) return [...preferred];
+
+  const byUrl = new Map<string, WebSearchSource>();
+  for (const source of fallback) {
+    const key = normalizeSourceUrl(source.url);
+    if (!byUrl.has(key)) byUrl.set(key, source);
+  }
+  return [...byUrl.values()];
 }

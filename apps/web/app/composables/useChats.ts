@@ -3,8 +3,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 export function useChats() {
   const { $orpc } = useNuxtApp();
   const queryClient = useQueryClient();
+  const listQueryKey = $orpc.chat.list.queryKey();
   const list = useQuery($orpc.chat.list.queryOptions());
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: $orpc.chat.list.queryKey() });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: listQueryKey });
+
+  function applyTitle(chatId: string, title: string) {
+    queryClient.setQueryData(listQueryKey, (chats) => {
+      if (!Array.isArray(chats)) return chats;
+      return chats.map((chat) => (chat.id === chatId ? { ...chat, title } : chat));
+    });
+  }
 
   const create = useMutation({
     ...$orpc.chat.create.mutationOptions(),
@@ -27,5 +35,5 @@ export function useChats() {
     onSuccess: invalidate,
   });
 
-  return { list, create, rename, setPinned, setArchived, remove, invalidate };
+  return { list, create, rename, setPinned, setArchived, remove, invalidate, applyTitle };
 }

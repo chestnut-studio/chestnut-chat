@@ -1,6 +1,7 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { decryptApiKey } from "@chestnut-chat/api/providers/encryption";
+import { modelSupportsVision } from "@chestnut-chat/api/providers/model-capabilities";
 import {
   getBuiltinProviderDef,
   getSparkModelCatalog,
@@ -26,6 +27,8 @@ const OPENROUTER_PROVIDER_ID = "openrouter";
 const SPARK_PROVIDER_ID = "spark";
 const OPENROUTER_FREE_MODEL_ID = "openrouter/free";
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
+const DEEPSEEK_TITLE_MODEL_ID = "deepseek-v4-flash";
+const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
 
 type RequestBodyTransform = (body: Record<string, unknown>) => Record<string, unknown>;
 
@@ -112,6 +115,9 @@ async function configuredProviderModel(
     );
   }
   const apiKey = normalizeProviderApiKey(decryptApiKey(row.apiKeyEncrypted));
+  const declaredVision = row.models.find((model) => model.id === target.modelId)?.supportsVision;
+  const supportsVision = modelSupportsVision(row.providerId, target.modelId, declaredVision);
+
   if (row.providerId === DEEPSEEK_PROVIDER_ID) {
     const provider = createDeepSeek({ apiKey, baseURL: normalizedBaseUrl });
 
@@ -119,6 +125,7 @@ async function configuredProviderModel(
       model: provider.chat(target.modelId),
       modelId: target.modelId,
       providerId: row.providerId,
+      supportsVision,
     };
   }
 
@@ -138,6 +145,7 @@ async function configuredProviderModel(
     model: provider.chatModel(target.modelId),
     modelId: target.modelId,
     providerId: row.providerId,
+    supportsVision,
   };
 }
 
@@ -155,6 +163,24 @@ export function openRouterFreeModel(): ResolvedChatModel {
     model: openRouter.chatModel(OPENROUTER_FREE_MODEL_ID),
     modelId: OPENROUTER_FREE_MODEL_ID,
     providerId: OPENROUTER_PROVIDER_ID,
+    supportsVision: modelSupportsVision(OPENROUTER_PROVIDER_ID, OPENROUTER_FREE_MODEL_ID),
+  };
+}
+
+export function deepSeekTitleModel(): ResolvedChatModel {
+  if (!env.DEEPSEEK_API_KEY) {
+    throw new Error("DeepSeek is not configured. Set DEEPSEEK_API_KEY in apps/server/.env.");
+  }
+
+  const provider = createDeepSeek({
+    apiKey: normalizeProviderApiKey(env.DEEPSEEK_API_KEY),
+    baseURL: DEEPSEEK_BASE_URL,
+  });
+  return {
+    model: provider.chat(DEEPSEEK_TITLE_MODEL_ID),
+    modelId: DEEPSEEK_TITLE_MODEL_ID,
+    providerId: DEEPSEEK_PROVIDER_ID,
+    supportsVision: modelSupportsVision(DEEPSEEK_PROVIDER_ID, DEEPSEEK_TITLE_MODEL_ID),
   };
 }
 

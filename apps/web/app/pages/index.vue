@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { DocumentAttachment } from "@chestnut-chat/api/chat/attachments";
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
+import type { FileUIPart } from "ai";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -32,6 +34,8 @@ async function onSubmit(payload: {
   reasoning: boolean;
   reasoningEffort: ReasoningEffort;
   webSearch: boolean;
+  files: FileUIPart[];
+  documents: DocumentAttachment[];
 }) {
   if (!(await requireAuth())) return;
   if (isStarting.value) return;

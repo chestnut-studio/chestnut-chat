@@ -25,11 +25,15 @@
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.2",
     "hono": "catalog:",
+    "mammoth": "^1.12.0",
+    "unpdf": "^1.6.2",
+    "word-extractor": "^1.0.4",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@chestnut-chat/config": "workspace:*",
     "@types/node": "catalog:",
+    "@types/word-extractor": "^1.0.6",
     "tsdown": "^0.21.9",
     "tsx": "^4.19.2",
     "typescript": "catalog:"
