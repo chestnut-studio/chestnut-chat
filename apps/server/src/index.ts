@@ -11,6 +11,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
+import { handleAiAttachments } from "./ai/attachments";
 import { handleAiChat } from "./ai/chat";
 
 const app = new Hono();
@@ -29,6 +30,7 @@ app.use(
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 app.get("/api/auth-options", (c) => c.json(getAuthProviderOptions()));
 app.post("/ai/chat", (c) => handleAiChat(c));
+app.post("/ai/attachments", (c) => handleAiAttachments(c));
 
 export const apiHandler = new OpenAPIHandler(appRouter, {
   plugins: [

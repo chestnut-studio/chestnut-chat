@@ -1,6 +1,7 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { decryptApiKey } from "@chestnut-chat/api/providers/encryption";
+import { modelSupportsVision } from "@chestnut-chat/api/providers/model-capabilities";
 import {
   getBuiltinProviderDef,
   getSparkModelCatalog,
@@ -112,6 +113,9 @@ async function configuredProviderModel(
     );
   }
   const apiKey = normalizeProviderApiKey(decryptApiKey(row.apiKeyEncrypted));
+  const declaredVision = row.models.find((model) => model.id === target.modelId)?.supportsVision;
+  const supportsVision = modelSupportsVision(row.providerId, target.modelId, declaredVision);
+
   if (row.providerId === DEEPSEEK_PROVIDER_ID) {
     const provider = createDeepSeek({ apiKey, baseURL: normalizedBaseUrl });
 
@@ -119,6 +123,7 @@ async function configuredProviderModel(
       model: provider.chat(target.modelId),
       modelId: target.modelId,
       providerId: row.providerId,
+      supportsVision,
     };
   }
 
@@ -138,6 +143,7 @@ async function configuredProviderModel(
     model: provider.chatModel(target.modelId),
     modelId: target.modelId,
     providerId: row.providerId,
+    supportsVision,
   };
 }
 
@@ -155,6 +161,7 @@ export function openRouterFreeModel(): ResolvedChatModel {
     model: openRouter.chatModel(OPENROUTER_FREE_MODEL_ID),
     modelId: OPENROUTER_FREE_MODEL_ID,
     providerId: OPENROUTER_PROVIDER_ID,
+    supportsVision: modelSupportsVision(OPENROUTER_PROVIDER_ID, OPENROUTER_FREE_MODEL_ID),
   };
 }
 

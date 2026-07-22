@@ -6,6 +6,7 @@ import {
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
+  isFileUIPart,
   isTextUIPart,
   smoothStream,
   streamText,
@@ -70,6 +71,18 @@ function messageText(message: ChatUIMessage) {
     .trim();
 }
 
+function isImageFilePart(part: ChatUIMessage["parts"][number]) {
+  return isFileUIPart(part) && part.mediaType.toLowerCase().startsWith("image/");
+}
+
+function messagesContainImages(messages: ChatUIMessage[]) {
+  return messages.some((message) => message.parts.some(isImageFilePart));
+}
+
+function documentPartToText(filename: string, extractedText: string) {
+  return `Attached file: ${filename}\n\n"""\n${extractedText}\n"""`;
+}
+
 export async function handleAiChat(c: Context): Promise<Response> {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session?.user) return c.json({ error: "Unauthorized" }, 401);
@@ -87,6 +100,16 @@ export async function handleAiChat(c: Context): Promise<Response> {
     resolvedModel = await resolveChatModel(body.model, session.user.id);
   } catch (error) {
     return c.json({ error: error instanceof Error ? error.message : "Unsupported model" }, 400);
+  }
+
+  if (!resolvedModel.supportsVision && messagesContainImages(messages)) {
+    return c.json(
+      {
+        error:
+          "The selected model does not support image input. Choose a vision-capable model or remove images.",
+      },
+      400,
+    );
   }
 
   const title = await getChatTitle(chatId, session.user.id);
@@ -154,7 +177,16 @@ export async function handleAiChat(c: Context): Promise<Response> {
       const result = streamText({
         model: resolvedModel.model,
         instructions: webSearchInstructions,
-        messages: await convertToModelMessages(messages),
+        messages: await convertToModelMessages<ChatUIMessage>(messages, {
+          convertDataPart: (part) => {
+            if (part.type === "data-document") {
+              return {
+                type: "text",
+                text: documentPartToText(part.data.filename, part.data.extractedText),
+              };
+            }
+          },
+        }),
         abortSignal: c.req.raw.signal,
         experimental_transform: smoothStream({ chunking: WORD_STREAM_CHUNKING, delayInMs: 12 }),
         providerOptions: chatProviderOptions(

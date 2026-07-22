@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
 import { isPartStreaming, isToolStreaming } from "@nuxt/ui/utils/ai";
-import { getToolName, isReasoningUIPart, isTextUIPart, isToolUIPart, type ChatStatus } from "ai";
+import { getToolName, isFileUIPart, isReasoningUIPart, isTextUIPart, isToolUIPart, type ChatStatus } from "ai";
 import { toast } from "vue-sonner";
 
 import type { ChatUIMessage } from "~/types/chat";
@@ -548,6 +548,31 @@ onBeforeUnmount(() => {
               :progress="part.data"
               :sources="view.sources"
             />
+
+            <div
+              v-else-if="part.type === 'data-document'"
+              class="mb-2 inline-flex max-w-full items-center gap-2 rounded-md bg-elevated px-2.5 py-1.5 text-sm text-muted"
+            >
+              <UIcon name="i-lucide-file-text" class="size-4 shrink-0" />
+              <span class="truncate" :title="part.data.filename">{{ part.data.filename }}</span>
+              <span class="sr-only">{{ $t("chat.attachedDocument") }}</span>
+            </div>
+
+            <div v-else-if="isFileUIPart(part)" class="mb-2">
+              <img
+                v-if="part.mediaType.startsWith('image/')"
+                :src="part.url"
+                :alt="part.filename || 'attachment'"
+                class="max-h-64 max-w-full rounded-md border border-default object-contain"
+              />
+              <div
+                v-else
+                class="inline-flex max-w-full items-center gap-2 rounded-md bg-elevated px-2.5 py-1.5 text-sm text-muted"
+              >
+                <UIcon name="i-lucide-paperclip" class="size-4 shrink-0" />
+                <span class="truncate">{{ part.filename || part.mediaType }}</span>
+              </div>
+            </div>
 
             <UChatReasoning
               v-else-if="isReasoningUIPart(part) && renderable"

@@ -1,4 +1,5 @@
 import type { LanguageModel, UIMessage } from "ai";
+import type { DocumentAttachment } from "@chestnut-chat/api/chat/attachments";
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
 import type { WebSearchProgress } from "@chestnut-chat/api/chat/web-search";
 
@@ -6,6 +7,7 @@ export type ChatUIMessage = UIMessage<
   unknown,
   {
     "web-search": WebSearchProgress;
+    document: DocumentAttachment;
   }
 >;
 
@@ -31,4 +33,5 @@ export type ResolvedChatModel = {
   model: LanguageModel;
   modelId: string;
   providerId: string;
+  supportsVision: boolean;
 };

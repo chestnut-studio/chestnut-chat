@@ -5,6 +5,9 @@ import { useQuery } from "@tanstack/vue-query";
 import { DefaultChatTransport, type ChatStatus } from "ai";
 import { toast } from "vue-sonner";
 
+import type { DocumentAttachment } from "@chestnut-chat/api/chat/attachments";
+import type { FileUIPart } from "ai";
+
 import {
   DEFAULT_MODEL,
   builtinChatModelValue,
@@ -208,6 +211,8 @@ function send(payload: {
   reasoning: boolean;
   reasoningEffort: ReasoningEffort;
   webSearch: boolean;
+  files?: FileUIPart[];
+  documents?: DocumentAttachment[];
 }) {
   lastOptions.value = {
     model: payload.model,
@@ -215,7 +220,32 @@ function send(payload: {
     reasoningEffort: payload.reasoningEffort,
     webSearch: payload.webSearch,
   };
-  void sendMessage({ text: payload.text }, { body: requestBody() });
+
+  const files = payload.files ?? [];
+  const documents = payload.documents ?? [];
+
+  if (documents.length === 0) {
+    void sendMessage(
+      files.length > 0 ? { text: payload.text, files } : { text: payload.text },
+      { body: requestBody() },
+    );
+    return;
+  }
+
+  void sendMessage(
+    {
+      role: "user",
+      parts: [
+        { type: "text", text: payload.text },
+        ...documents.map((document) => ({
+          type: "data-document" as const,
+          data: document,
+        })),
+        ...files,
+      ],
+    },
+    { body: requestBody() },
+  );
 }
 
 function onRegenerate(messageId: string) {
