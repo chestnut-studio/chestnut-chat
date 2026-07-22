@@ -189,6 +189,36 @@ function isRenderableAnimatedPart(message: ChatUIMessage, index: number) {
     );
 }
 
+type PartView = {
+  part: MessagePart;
+  index: number;
+  renderable: boolean;
+};
+
+// Computes per-message render data in a single pass: web-search sources are
+// resolved once (instead of once per part) and the animated-part gating is
+// derived linearly instead of re-scanning earlier parts for every part.
+function messageView(message: ChatUIMessage) {
+  const sources = webSearchSources(message);
+  const views: PartView[] = [];
+  let blocked = false;
+
+  for (const [index, part] of message.parts.entries()) {
+    const renderable = message.role !== "assistant" ? true : !blocked;
+    views.push({ part, index, renderable });
+
+    if (
+      !blocked &&
+      (isTextUIPart(part) || isReasoningUIPart(part)) &&
+      !isPartRenderComplete(message, part, index)
+    ) {
+      blocked = true;
+    }
+  }
+
+  return { sources, views };
+}
+
 function isPartRenderComplete(message: ChatUIMessage, part: MessagePart, index: number) {
   if (!isTextUIPart(part) && !isReasoningUIPart(part)) return true;
 
@@ -508,43 +538,45 @@ onBeforeUnmount(() => {
       class="min-h-full"
     >
       <template #content="{ message }">
-        <template
-          v-for="(part, index) in message.parts"
-          :key="`${message.id}-${part.type}-${index}`"
-        >
-          <ChatWebSearch
-            v-if="part.type === 'data-web-search'"
-            :progress="part.data"
-            :sources="webSearchSources(message)"
-          />
-
-          <UChatReasoning
-            v-else-if="isReasoningUIPart(part) && isRenderableAnimatedPart(message, index)"
-            :text="typedText(message, part, index)"
-            :streaming="isLivePart(message, part, index)"
-            :ui="{ body: 'max-h-none overflow-visible' }"
+        <template v-for="view in [messageView(message)]" :key="message.id">
+          <template
+            v-for="{ part, index, renderable } in view.views"
+            :key="`${message.id}-${part.type}-${index}`"
           >
-            <ChatMarkdown
-              :content="typedText(message, part, index)"
-              :live="isLivePart(message, part, index)"
-              :sources="webSearchSources(message)"
+            <ChatWebSearch
+              v-if="part.type === 'data-web-search'"
+              :progress="part.data"
+              :sources="view.sources"
             />
-          </UChatReasoning>
 
-          <UChatTool
-            v-else-if="isToolUIPart(part)"
-            :text="getToolName(part)"
-            :streaming="isToolStreaming(part)"
-          />
+            <UChatReasoning
+              v-else-if="isReasoningUIPart(part) && renderable"
+              :text="typedText(message, part, index)"
+              :streaming="isLivePart(message, part, index)"
+              :ui="{ body: 'max-h-none overflow-visible' }"
+            >
+              <ChatMarkdown
+                :content="typedText(message, part, index)"
+                :live="isLivePart(message, part, index)"
+                :sources="view.sources"
+              />
+            </UChatReasoning>
 
-          <template v-else-if="isTextUIPart(part)">
-            <ChatMarkdown
-              v-if="message.role === 'assistant' && isRenderableAnimatedPart(message, index)"
-              :content="typedText(message, part, index)"
-              :live="isLivePart(message, part, index)"
-              :sources="webSearchSources(message)"
+            <UChatTool
+              v-else-if="isToolUIPart(part)"
+              :text="getToolName(part)"
+              :streaming="isToolStreaming(part)"
             />
-            <p v-else-if="message.role === 'user'" class="whitespace-pre-wrap">{{ part.text }}</p>
+
+            <template v-else-if="isTextUIPart(part)">
+              <ChatMarkdown
+                v-if="message.role === 'assistant' && renderable"
+                :content="typedText(message, part, index)"
+                :live="isLivePart(message, part, index)"
+                :sources="view.sources"
+              />
+              <p v-else-if="message.role === 'user'" class="whitespace-pre-wrap">{{ part.text }}</p>
+            </template>
           </template>
         </template>
       </template>

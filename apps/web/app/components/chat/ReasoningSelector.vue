@@ -13,7 +13,9 @@ const effort = defineModel<ReasoningEffort>("effort", { default: "high" });
 const { t } = useI18n();
 
 function effortLabel(value: ReasoningEffort) {
-  return value === "max" ? t("chat.reasoningMax") : t("chat.reasoningHigh");
+  if (value === "low") return t("chat.reasoningLow");
+  if (value === "max") return t("chat.reasoningMax");
+  return t("chat.reasoningHigh");
 }
 
 const supportsEffortSelection = computed(() => props.efforts.length > 0);

@@ -87,6 +87,7 @@
     "apiKey": "API Key",
     "apiKeyDescription": "Encrypted before it is stored with your account.",
     "apiKeyEditDescription": "Leave blank to keep the existing encrypted key.",
+    "getApiKey": "Get API Key",
     "noModelsConfigured": "No models configured",
     "noModelsConfiguredHint": "Sync from the endpoint or add one by ID.",
     "availableModels": "{count} models available",
@@ -108,6 +109,8 @@
     "fetchedModel": "Fetched",
     "supportsReasoning": "Supports reasoning",
     "supportsVision": "Supports vision",
+    "reasoningTag": "Reasoning",
+    "visionTag": "Vision",
     "removeModel": "Remove model",
     "modelsFetchFailed": "Failed to fetch models from {name}",
     "modelsSaveFailed": "Failed to save models",
@@ -139,12 +142,14 @@
     "noMatchingModels": "No matching models",
     "reasoning": "Reasoning",
     "reasoningSupported": "Supports reasoning",
+    "visionSupported": "Supports vision",
     "reasoningActive": "Reasoning is active for this model",
     "reasoningRequired": "Reasoning is always active for this model",
     "reasoningActiveEffort": "Reasoning effort: {effort}",
     "reasoningInactive": "Reasoning is off for this model",
     "reasoningUnavailable": "This model does not support reasoning",
     "reasoningOff": "Off",
+    "reasoningLow": "Low",
     "reasoningHigh": "High",
     "reasoningMax": "Max",
     "webSearch": "Web search",
@@ -154,7 +159,26 @@
     "attach": "Attach files",
     "send": "Send",
     "editMessage": "Edit message",
-    "emptyTitle": "Chat with Chestnut Chat"
+    "emptyTitle": "Chat with Chestnut Chat",
+    "suggestions": {
+      "label": "Try a suggestion",
+      "write": {
+        "title": "Write",
+        "description": "Draft a clear, polished message"
+      },
+      "code": {
+        "title": "Code",
+        "description": "Debug or improve a snippet"
+      },
+      "explain": {
+        "title": "Explain",
+        "description": "Break down a tricky idea"
+      },
+      "plan": {
+        "title": "Plan",
+        "description": "Turn a goal into next steps"
+      }
+    }
   },
   "toast": {
     "copied": "Copied",

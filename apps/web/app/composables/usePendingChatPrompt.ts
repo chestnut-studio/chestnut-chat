@@ -22,7 +22,9 @@ function isPendingChatPrompt(value: unknown): value is PendingChatPrompt {
     typeof prompt.text === "string" &&
     typeof prompt.model === "string" &&
     typeof prompt.reasoning === "boolean" &&
-    (prompt.reasoningEffort === "high" || prompt.reasoningEffort === "max") &&
+    (prompt.reasoningEffort === "low" ||
+      prompt.reasoningEffort === "high" ||
+      prompt.reasoningEffort === "max") &&
     typeof prompt.webSearch === "boolean"
   );
 }

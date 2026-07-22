@@ -105,7 +105,9 @@ function onSelectModel(value: string) {
   const option = findModelOption(value);
   model.value = value;
   reasoning.value = option?.reasoning ?? false;
-  reasoningEffort.value = option?.reasoningEfforts[0] ?? "high";
+  const efforts = option?.reasoningEfforts ?? [];
+  reasoningEffort.value =
+    efforts.includes("low") && efforts.includes("max") ? "max" : (efforts[0] ?? "high");
 }
 
 function onPickFiles(event: Event) {
@@ -121,32 +123,41 @@ function onPaste(event: ClipboardEvent) {
   });
 }
 
-async function onSubmit() {
-  if (isBusy.value) {
-    emit("stop");
-    return;
-  }
-
-  const text = input.value.trim();
-  if (!text) return;
+async function submitPayload(text: string) {
+  const trimmed = text.trim();
+  if (!trimmed || isBusy.value) return false;
 
   const payload = {
-    text,
+    text: trimmed,
     model: model.value,
     reasoning: selectedReasoningEnabled.value,
     reasoningEffort: reasoningEffort.value,
     webSearch: webSearch.value,
   };
 
-  if (props.beforeSubmit && !(await props.beforeSubmit(payload))) return;
+  if (props.beforeSubmit && !(await props.beforeSubmit(payload))) return false;
 
   emit("submit", payload);
+  return true;
+}
+
+async function onSubmit() {
+  if (isBusy.value) {
+    emit("stop");
+    return;
+  }
+
+  if (!(await submitPayload(input.value))) return;
 
   input.value = "";
   files.value = [];
   if (fileInput.value) {
     fileInput.value.value = "";
   }
+}
+
+async function submitSuggestion(text: string) {
+  await submitPayload(text);
 }
 </script>
 
@@ -222,5 +233,7 @@ async function onSubmit() {
         </div>
       </template>
     </UChatPrompt>
+
+    <slot name="below" :submit-suggestion="submitSuggestion" :disabled="isBusy" />
   </div>
 </template>

@@ -11,6 +11,7 @@ export interface BuiltinProviderDef {
   hasBaseUrl: boolean;
   defaultBaseUrl?: string;
   keyPlaceholder: string;
+  apiKeyUrl?: string;
   urlPlaceholder?: string;
   fetchMode: ProviderFetchMode;
 }
@@ -46,6 +47,7 @@ export interface ProviderFormFields {
   apiKeyRequired: boolean;
   baseUrl: string;
   keyPlaceholder: string;
+  apiKeyUrl?: string;
   baseUrlPlaceholder: string;
   showBaseUrl: boolean;
 }

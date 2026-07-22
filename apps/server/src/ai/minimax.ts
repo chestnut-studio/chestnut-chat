@@ -1,8 +1,12 @@
+import { modelRequiresReasoning } from "@chestnut-chat/api/providers/model-capabilities";
+
 type FetchInput = Parameters<typeof fetch>[0];
 type FetchInit = Parameters<typeof fetch>[1];
 type RequestBody = Record<string, unknown>;
 type MiniMaxReasoningDetail = { text?: unknown };
 
+export const MINIMAX_PROVIDER_ID = "minimax";
+const MINIMAX_REASONING_MODEL_ID = "MiniMax-M3";
 const MINIMAX_BASE_URLS = ["https://api.minimaxi.com/v1", "https://api.minimax.io/v1"] as const;
 
 function normalizeBaseUrl(baseUrl: string) {
@@ -190,4 +194,31 @@ export function transformMiniMaxChatRequestBody(body: RequestBody): RequestBody 
     stream: body.stream,
     stream_options: body.stream_options,
   });
+}
+
+export function miniMaxProviderOptions(
+  providerId: string,
+  modelId: string,
+  reasoning: boolean | undefined,
+) {
+  if (providerId !== MINIMAX_PROVIDER_ID) return undefined;
+
+  if (modelRequiresReasoning(providerId, modelId)) {
+    return {
+      minimax: {
+        reasoning_split: true,
+      },
+    };
+  }
+
+  if (modelId.toLowerCase() !== MINIMAX_REASONING_MODEL_ID.toLowerCase()) return undefined;
+
+  return {
+    minimax: {
+      thinking: {
+        type: reasoning ? "adaptive" : "disabled",
+      },
+      reasoning_split: Boolean(reasoning),
+    },
+  };
 }
