@@ -1,13 +1,19 @@
-<script setup lang="ts">
-import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
-import MarkdownRender, { setCustomComponents } from "markstream-vue";
+<script lang="ts">
+import { setCustomComponents } from "markstream-vue";
 
 import ChatMarkdownLink from "~/components/chat/MarkdownLink.vue";
-import { chatWebSearchSourcesKey } from "~/utils/chat-sources";
 
+// Registered once at module evaluation instead of on every component instance.
 setCustomComponents("chat", {
   link: ChatMarkdownLink,
 });
+</script>
+
+<script setup lang="ts">
+import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
+import MarkdownRender from "markstream-vue";
+
+import { chatWebSearchSourcesKey } from "~/utils/chat-sources";
 
 const props = defineProps<{
   content: string;

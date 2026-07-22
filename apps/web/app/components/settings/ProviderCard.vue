@@ -173,7 +173,7 @@ const connectionLabel = computed(() => {
               {{ model.name || model.ownedBy }}
             </p>
           </div>
-          <SettingsModelCapabilityIcons :provider-id="provider.id" :model="model" />
+          <SettingsModelCapabilityIcons :provider-id="provider.id" :model="model" compact />
           <UButton
             icon="i-lucide-trash-2"
             size="xs"

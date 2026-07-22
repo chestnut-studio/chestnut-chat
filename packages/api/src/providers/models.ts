@@ -1,5 +1,7 @@
 import type { ProviderModel } from "@chestnut-chat/db/schema/provider";
 
+import { modelSupportsReasoning, modelSupportsVision } from "./model-capabilities";
+
 export const BUILTIN_PROVIDER_IDS = [
   "minimax",
   "qwen",
@@ -219,7 +221,8 @@ function stringsFrom(value: unknown, maximum: number) {
 }
 
 function includesImageInput(modalities: readonly string[] | undefined) {
-  return modalities?.some((modality) => /^(image|video)$/i.test(modality));
+  // Image-only for now; video input (e.g. Kimi supports_video_in) is ignored.
+  return modalities?.some((modality) => /^image$/i.test(modality));
 }
 
 function reasoningSupportFrom(record: Record<string, unknown>) {
@@ -259,7 +262,10 @@ function visionSupportFrom(
   inputModalities: readonly string[] | undefined,
 ) {
   const capabilities = recordFrom(record.capabilities);
+  // Kimi / Moonshot: supports_image_in. Video (supports_video_in) is not treated as vision.
   const declaredSupport =
+    booleanFrom(record.supports_image_in) ??
+    booleanFrom(record.supportsImageIn) ??
     booleanFrom(record.supports_vision) ??
     booleanFrom(record.supportsVision) ??
     booleanFrom(record.vision) ??
@@ -322,6 +328,23 @@ function parseOpenAIModels(payload: unknown) {
   return Array.isArray(data) ? data.flatMap((item) => normalizeModel(item) ?? []) : [];
 }
 
+/**
+ * Fill capability flags for providers whose /models payloads omit them
+ * (e.g. DeepSeek) or when catalog metadata is incomplete.
+ */
+function enrichModelCapabilities(
+  providerId: BuiltinProviderId | undefined,
+  models: readonly ProviderModel[],
+): ProviderModel[] {
+  if (!providerId) return [...models];
+
+  return models.map((model) => ({
+    ...model,
+    supportsReasoning: modelSupportsReasoning(providerId, model.id, model.supportsReasoning),
+    supportsVision: modelSupportsVision(providerId, model.id, model.supportsVision),
+  }));
+}
+
 function authorizationValue(apiKey: string, mode: ProviderAuthMode) {
   return mode === "bearer" ? `Bearer ${apiKey}` : apiKey;
 }
@@ -364,11 +387,23 @@ async function fetchOpenAICompatibleModels(
 
 export async function fetchProviderModels(options: FetchProviderModelsOptions) {
   switch (options.fetchMode) {
-    case "catalog":
-      if (options.providerId === "spark") return getSparkModelCatalog(options.baseUrl);
-      return options.modelCatalog ? [...options.modelCatalog] : [];
-    case "openai":
+    case "catalog": {
+      const catalog =
+        options.providerId === "spark"
+          ? getSparkModelCatalog(options.baseUrl)
+          : options.modelCatalog
+            ? [...options.modelCatalog]
+            : [];
+      return enrichModelCapabilities(options.providerId, catalog);
+    }
+    case "openai": {
       if (!options.baseUrl) return [];
-      return fetchOpenAICompatibleModels(options.apiKey, options.baseUrl, options.authModes);
+      const models = await fetchOpenAICompatibleModels(
+        options.apiKey,
+        options.baseUrl,
+        options.authModes,
+      );
+      return enrichModelCapabilities(options.providerId, models);
+    }
   }
 }

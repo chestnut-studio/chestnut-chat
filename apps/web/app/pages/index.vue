@@ -16,6 +16,8 @@ useHead(() => ({
   title: t("app.name"),
 }));
 
+const isStarting = ref(false);
+
 async function requireAuth() {
   const session = await authSession.ensure();
   if (session?.user) return true;
@@ -32,7 +34,9 @@ async function onSubmit(payload: {
   webSearch: boolean;
 }) {
   if (!(await requireAuth())) return;
+  if (isStarting.value) return;
 
+  isStarting.value = true;
   try {
     const row = await create.mutateAsync({});
     if (!row) return;
@@ -42,6 +46,8 @@ async function onSubmit(payload: {
     toast.error(t("toast.chatCreateFailed"), {
       description: error instanceof Error ? error.message : undefined,
     });
+  } finally {
+    isStarting.value = false;
   }
 }
 </script>
@@ -52,7 +58,11 @@ async function onSubmit(payload: {
       <div class="flex h-full flex-col items-center justify-center px-4">
         <div class="w-full max-w-2xl space-y-6">
           <h1 class="text-center text-2xl font-semibold">{{ $t("chat.emptyTitle") }}</h1>
-          <ChatBox :before-submit="requireAuth" @submit="onSubmit" />
+          <ChatBox :before-submit="requireAuth" @submit="onSubmit">
+            <template #below="{ submitSuggestion }">
+              <ChatSuggestions :disabled="isStarting" @select="submitSuggestion" />
+            </template>
+          </ChatBox>
         </div>
       </div>
     </template>

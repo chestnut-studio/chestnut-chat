@@ -13,18 +13,46 @@ import { env } from "@chestnut-chat/env/server";
 import { and, eq } from "drizzle-orm";
 
 import type { ChatModelTarget, ResolvedChatModel } from "./chat-types";
-import { createMiniMaxRetryFetch, transformMiniMaxChatRequestBody } from "./minimax";
+import { DEEPSEEK_PROVIDER_ID } from "./deepseek";
+import { KIMI_PROVIDER_ID, transformKimiChatRequestBody } from "./kimi";
+import {
+  createMiniMaxRetryFetch,
+  MINIMAX_PROVIDER_ID,
+  transformMiniMaxChatRequestBody,
+} from "./minimax";
 
 const DEFAULT_MODEL = "builtin:openrouter:openrouter%2Ffree";
-const DEEPSEEK_PROVIDER_ID = "deepseek";
-const MINIMAX_PROVIDER_ID = "minimax";
 const OPENROUTER_PROVIDER_ID = "openrouter";
 const SPARK_PROVIDER_ID = "spark";
 const OPENROUTER_FREE_MODEL_ID = "openrouter/free";
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 
+type RequestBodyTransform = (body: Record<string, unknown>) => Record<string, unknown>;
+
 function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.trim().replace(/\/+$/, "");
+}
+
+function providerRequestTransforms(
+  providerId: string,
+  normalizedBaseUrl: string,
+): {
+  fetch?: ReturnType<typeof createMiniMaxRetryFetch>;
+  transformRequestBody?: RequestBodyTransform;
+} {
+  switch (providerId) {
+    case MINIMAX_PROVIDER_ID:
+      return {
+        fetch: createMiniMaxRetryFetch(normalizedBaseUrl),
+        transformRequestBody: transformMiniMaxChatRequestBody,
+      };
+    case KIMI_PROVIDER_ID:
+      return {
+        transformRequestBody: transformKimiChatRequestBody,
+      };
+    default:
+      return {};
+  }
 }
 
 function decodeChatModelValue(value: string): ChatModelTarget | null {
@@ -72,7 +100,6 @@ async function configuredProviderModel(
   if (!baseUrl) throw new Error("Provider base URL is not configured.");
 
   const normalizedBaseUrl = normalizeBaseUrl(baseUrl);
-  const isMiniMax = row.providerId === MINIMAX_PROVIDER_ID;
   if (
     row.providerId === SPARK_PROVIDER_ID &&
     !getSparkModelCatalog(normalizedBaseUrl).some((model) => model.id === target.modelId)
@@ -95,12 +122,16 @@ async function configuredProviderModel(
     };
   }
 
+  const { fetch: providerFetch, transformRequestBody } = providerRequestTransforms(
+    row.providerId,
+    normalizedBaseUrl,
+  );
   const provider = createOpenAICompatible({
     name: row.providerId,
     apiKey,
     baseURL: normalizedBaseUrl,
-    fetch: isMiniMax ? createMiniMaxRetryFetch(normalizedBaseUrl) : undefined,
-    transformRequestBody: isMiniMax ? transformMiniMaxChatRequestBody : undefined,
+    fetch: providerFetch,
+    transformRequestBody,
   });
 
   return {

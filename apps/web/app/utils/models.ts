@@ -2,6 +2,7 @@ import {
   modelReasoningEfforts,
   modelRequiresReasoning,
   modelSupportsReasoning,
+  modelSupportsVision,
   type ReasoningEffort,
 } from "@chestnut-chat/api/providers/model-capabilities";
 
@@ -24,6 +25,7 @@ export type ModelOption = {
   reasoning: boolean;
   reasoningRequired: boolean;
   reasoningEfforts: readonly ReasoningEffort[];
+  vision: boolean;
 };
 
 interface ConfiguredProviderModelSource {
@@ -79,6 +81,7 @@ export const MODELS: ModelOption[] = [
     reasoning: false,
     reasoningRequired: false,
     reasoningEfforts: [],
+    vision: false,
   },
 ];
 
@@ -106,7 +109,8 @@ export function buildProviderModelOptions(
       providerName: provider.name,
       reasoning: modelSupportsReasoning(provider.id, model.id, model.supportsReasoning),
       reasoningRequired: modelRequiresReasoning(provider.id, model.id),
-      reasoningEfforts: modelReasoningEfforts(provider.id),
+      reasoningEfforts: modelReasoningEfforts(provider.id, model.id),
+      vision: modelSupportsVision(provider.id, model.id, model.supportsVision),
     }));
   });
 

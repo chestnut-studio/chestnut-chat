@@ -202,6 +202,7 @@ export function useSettingsProviders() {
       apiKeyRequired: true,
       baseUrl: def.defaultBaseUrl ?? def.urlPlaceholder ?? "",
       keyPlaceholder: def.keyPlaceholder,
+      apiKeyUrl: def.apiKeyUrl,
       baseUrlPlaceholder: def.urlPlaceholder ?? def.defaultBaseUrl ?? "https://api.example.com/v1",
       showBaseUrl: def.hasBaseUrl || !!def.defaultBaseUrl,
     };
@@ -319,6 +320,7 @@ export function useSettingsProviders() {
         apiKeyRequired: false,
         baseUrl: existing.baseUrl ?? def?.defaultBaseUrl ?? def?.urlPlaceholder ?? "",
         keyPlaceholder: def?.keyPlaceholder ?? "sk-...",
+        apiKeyUrl: def?.apiKeyUrl,
         baseUrlPlaceholder:
           def?.urlPlaceholder ?? def?.defaultBaseUrl ?? "https://api.example.com/v1",
         showBaseUrl: !!def && (def.hasBaseUrl || !!def.defaultBaseUrl),

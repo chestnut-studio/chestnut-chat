@@ -1,9 +1,5 @@
 import { auth } from "@chestnut-chat/auth";
-import type { DeepSeekLanguageModelChatOptions } from "@ai-sdk/deepseek";
-import {
-  modelRequiresReasoning,
-  type ReasoningEffort,
-} from "@chestnut-chat/api/providers/model-capabilities";
+import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
 import { env } from "@chestnut-chat/env/server";
 import {
   consumeStream,
@@ -26,12 +22,12 @@ import {
 } from "./chat-store";
 import { generateAiTitle } from "./chat-title";
 import type { ChatRequestBody, ChatUIMessage } from "./chat-types";
+import { deepSeekProviderOptions } from "./deepseek";
+import { kimiProviderOptions } from "./kimi";
+import { miniMaxProviderOptions } from "./minimax";
 import { resolveChatModel } from "./models";
 import { searchWeb } from "./web-search";
 
-const MINIMAX_PROVIDER_ID = "minimax";
-const MINIMAX_REASONING_MODEL_ID = "MiniMax-M3";
-const DEEPSEEK_PROVIDER_ID = "deepseek";
 const WORD_STREAM_CHUNKING = new Intl.Segmenter(undefined, { granularity: "word" });
 const STREAM_HEADERS = {
   "Cache-Control": "no-cache, no-transform",
@@ -49,48 +45,6 @@ async function requestBody(c: Context): Promise<ChatRequestBody | null> {
   }
 }
 
-function miniMaxProviderOptions(
-  providerId: string,
-  modelId: string,
-  reasoning: boolean | undefined,
-) {
-  if (providerId !== MINIMAX_PROVIDER_ID) return undefined;
-
-  if (modelRequiresReasoning(providerId, modelId)) {
-    return {
-      minimax: {
-        reasoning_split: true,
-      },
-    };
-  }
-
-  if (modelId.toLowerCase() !== MINIMAX_REASONING_MODEL_ID.toLowerCase()) return undefined;
-
-  return {
-    minimax: {
-      thinking: {
-        type: reasoning ? "adaptive" : "disabled",
-      },
-      reasoning_split: Boolean(reasoning),
-    },
-  };
-}
-
-function deepSeekProviderOptions(
-  providerId: string,
-  reasoning: boolean | undefined,
-  reasoningEffort: ReasoningEffort | undefined,
-) {
-  if (providerId !== DEEPSEEK_PROVIDER_ID) return undefined;
-
-  return {
-    deepseek: {
-      thinking: { type: reasoning ? "enabled" : "disabled" },
-      ...(reasoning ? { reasoningEffort: reasoningEffort ?? "high" } : {}),
-    } satisfies DeepSeekLanguageModelChatOptions,
-  };
-}
-
 function chatProviderOptions(
   providerId: string,
   modelId: string,
@@ -99,6 +53,7 @@ function chatProviderOptions(
 ) {
   return (
     deepSeekProviderOptions(providerId, reasoning, reasoningEffort) ??
+    kimiProviderOptions(providerId, modelId, reasoning, reasoningEffort) ??
     miniMaxProviderOptions(providerId, modelId, reasoning)
   );
 }

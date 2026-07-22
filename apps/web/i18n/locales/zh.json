@@ -87,6 +87,7 @@
     "apiKey": "API 密钥",
     "apiKeyDescription": "密钥会加密后随账户保存。",
     "apiKeyEditDescription": "留空则保留现有的加密密钥。",
+    "getApiKey": "获取 API 密钥",
     "noModelsConfigured": "未配置模型",
     "noModelsConfiguredHint": "从端点同步，或按 ID 手动添加。",
     "availableModels": "可用模型 {count} 个",
@@ -108,6 +109,8 @@
     "fetchedModel": "已同步",
     "supportsReasoning": "支持推理",
     "supportsVision": "支持视觉",
+    "reasoningTag": "推理",
+    "visionTag": "视觉",
     "removeModel": "移除模型",
     "modelsFetchFailed": "从 {name} 获取模型失败",
     "modelsSaveFailed": "保存模型失败",
@@ -139,12 +142,14 @@
     "noMatchingModels": "没有匹配的模型",
     "reasoning": "推理",
     "reasoningSupported": "支持推理",
+    "visionSupported": "支持视觉",
     "reasoningActive": "此模型已启用推理",
     "reasoningRequired": "此模型始终启用推理",
     "reasoningActiveEffort": "推理强度：{effort}",
     "reasoningInactive": "此模型的推理功能已关闭",
     "reasoningUnavailable": "此模型不支持推理",
     "reasoningOff": "关闭",
+    "reasoningLow": "低",
     "reasoningHigh": "高",
     "reasoningMax": "最大",
     "webSearch": "联网搜索",
@@ -154,7 +159,26 @@
     "attach": "附加文件",
     "send": "发送",
     "editMessage": "编辑消息",
-    "emptyTitle": "给 Chestnut Chat 发送消息"
+    "emptyTitle": "给 Chestnut Chat 发送消息",
+    "suggestions": {
+      "label": "试试这些想法",
+      "write": {
+        "title": "写作",
+        "description": "起草一封清晰得体的消息"
+      },
+      "code": {
+        "title": "编程",
+        "description": "排查或优化一段代码"
+      },
+      "explain": {
+        "title": "讲解",
+        "description": "把复杂概念讲明白"
+      },
+      "plan": {
+        "title": "规划",
+        "description": "把目标拆成可执行步骤"
+      }
+    }
   },
   "toast": {
     "copied": "已复制",

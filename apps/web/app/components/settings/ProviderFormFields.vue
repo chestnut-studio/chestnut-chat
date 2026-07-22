@@ -57,14 +57,27 @@ function updateText(key: "displayName" | "baseUrl" | "apiKey", value: string | n
       :hint="form.apiKeyRequired ? undefined : $t('settings.optional')"
       :required="form.apiKeyRequired"
     >
-      <UInput
-        :model-value="form.apiKey"
-        type="password"
-        :placeholder="form.keyPlaceholder"
-        class="w-full font-mono"
-        autocomplete="off"
-        @update:model-value="updateText('apiKey', $event)"
-      />
+      <div class="flex items-stretch gap-2">
+        <UInput
+          :model-value="form.apiKey"
+          type="password"
+          :placeholder="form.keyPlaceholder"
+          class="min-w-0 flex-1 font-mono"
+          autocomplete="off"
+          @update:model-value="updateText('apiKey', $event)"
+        />
+        <UButton
+          v-if="form.apiKeyUrl"
+          :href="form.apiKeyUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-external-link"
+          :label="$t('settings.getApiKey')"
+          class="shrink-0"
+        />
+      </div>
     </UFormField>
 
     <div class="flex justify-end gap-2">

@@ -114,7 +114,7 @@ function isConfigured(modelId: string) {
                   {{ model.name || model.ownedBy }}
                 </span>
               </span>
-              <SettingsModelCapabilityIcons :provider-id="providerId" :model="model" />
+              <SettingsModelCapabilityIcons :provider-id="providerId" :model="model" compact />
               <UIcon
                 :name="isConfigured(model.id) ? 'i-lucide-check' : 'i-lucide-plus'"
                 class="text-muted size-4 shrink-0"
