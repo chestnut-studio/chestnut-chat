@@ -547,6 +547,12 @@ onBeforeUnmount(() => {
       :messages="props.messages"
       :status="props.status"
       :assistant="{ ui: { body: 'w-full' } }"
+      :ui="{
+        viewport:
+          'pointer-events-none sticky bottom-4 z-10 mx-auto flex h-0 w-full justify-center overflow-visible data-[state=open]:animate-[fade-in_200ms_ease-out] data-[state=closed]:animate-[fade-out_200ms_ease-in]',
+        autoScroll:
+          'pointer-events-none -translate-y-full rounded-full opacity-0 shadow-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100',
+      }"
       class="min-h-full"
     >
       <template #content="{ message }">

@@ -286,7 +286,7 @@ function confirmEdit() {
   >
     <template #body>
       <div
-        class="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6"
+        class="group relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6"
       >
         <ChatHistoryLoading v-if="isHistoryLoading" />
         <ChatMessages
