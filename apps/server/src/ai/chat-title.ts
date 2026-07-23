@@ -1,20 +1,14 @@
 import { db } from "@chestnut-chat/db";
 import { chat } from "@chestnut-chat/db/schema/chat";
 import { and, eq } from "drizzle-orm";
-import { generateText, isTextUIPart, type UIMessage } from "ai";
+import { generateText, type UIMessage } from "ai";
 
 import { DEFAULT_CHAT_TITLE } from "./chat-store";
 import { deepSeekProviderOptions } from "./deepseek";
 import { deepSeekTitleModel } from "./models";
+import { messageText } from "./utils";
 
 const TITLE_MAX_LENGTH = 60;
-
-function messageText(message: UIMessage) {
-  return message.parts
-    .filter(isTextUIPart)
-    .map((part) => part.text)
-    .join("");
-}
 
 function cleanTitle(value: string) {
   return value
@@ -54,6 +48,9 @@ export async function generateAiTitle(
 
     return updated?.title;
   } catch (error) {
-    console.error("Failed to generate AI chat title:", error);
+    console.error(
+      "Failed to generate AI chat title:",
+      error instanceof Error ? error.message : String(error),
+    );
   }
 }

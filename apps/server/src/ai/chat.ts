@@ -1,5 +1,8 @@
 import { auth } from "@chestnut-chat/auth";
-import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
+import {
+  REASONING_EFFORTS,
+  type ReasoningEffort,
+} from "@chestnut-chat/api/providers/model-capabilities";
 import { env } from "@chestnut-chat/env/server";
 import {
   consumeStream,
@@ -7,12 +10,12 @@ import {
   createUIMessageStream,
   createUIMessageStreamResponse,
   isFileUIPart,
-  isTextUIPart,
   smoothStream,
   streamText,
   toUIMessageStream,
 } from "ai";
 import type { Context } from "hono";
+import { z } from "zod";
 
 import {
   DEFAULT_CHAT_TITLE,
@@ -27,6 +30,7 @@ import { deepSeekProviderOptions } from "./deepseek";
 import { kimiProviderOptions } from "./kimi";
 import { miniMaxProviderOptions } from "./minimax";
 import { resolveChatModel } from "./models";
+import { messageText } from "./utils";
 import { searchWeb } from "./web-search";
 
 const WORD_STREAM_CHUNKING = new Intl.Segmenter(undefined, { granularity: "word" });
@@ -38,12 +42,26 @@ const STREAM_HEADERS = {
 };
 const DEFAULT_STREAM_ERROR = "The AI provider could not complete the request.";
 
+const chatRequestSchema = z.object({
+  chatId: z.string().min(1),
+  messages: z.array(z.any()),
+  model: z.string().optional(),
+  reasoning: z.boolean().optional(),
+  reasoningEffort: z.enum(REASONING_EFFORTS).optional(),
+  trigger: z.enum(["submit-message", "regenerate-message"]).optional(),
+  webSearch: z.boolean().optional(),
+});
+
 async function requestBody(c: Context): Promise<ChatRequestBody | null> {
+  let json: unknown;
   try {
-    return (await c.req.json()) as ChatRequestBody;
+    json = await c.req.json();
   } catch {
     return null;
   }
+
+  const parsed = chatRequestSchema.safeParse(json);
+  return parsed.success ? (parsed.data as ChatRequestBody) : null;
 }
 
 function chatProviderOptions(
@@ -61,14 +79,6 @@ function chatProviderOptions(
 
 function streamErrorMessage(error: unknown) {
   return error instanceof Error && error.message ? error.message : DEFAULT_STREAM_ERROR;
-}
-
-function messageText(message: ChatUIMessage) {
-  return message.parts
-    .filter(isTextUIPart)
-    .map((part) => part.text)
-    .join("")
-    .trim();
 }
 
 function isImageFilePart(part: ChatUIMessage["parts"][number]) {
@@ -91,9 +101,6 @@ export async function handleAiChat(c: Context): Promise<Response> {
   if (!body) return c.json({ error: "Invalid JSON request body" }, 400);
 
   const { chatId, messages, reasoning, reasoningEffort, trigger, webSearch } = body;
-  if (!chatId || !Array.isArray(messages)) {
-    return c.json({ error: "chatId and messages are required" }, 400);
-  }
 
   let resolvedModel;
   try {
@@ -120,12 +127,20 @@ export async function handleAiChat(c: Context): Promise<Response> {
   let shouldGenerateTitle = false;
   if (lastUserMessage && !isRegeneration) {
     const isFirstMessage = !(await hasMessages(chatId));
-    await saveUserMessage(chatId, lastUserMessage);
+    try {
+      await saveUserMessage(chatId, lastUserMessage);
+    } catch (error) {
+      console.error(
+        "Failed to save user message:",
+        error instanceof Error ? error.message : String(error),
+      );
+      return c.json({ error: "Failed to save message" }, 500);
+    }
     shouldGenerateTitle =
       isFirstMessage && title === DEFAULT_CHAT_TITLE && Boolean(env.DEEPSEEK_API_KEY);
   }
 
-  const searchQuery = lastUserMessage ? messageText(lastUserMessage) : "";
+  const searchQuery = lastUserMessage ? messageText(lastUserMessage).trim() : "";
   const searchProgressId =
     webSearch && searchQuery ? `web-search-${crypto.randomUUID()}` : undefined;
   const lastMessage = messages.at(-1);
@@ -214,7 +229,14 @@ export async function handleAiChat(c: Context): Promise<Response> {
       await titleTask;
     },
     onEnd: async ({ responseMessage }) => {
-      await saveAssistantMessage(chatId, responseMessage, body.model ?? resolvedModel.modelId);
+      try {
+        await saveAssistantMessage(chatId, responseMessage, body.model ?? resolvedModel.modelId);
+      } catch (error) {
+        console.error(
+          "Failed to save assistant message:",
+          error instanceof Error ? error.message : String(error),
+        );
+      }
     },
   });
 

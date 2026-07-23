@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AuthProviderOptions } from "@chestnut-chat/auth";
 import { toast } from "vue-sonner";
 
 const open = defineModel<boolean>("open", { default: false });
@@ -7,15 +8,6 @@ const { $authClient } = useNuxtApp();
 const config = useRuntimeConfig();
 const authSession = useAuthSession();
 const { t } = useI18n();
-
-type AuthProviderOptions = {
-  socialProviders: {
-    github: boolean;
-    google: boolean;
-  };
-  callbackOrigin: string;
-  emailOtp: boolean;
-};
 
 const route = useRoute();
 const serverUrl = (import.meta.server && config.serverUrl) || config.public.serverUrl;
@@ -69,8 +61,10 @@ async function sendOtp() {
     await $authClient.emailOtp.sendVerificationOtp({ email: email.value, type: "sign-in" });
     otpSent.value = true;
     toast.success(t("login.codeSent"), { description: t("login.codeSentDescription") });
-  } catch (error: any) {
-    toast.error(t("login.sendFailed"), { description: error?.message });
+  } catch (error: unknown) {
+    toast.error(t("login.sendFailed"), {
+      description: error instanceof Error ? error.message : undefined,
+    });
   } finally {
     loading.value = false;
   }

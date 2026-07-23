@@ -1,9 +1,20 @@
 import { relations, sql } from "drizzle-orm";
-import { boolean, index, jsonb, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
 
-export type ProviderKind = "builtin" | "custom";
+export const providerKindEnum = pgEnum("provider_kind", ["builtin", "custom"]);
+
+export type ProviderKind = (typeof providerKindEnum.enumValues)[number];
 
 export type ProviderModel = {
   id: string;
@@ -26,7 +37,7 @@ export const providerSetting = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    kind: text("kind").$type<ProviderKind>().notNull(),
+    kind: providerKindEnum("kind").notNull(),
     providerId: text("provider_id").notNull(),
     name: text("name").notNull(),
     apiKeyEncrypted: text("api_key_encrypted").notNull(),

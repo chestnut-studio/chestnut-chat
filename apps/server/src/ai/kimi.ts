@@ -3,18 +3,15 @@ import {
   isKimiK26Model,
   isKimiK27CodeModel,
   isKimiK3Model,
+  KIMI_REASONING_EFFORTS,
   type ReasoningEffort,
 } from "@chestnut-chat/api/providers/model-capabilities";
 
-type RequestBody = Record<string, unknown>;
+import { stripUndefined, type RequestBody } from "./utils";
 
 export const KIMI_PROVIDER_ID = "kimi";
 
-const KIMI_REASONING_EFFORTS = new Set<ReasoningEffort>(["low", "high", "max"]);
-
-function stripUndefined(body: RequestBody): RequestBody {
-  return Object.fromEntries(Object.entries(body).filter(([, value]) => value !== undefined));
-}
+const KIMI_REASONING_EFFORT_SET = new Set<ReasoningEffort>(KIMI_REASONING_EFFORTS);
 
 function isKimiThinkingModel(modelId: string) {
   return (
@@ -27,7 +24,7 @@ function isKimiThinkingModel(modelId: string) {
 }
 
 function resolveKimiReasoningEffort(effort: ReasoningEffort | undefined): ReasoningEffort {
-  return effort && KIMI_REASONING_EFFORTS.has(effort) ? effort : "max";
+  return effort && KIMI_REASONING_EFFORT_SET.has(effort) ? effort : "max";
 }
 
 function thinkingDisabled(body: RequestBody) {
@@ -96,8 +93,7 @@ export function kimiProviderOptions(
  */
 export function transformKimiChatRequestBody(body: RequestBody): RequestBody {
   const modelId = typeof body.model === "string" ? body.model : "";
-  const omitSampling =
-    isKimiThinkingModel(modelId) && !thinkingDisabled(body);
+  const omitSampling = isKimiThinkingModel(modelId) && !thinkingDisabled(body);
 
   return stripUndefined({
     model: body.model,

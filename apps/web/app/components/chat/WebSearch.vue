@@ -62,7 +62,9 @@ function onStatusClick() {
           : isSearching
             ? 'border-primary/25 bg-primary/5'
             : 'border-default/80 bg-elevated/40',
-        canOpenSources ? 'cursor-pointer hover:border-primary/35 hover:bg-elevated' : 'cursor-default',
+        canOpenSources
+          ? 'cursor-pointer hover:border-primary/35 hover:bg-elevated'
+          : 'cursor-default',
       ]"
       :disabled="!canOpenSources"
       :aria-expanded="canOpenSources ? open : undefined"

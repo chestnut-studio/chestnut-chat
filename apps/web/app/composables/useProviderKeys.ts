@@ -1,31 +1,7 @@
+import type { BuiltinProviderId, ProviderModel } from "@chestnut-chat/api/providers/models";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 
-export type BuiltinProviderId =
-  | "minimax"
-  | "qwen"
-  | "zai"
-  | "xiaomimimo"
-  | "doubao"
-  | "hunyuan"
-  | "longcat"
-  | "spark"
-  | "stepfun"
-  | "wenxin"
-  | "kimi"
-  | "deepseek"
-  | "openrouter";
-
-export interface ProviderModel {
-  id: string;
-  name?: string;
-  ownedBy?: string;
-  supportsReasoning?: boolean;
-  supportsVision?: boolean;
-  inputModalities?: string[];
-  outputModalities?: string[];
-  supportedParameters?: string[];
-  source: "fetched" | "manual";
-}
+export type { BuiltinProviderId, ProviderModel } from "@chestnut-chat/api/providers/models";
 
 export interface ProviderEntry {
   name?: string;
@@ -75,9 +51,6 @@ function cleanApiKey(apiKey: string | undefined) {
     ?.trim()
     .replace(/^export\s+/i, "")
     .replace(/^(?:openai_api_key|minimax_api_key|minimaxi_api_key|api_key)\s*=\s*/i, "")
-    .replace(/^authorization:\s*/i, "")
-    .replace(/^bearer\s+/i, "")
-    .trim()
     .replace(/^authorization:\s*/i, "")
     .replace(/^bearer\s+/i, "")
     .trim()

@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
 import { isPartStreaming, isToolStreaming } from "@nuxt/ui/utils/ai";
-import { getToolName, isFileUIPart, isReasoningUIPart, isTextUIPart, isToolUIPart, type ChatStatus } from "ai";
+import {
+  getToolName,
+  isFileUIPart,
+  isReasoningUIPart,
+  isTextUIPart,
+  isToolUIPart,
+  type ChatStatus,
+} from "ai";
 import { toast } from "vue-sonner";
 
 import type { ChatUIMessage } from "~/types/chat";

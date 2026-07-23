@@ -1,17 +1,15 @@
 import { modelRequiresReasoning } from "@chestnut-chat/api/providers/model-capabilities";
+import { normalizeBaseUrl } from "@chestnut-chat/api/providers/models";
+
+import { stripUndefined, type RequestBody } from "./utils";
 
 type FetchInput = Parameters<typeof fetch>[0];
 type FetchInit = Parameters<typeof fetch>[1];
-type RequestBody = Record<string, unknown>;
 type MiniMaxReasoningDetail = { text?: unknown };
 
 export const MINIMAX_PROVIDER_ID = "minimax";
 const MINIMAX_REASONING_MODEL_ID = "MiniMax-M3";
 const MINIMAX_BASE_URLS = ["https://api.minimaxi.com/v1", "https://api.minimax.io/v1"] as const;
-
-function normalizeBaseUrl(baseUrl: string) {
-  return baseUrl.trim().replace(/\/+$/, "");
-}
 
 function alternateBaseUrl(baseUrl: string) {
   const normalized = normalizeBaseUrl(baseUrl);
@@ -173,10 +171,6 @@ export function createMiniMaxRetryFetch(baseUrl: string) {
         : await fetch(retryUrl, init);
     return normalizeReasoningResponse(retryResponse);
   };
-}
-
-function stripUndefined(body: RequestBody): RequestBody {
-  return Object.fromEntries(Object.entries(body).filter(([, value]) => value !== undefined));
 }
 
 export function transformMiniMaxChatRequestBody(body: RequestBody): RequestBody {

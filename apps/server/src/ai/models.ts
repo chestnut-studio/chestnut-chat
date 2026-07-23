@@ -5,6 +5,7 @@ import { modelSupportsVision } from "@chestnut-chat/api/providers/model-capabili
 import {
   getBuiltinProviderDef,
   getSparkModelCatalog,
+  normalizeBaseUrl,
   normalizeProviderApiKey,
   type BuiltinProviderId,
 } from "@chestnut-chat/api/providers/models";
@@ -21,20 +22,15 @@ import {
   MINIMAX_PROVIDER_ID,
   transformMiniMaxChatRequestBody,
 } from "./minimax";
+import { OPENROUTER_BASE_URL, OPENROUTER_PROVIDER_ID, type RequestBody } from "./utils";
 
 const DEFAULT_MODEL = "builtin:openrouter:openrouter%2Ffree";
-const OPENROUTER_PROVIDER_ID = "openrouter";
 const SPARK_PROVIDER_ID = "spark";
 const OPENROUTER_FREE_MODEL_ID = "openrouter/free";
-const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
 const DEEPSEEK_TITLE_MODEL_ID = "deepseek-v4-flash";
 const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
 
-type RequestBodyTransform = (body: Record<string, unknown>) => Record<string, unknown>;
-
-function normalizeBaseUrl(baseUrl: string) {
-  return baseUrl.trim().replace(/\/+$/, "");
-}
+type RequestBodyTransform = (body: RequestBody) => RequestBody;
 
 function providerRequestTransforms(
   providerId: string,

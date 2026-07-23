@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
-import { toast } from "vue-sonner";
 
 defineProps<{
   collapsed?: boolean;
 }>();
 
-const { $authClient } = useNuxtApp();
 const authSession = useAuthSession();
 const { t } = useI18n();
 const { show: showLogin } = useLoginModal();
+const signOut = useSignOut();
 
 const hydrated = ref(false);
 
@@ -28,28 +27,13 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
   ],
   [
     {
-      label: "Logout",
+      label: t("settings.signOut"),
       icon: "i-lucide-log-out",
       color: "error",
       onSelect: signOut,
     },
   ],
 ]);
-
-async function signOut() {
-  await $authClient.signOut({
-    fetchOptions: {
-      onSuccess: async () => {
-        authSession.clear();
-        toast.success(t("toast.signedOut"));
-        await navigateTo("/", { replace: true, external: true });
-      },
-      onError: (error) => {
-        toast.error(t("toast.signOutFailed"), { description: error?.error?.message });
-      },
-    },
-  });
-}
 </script>
 
 <template>

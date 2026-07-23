@@ -12,9 +12,5 @@ withDefaults(
 </script>
 
 <template>
-  <ModelCapabilityTags
-    :provider-id="providerId"
-    :model="model"
-    :compact="compact"
-  />
+  <ModelCapabilityTags :provider-id="providerId" :model="model" :compact="compact" />
 </template>

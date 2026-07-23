@@ -1,7 +1,9 @@
 import { relations } from "drizzle-orm";
-import { boolean, index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, index, jsonb, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
+
+export const messageRoleEnum = pgEnum("message_role", ["user", "assistant", "system"]);
 
 export const chat = pgTable(
   "chat",
@@ -39,7 +41,7 @@ export const message = pgTable(
     chatId: text("chat_id")
       .notNull()
       .references(() => chat.id, { onDelete: "cascade" }),
-    role: text("role").notNull(),
+    role: messageRoleEnum("role").notNull(),
     parts: jsonb("parts").$type<MessagePart[]>().notNull(),
     model: text("model"),
     createdAt: timestamp("created_at").defaultNow().notNull(),

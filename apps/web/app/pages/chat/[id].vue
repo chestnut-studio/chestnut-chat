@@ -230,10 +230,9 @@ function send(payload: {
   const documents = payload.documents ?? [];
 
   if (documents.length === 0) {
-    void sendMessage(
-      files.length > 0 ? { text: payload.text, files } : { text: payload.text },
-      { body: requestBody() },
-    );
+    void sendMessage(files.length > 0 ? { text: payload.text, files } : { text: payload.text }, {
+      body: requestBody(),
+    });
     return;
   }
 

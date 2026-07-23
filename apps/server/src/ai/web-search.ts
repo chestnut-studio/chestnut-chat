@@ -6,10 +6,14 @@ import { providerSetting } from "@chestnut-chat/db/schema/provider";
 import { env } from "@chestnut-chat/env/server";
 import { and, eq } from "drizzle-orm";
 
-const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
+import { normalizeBaseUrl } from "@chestnut-chat/api/providers/models";
+
+import { OPENROUTER_BASE_URL, OPENROUTER_PROVIDER_ID } from "./utils";
+
 const OPENROUTER_SEARCH_MODEL = "openrouter/free";
 const MAX_RESEARCH_LENGTH = 12_000;
-const MAX_EXCERPT_LENGTH = 3_000;
+const MAX_CITATION_CONTENT_LENGTH = 3_000;
+const MAX_SOURCE_EXCERPT_LENGTH = 500;
 
 type SearchCitation = WebSearchSource & {
   content?: string;
@@ -19,10 +23,6 @@ export type WebSearchResult = {
   instructions: string;
   sources: WebSearchSource[];
 };
-
-function normalizeBaseUrl(baseUrl: string) {
-  return baseUrl.trim().replace(/\/+$/, "");
-}
 
 function isOpenRouterUrl(baseUrl: string | null) {
   if (!baseUrl) return false;
@@ -80,7 +80,7 @@ function responseCitations(message: Record<string, unknown>) {
     if (!url || citations.has(url)) continue;
 
     const title = textFrom(citation?.title);
-    const content = textFrom(citation?.content)?.slice(0, MAX_EXCERPT_LENGTH);
+    const content = textFrom(citation?.content)?.slice(0, MAX_CITATION_CONTENT_LENGTH);
     citations.set(url, {
       sourceId: `web-source-${citations.size + 1}`,
       url,
@@ -117,11 +117,12 @@ async function searchCredential(userId: string) {
   const configuredOpenRouter =
     configuredProviders.find(
       (provider) =>
-        provider.kind === "builtin" && provider.providerId.toLowerCase() === "openrouter",
+        provider.kind === "builtin" && provider.providerId.toLowerCase() === OPENROUTER_PROVIDER_ID,
     ) ??
     configuredProviders.find(
       (provider) =>
-        provider.providerId.toLowerCase() === "openrouter" || isOpenRouterUrl(provider.baseUrl),
+        provider.providerId.toLowerCase() === OPENROUTER_PROVIDER_ID ||
+        isOpenRouterUrl(provider.baseUrl),
     );
 
   if (configuredOpenRouter) {
@@ -222,7 +223,7 @@ export async function searchWeb(query: string, userId: string, abortSignal: Abor
     instructions: searchInstructions(summary, citations),
     sources: citations.map(({ content, ...source }) => ({
       ...source,
-      ...(content ? { excerpt: content.slice(0, 500) } : {}),
+      ...(content ? { excerpt: content.slice(0, MAX_SOURCE_EXCERPT_LENGTH) } : {}),
     })),
   } satisfies WebSearchResult;
 }

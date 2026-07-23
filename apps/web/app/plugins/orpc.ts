@@ -3,8 +3,6 @@ import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 
-import { defineNuxtPlugin } from "#app";
-
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
   const serverUrl = (import.meta.server && config.serverUrl) || config.public.serverUrl;

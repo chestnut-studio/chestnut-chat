@@ -1,11 +1,9 @@
-import Zai from "~/components/icon/Zai.vue";
 import type { BuiltinProviderDef } from "~/types/providers";
 
 export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "minimax",
     name: "MiniMax",
-    icon: "i-simple-icons-minimax",
     hasBaseUrl: false,
     defaultBaseUrl: "https://api.minimaxi.com/v1",
     keyPlaceholder: "sk-...",
@@ -16,7 +14,6 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "qwen",
     name: "Qwen",
-    icon: "i-simple-icons-qwen",
     hasBaseUrl: true,
     defaultBaseUrl: "https://dashscope-us.aliyuncs.com/compatible-mode/v1",
     keyPlaceholder: "sk-...",
@@ -27,7 +24,6 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "zai",
     name: "Z.ai",
-    icon: Zai,
     hasBaseUrl: true,
     defaultBaseUrl: "https://api.z.ai/api/paas/v4",
     keyPlaceholder: "...",
@@ -38,7 +34,6 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "xiaomimimo",
     name: "Xiaomi MiMo",
-    icon: "i-simple-icons-xiaomi",
     hasBaseUrl: true,
     defaultBaseUrl: "https://api.xiaomimimo.com/v1",
     keyPlaceholder: "sk-... or tp-...",
@@ -49,7 +44,6 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "doubao",
     name: "Doubao",
-    icon: "i-simple-icons-bytedance",
     hasBaseUrl: false,
     defaultBaseUrl: "https://ark.cn-beijing.volces.com/api/v3",
     keyPlaceholder: "...",
@@ -60,7 +54,6 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "hunyuan",
     name: "Tencent Hunyuan",
-    icon: "i-lucide-circle-dot",
     hasBaseUrl: false,
     defaultBaseUrl: "https://api.hunyuan.cloud.tencent.com/v1",
     keyPlaceholder: "...",
@@ -71,7 +64,6 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "longcat",
     name: "Meituan LongCat",
-    icon: "i-simple-icons-meituan",
     hasBaseUrl: true,
     defaultBaseUrl: "https://api.longcat.chat/openai/v1",
     keyPlaceholder: "...",
@@ -82,7 +74,6 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "spark",
     name: "iFLYTEK Spark",
-    icon: "i-lucide-sparkles",
     hasBaseUrl: false,
     defaultBaseUrl: "https://spark-api-open.xf-yun.com/v1",
     keyPlaceholder: "...",
@@ -93,7 +84,6 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "stepfun",
     name: "Jieyue Stepfun",
-    icon: "i-lucide-step-forward",
     hasBaseUrl: true,
     defaultBaseUrl: "https://api.stepfun.com/v1",
     keyPlaceholder: "sk-...",
@@ -104,10 +94,9 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "wenxin",
     name: "Baidu Wenxin",
-    icon: "i-simple-icons-baidu",
     hasBaseUrl: true,
     defaultBaseUrl: "https://qianfan.baidubce.com/v2",
-    keyPlaceholder: "bce-v3/...",
+    keyPlaceholder: "**********",
     apiKeyUrl: "https://console.bce.baidu.com/qianfan/ais/console/apiKey",
     urlPlaceholder: "https://qianfan.baidubce.com/v2",
     fetchMode: "openai",
@@ -115,7 +104,6 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "kimi",
     name: "Kimi",
-    icon: "i-simple-icons-moonshotai",
     hasBaseUrl: false,
     defaultBaseUrl: "https://api.moonshot.cn/v1",
     keyPlaceholder: "...",
@@ -125,7 +113,6 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "deepseek",
     name: "DeepSeek",
-    icon: "i-simple-icons-deepseek",
     hasBaseUrl: false,
     defaultBaseUrl: "https://api.deepseek.com",
     keyPlaceholder: "...",
@@ -135,7 +122,6 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "openrouter",
     name: "OpenRouter",
-    icon: "i-simple-icons-openrouter",
     hasBaseUrl: false,
     defaultBaseUrl: "https://openrouter.ai/api/v1",
     keyPlaceholder: "...",

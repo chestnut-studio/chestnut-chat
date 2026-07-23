@@ -76,10 +76,7 @@ const previewTitle = computed(() => sourceTitle(props.source));
           {{ previewTitle }}
         </p>
 
-        <p
-          v-if="source.excerpt"
-          class="mt-1.5 line-clamp-3 text-xs leading-5 text-muted"
-        >
+        <p v-if="source.excerpt" class="mt-1.5 line-clamp-3 text-xs leading-5 text-muted">
           {{ source.excerpt }}
         </p>
 

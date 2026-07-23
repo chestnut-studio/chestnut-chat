@@ -330,9 +330,7 @@ async function submitSuggestion(text: string) {
           </UTooltip>
 
           <UTooltip
-            :text="
-              selectedModelSupportsVision ? $t('chat.attach') : $t('chat.attachDocumentsOnly')
-            "
+            :text="selectedModelSupportsVision ? $t('chat.attach') : $t('chat.attachDocumentsOnly')"
           >
             <UButton
               color="neutral"

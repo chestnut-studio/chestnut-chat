@@ -1,13 +1,13 @@
-import type { Component } from "vue";
+import type { ProviderFetchMode } from "@chestnut-chat/api/providers/models";
 import type { BuiltinProviderId, ProviderModel } from "~/composables/useProviderKeys";
 
-export type ProviderFetchMode = "openai" | "catalog";
+export type { ProviderFetchMode } from "@chestnut-chat/api/providers/models";
+
 export type ProviderIconId = BuiltinProviderId | "custom";
 
 export interface BuiltinProviderDef {
   id: BuiltinProviderId;
   name: string;
-  icon: string | Component;
   hasBaseUrl: boolean;
   defaultBaseUrl?: string;
   keyPlaceholder: string;

@@ -32,25 +32,21 @@ app.get("/api/auth-options", (c) => c.json(getAuthProviderOptions()));
 app.post("/ai/chat", (c) => handleAiChat(c));
 app.post("/ai/attachments", (c) => handleAiAttachments(c));
 
-export const apiHandler = new OpenAPIHandler(appRouter, {
+function logHandlerError(error: unknown) {
+  console.error(error instanceof Error ? error.message : String(error));
+}
+
+const apiHandler = new OpenAPIHandler(appRouter, {
   plugins: [
     new OpenAPIReferencePlugin({
       schemaConverters: [new ZodToJsonSchemaConverter()],
     }),
   ],
-  interceptors: [
-    onError((error) => {
-      console.error(error);
-    }),
-  ],
+  interceptors: [onError(logHandlerError)],
 });
 
-export const rpcHandler = new RPCHandler(appRouter, {
-  interceptors: [
-    onError((error) => {
-      console.error(error);
-    }),
-  ],
+const rpcHandler = new RPCHandler(appRouter, {
+  interceptors: [onError(logHandlerError)],
 });
 
 app.use("/*", async (c, next) => {
@@ -86,7 +82,7 @@ import { serve } from "@hono/node-server";
 serve(
   {
     fetch: app.fetch,
-    port: Number(process.env.PORT ?? 3010),
+    port: env.PORT,
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);

@@ -59,7 +59,8 @@ async function processFile(file: File): Promise<ProcessedAttachment> {
     throw new Error(`Empty file: ${file.name}`);
   }
   if (file.size > MAX_ATTACHMENT_BYTES) {
-    throw new Error(`File exceeds 10 MB limit: ${file.name}`);
+    const limitMb = Math.round(MAX_ATTACHMENT_BYTES / (1024 * 1024));
+    throw new Error(`File exceeds ${limitMb} MB limit: ${file.name}`);
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());

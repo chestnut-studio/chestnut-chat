@@ -2,6 +2,8 @@ import type { ProviderModel } from "@chestnut-chat/db/schema/provider";
 
 import { modelSupportsReasoning, modelSupportsVision } from "./model-capabilities";
 
+export type { ProviderModel } from "@chestnut-chat/db/schema/provider";
+
 export const BUILTIN_PROVIDER_IDS = [
   "minimax",
   "qwen",
@@ -143,7 +145,7 @@ export function getBuiltinProviderDef(id: BuiltinProviderId) {
 
 const MINIMAX_BASE_URLS = ["https://api.minimaxi.com/v1", "https://api.minimax.io/v1"] as const;
 
-function normalizeBaseUrl(baseUrl: string) {
+export function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.trim().replace(/\/+$/, "");
 }
 
@@ -187,9 +189,6 @@ export function normalizeProviderApiKey(apiKey: string) {
   return stripWrappingQuotes(apiKey)
     .replace(/^export\s+/i, "")
     .replace(/^(?:openai_api_key|minimax_api_key|minimaxi_api_key|api_key)\s*=\s*/i, "")
-    .replace(/^authorization:\s*/i, "")
-    .replace(/^bearer\s+/i, "")
-    .trim()
     .replace(/^authorization:\s*/i, "")
     .replace(/^bearer\s+/i, "")
     .trim()

@@ -17,7 +17,7 @@ function extensionOf(filename: string) {
 }
 
 function truncateExtractedText(text: string) {
-  const normalized = text.replace(/\u0000/g, "").trim();
+  const normalized = text.replaceAll("\u0000", "").trim();
   if (normalized.length <= MAX_EXTRACTED_TEXT_CHARS) return normalized;
 
   return `${normalized.slice(0, MAX_EXTRACTED_TEXT_CHARS).trimEnd()}\n\n[Content truncated]`;
@@ -37,8 +37,7 @@ function resolveKind(filename: string, mediaType: string) {
 
   if (
     DOCX_EXTENSIONS.has(extension) ||
-    normalizedType ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    normalizedType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   ) {
     return "docx" as const;
   }
