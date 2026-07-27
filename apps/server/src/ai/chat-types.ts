@@ -17,8 +17,12 @@ export type ChatUIMessage = UIMessage<
 >;
 
 export type ChatRequestBody = {
-  messages: ChatUIMessage[];
+  /** Newest UI message only; server loads authoritative history. */
+  message?: ChatUIMessage;
+  /** @deprecated Prefer `message`; kept for transitional clients. */
+  messages?: ChatUIMessage[];
   chatId: string;
+  messageId?: string;
   model?: string;
   reasoning?: boolean;
   reasoningEffort?: ReasoningEffort;

@@ -21,8 +21,10 @@ import {
   DEFAULT_CHAT_TITLE,
   getChatTitle,
   hasMessages,
+  listChatMessages,
   saveAssistantMessage,
   saveUserMessage,
+  truncateFromMessage,
 } from "./chat-store";
 import { generateAiTitle } from "./chat-title";
 import type { ChatRequestBody, ChatUIMessage } from "./chat-types";
@@ -32,6 +34,8 @@ import { miniMaxProviderOptions } from "./minimax";
 import { resolveChatModel } from "./models";
 import { messageText } from "./utils";
 import { searchWeb } from "./web-search";
+import { buildChatContext } from "../memory/context";
+import { enqueuePostChatJobs } from "../memory/queue";
 
 const WORD_STREAM_CHUNKING = new Intl.Segmenter(undefined, { granularity: "word" });
 const STREAM_HEADERS = {
@@ -44,7 +48,9 @@ const DEFAULT_STREAM_ERROR = "The AI provider could not complete the request.";
 
 const chatRequestSchema = z.object({
   chatId: z.string().min(1),
-  messages: z.array(z.any()),
+  message: z.any().optional(),
+  messages: z.array(z.any()).optional(),
+  messageId: z.string().optional(),
   model: z.string().optional(),
   reasoning: z.boolean().optional(),
   reasoningEffort: z.enum(REASONING_EFFORTS).optional(),
@@ -93,6 +99,16 @@ function documentPartToText(filename: string, extractedText: string) {
   return `Attached file: ${filename}\n\n"""\n${extractedText}\n"""`;
 }
 
+function resolveIncomingMessage(body: ChatRequestBody): ChatUIMessage | null {
+  if (body.message && typeof body.message === "object") {
+    return body.message as ChatUIMessage;
+  }
+  if (body.messages?.length) {
+    return [...body.messages].reverse().find((message) => message.role === "user") ?? null;
+  }
+  return null;
+}
+
 export async function handleAiChat(c: Context): Promise<Response> {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session?.user) return c.json({ error: "Unauthorized" }, 401);
@@ -100,7 +116,9 @@ export async function handleAiChat(c: Context): Promise<Response> {
   const body = await requestBody(c);
   if (!body) return c.json({ error: "Invalid JSON request body" }, 400);
 
-  const { chatId, messages, reasoning, reasoningEffort, trigger, webSearch } = body;
+  const { chatId, reasoning, reasoningEffort, trigger, webSearch, messageId } = body;
+  const incomingMessage = resolveIncomingMessage(body);
+  const isRegeneration = trigger === "regenerate-message";
 
   let resolvedModel;
   try {
@@ -109,26 +127,44 @@ export async function handleAiChat(c: Context): Promise<Response> {
     return c.json({ error: error instanceof Error ? error.message : "Unsupported model" }, 400);
   }
 
-  if (!resolvedModel.supportsVision && messagesContainImages(messages)) {
-    return c.json(
-      {
-        error:
-          "The selected model does not support image input. Choose a vision-capable model or remove images.",
-      },
-      400,
-    );
-  }
-
   const title = await getChatTitle(chatId, session.user.id);
   if (title === null) return c.json({ error: "Chat not found" }, 404);
 
-  const lastUserMessage = [...messages].reverse().find((message) => message.role === "user");
-  const isRegeneration = trigger === "regenerate-message";
+  try {
+    if (isRegeneration && messageId) {
+      await truncateFromMessage(chatId, messageId, "regenerate");
+    } else if (!isRegeneration && messageId) {
+      // Edit flow: client may send the edited message id to replace from that point.
+      const existing = await listChatMessages(chatId);
+      if (existing.some((row) => row.id === messageId)) {
+        await truncateFromMessage(chatId, messageId, "edit");
+      }
+    }
+  } catch (error) {
+    console.error("Failed to truncate chat branch:", error);
+    return c.json({ error: "Failed to prepare chat history" }, 500);
+  }
+
+  let savedUserMessage = incomingMessage;
   let shouldGenerateTitle = false;
-  if (lastUserMessage && !isRegeneration) {
+  if (incomingMessage && !isRegeneration) {
+    if (messagesContainImages([incomingMessage]) && !resolvedModel.supportsVision) {
+      return c.json(
+        {
+          error:
+            "The selected model does not support image input. Choose a vision-capable model or remove images.",
+        },
+        400,
+      );
+    }
+
     const isFirstMessage = !(await hasMessages(chatId));
     try {
-      await saveUserMessage(chatId, lastUserMessage);
+      const row = await saveUserMessage(chatId, incomingMessage);
+      savedUserMessage = {
+        ...incomingMessage,
+        id: row?.id ?? incomingMessage.id,
+      };
     } catch (error) {
       console.error(
         "Failed to save user message:",
@@ -140,21 +176,45 @@ export async function handleAiChat(c: Context): Promise<Response> {
       isFirstMessage && title === DEFAULT_CHAT_TITLE && Boolean(env.DEEPSEEK_API_KEY);
   }
 
-  const searchQuery = lastUserMessage ? messageText(lastUserMessage).trim() : "";
+  if (!savedUserMessage && !isRegeneration) {
+    return c.json({ error: "Missing user message" }, 400);
+  }
+
+  const contextBundle = await buildChatContext({
+    chatId,
+    userId: session.user.id,
+    newestUserMessage:
+      savedUserMessage ??
+      ({
+        id: crypto.randomUUID(),
+        role: "user",
+        parts: [{ type: "text", text: "" }],
+      } satisfies ChatUIMessage),
+  });
+
+  if (!contextBundle) return c.json({ error: "Chat not found" }, 404);
+
+  const searchQuery = savedUserMessage ? messageText(savedUserMessage).trim() : "";
   const searchProgressId =
     webSearch && searchQuery ? `web-search-${crypto.randomUUID()}` : undefined;
-  const lastMessage = messages.at(-1);
-  const responseMessageId =
-    lastMessage?.role === "assistant" ? lastMessage.id : crypto.randomUUID();
+  const responseMessageId = crypto.randomUUID();
+
+  console.info("memory_retrieval", {
+    chatId,
+    memoryCount: contextBundle.retrieval.memoryCount,
+    chunkCount: contextBundle.retrieval.chunkCount,
+    latencyMs: contextBundle.retrieval.latencyMs,
+  });
+
   const stream = createUIMessageStream<ChatUIMessage>({
-    originalMessages: messages,
+    originalMessages: contextBundle.historyMessages as ChatUIMessage[],
     onError: streamErrorMessage,
     execute: async ({ writer }) => {
       writer.write({ type: "start", messageId: responseMessageId });
 
       const titleTask =
-        shouldGenerateTitle && lastUserMessage
-          ? generateAiTitle(lastUserMessage, chatId, session.user.id).then((nextTitle) => {
+        shouldGenerateTitle && savedUserMessage
+          ? generateAiTitle(savedUserMessage, chatId, session.user.id).then((nextTitle) => {
               if (!nextTitle) return;
               writer.write({
                 type: "data-chat-title",
@@ -202,19 +262,26 @@ export async function handleAiChat(c: Context): Promise<Response> {
         }
       }
 
+      const instructions = [contextBundle.instructions, webSearchInstructions]
+        .filter(Boolean)
+        .join("\n\n");
+
       const result = streamText({
         model: resolvedModel.model,
-        instructions: webSearchInstructions,
-        messages: await convertToModelMessages<ChatUIMessage>(messages, {
-          convertDataPart: (part) => {
-            if (part.type === "data-document") {
-              return {
-                type: "text",
-                text: documentPartToText(part.data.filename, part.data.extractedText),
-              };
-            }
+        instructions,
+        messages: await convertToModelMessages<ChatUIMessage>(
+          contextBundle.historyMessages as ChatUIMessage[],
+          {
+            convertDataPart: (part) => {
+              if (part.type === "data-document") {
+                return {
+                  type: "text",
+                  text: documentPartToText(part.data.filename, part.data.extractedText),
+                };
+              }
+            },
           },
-        }),
+        ),
         abortSignal: c.req.raw.signal,
         experimental_transform: smoothStream({ chunking: WORD_STREAM_CHUNKING, delayInMs: 12 }),
         providerOptions: chatProviderOptions(
@@ -230,7 +297,21 @@ export async function handleAiChat(c: Context): Promise<Response> {
     },
     onEnd: async ({ responseMessage }) => {
       try {
-        await saveAssistantMessage(chatId, responseMessage, body.model ?? resolvedModel.modelId);
+        const saved = await saveAssistantMessage(
+          chatId,
+          { ...responseMessage, id: responseMessage.id || responseMessageId },
+          body.model ?? resolvedModel.modelId,
+        );
+
+        if (savedUserMessage) {
+          await enqueuePostChatJobs({
+            userId: session.user.id,
+            chatId,
+            projectId: contextBundle.project?.id ?? null,
+            userMessageId: savedUserMessage.id,
+            assistantMessageId: saved?.id ?? responseMessageId,
+          });
+        }
       } catch (error) {
         console.error(
           "Failed to save assistant message:",

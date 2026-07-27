@@ -23,9 +23,16 @@ const { t } = useI18n();
 const { list: chats, invalidate: invalidateChats, applyTitle } = useChats();
 const chatId = computed(() => route.params.id as string);
 const pendingChatPrompt = usePendingChatPrompt();
-const chatTitle = computed(
-  () => chats.data.value?.find((chat) => chat.id === chatId.value)?.title ?? t("sidebar.newChat"),
+const chatMeta = useQuery(
+  computed(() => $orpc.chat.get.queryOptions({ input: { id: chatId.value } })),
 );
+const chatTitle = computed(
+  () =>
+    chatMeta.data.value?.title ??
+    chats.data.value?.find((chat) => chat.id === chatId.value)?.title ??
+    t("sidebar.newChat"),
+);
+const chatProject = computed(() => chatMeta.data.value?.project ?? null);
 const serverUrl = config.public.serverUrl;
 
 useHead(() => ({
@@ -85,6 +92,19 @@ const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<
     transport: new DefaultChatTransport({
       api: `${serverUrl}/ai/chat`,
       credentials: "include",
+      prepareSendMessagesRequest({ messages, body, id, trigger, messageId }) {
+        const newest = messages.at(-1);
+        return {
+          body: {
+            ...body,
+            chatId: id,
+            message: newest,
+            messages: newest ? [newest] : [],
+            trigger,
+            messageId,
+          },
+        };
+      },
     }),
     onError(error) {
       console.error(error);
@@ -253,7 +273,7 @@ function send(payload: {
 }
 
 function onRegenerate(messageId: string) {
-  void regenerate({ messageId, body: requestBody() });
+  void regenerate({ messageId, body: { ...requestBody(), messageId } });
 }
 
 function abortResponse() {
@@ -273,8 +293,12 @@ function confirmEdit() {
   const index = messages.value.findIndex((message) => message.id === editTarget.value);
   if (index === -1) return;
 
+  const editedId = editTarget.value;
   messages.value = messages.value.slice(0, index);
-  void sendMessage({ text: editText.value.trim() }, { body: requestBody() });
+  void sendMessage(
+    { text: editText.value.trim() },
+    { body: { ...requestBody(), messageId: editedId } },
+  );
   editOpen.value = false;
 }
 </script>
@@ -310,6 +334,7 @@ function confirmEdit() {
           v-model:reasoning-effort="selectedReasoningEffort"
           v-model:web-search="selectedWebSearch"
           :status="promptStatus"
+          :project="chatProject"
           @submit="send"
           @stop="abortResponse"
           @reload="regenerate({ body: requestBody() })"

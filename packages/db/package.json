@@ -10,10 +10,11 @@
     }
   },
   "scripts": {
-    "db:push": "drizzle-kit push",
+    "db:ensure-extensions": "tsx src/ensure-extensions.ts",
+    "db:push": "pnpm run db:ensure-extensions && drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "pnpm run db:ensure-extensions && drizzle-kit migrate"
   },
   "dependencies": {
     "@chestnut-chat/env": "workspace:*",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@chestnut-chat/config": "workspace:*",
     "drizzle-kit": "^0.31.8",
+    "tsx": "^4.19.2",
     "typescript": "catalog:"
   }
 }

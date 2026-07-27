@@ -13,6 +13,7 @@ const emit = defineEmits<{
   pin: [ChatRow];
   archive: [ChatRow];
   delete: [ChatRow];
+  move: [ChatRow];
 }>();
 
 const { t } = useI18n();
@@ -33,6 +34,11 @@ const items = computed<DropdownMenuItem[][]>(() => [
       label: t("actions.archive"),
       icon: "i-lucide-archive",
       onSelect: () => emit("archive", props.chat),
+    },
+    {
+      label: t("project.moveToProject"),
+      icon: "i-lucide-folder-input",
+      onSelect: () => emit("move", props.chat),
     },
   ],
   [

@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import { boolean, index, jsonb, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
+import { project } from "./project";
 
 export const messageRoleEnum = pgEnum("message_role", ["user", "assistant", "system"]);
 
@@ -14,6 +15,7 @@ export const chat = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    projectId: text("project_id").references(() => project.id, { onDelete: "cascade" }),
     title: text("title").notNull().default("New Chat"),
     pinned: boolean("pinned").default(false).notNull(),
     archived: boolean("archived").default(false).notNull(),
@@ -23,7 +25,10 @@ export const chat = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("chat_userId_idx").on(table.userId)],
+  (table) => [
+    index("chat_userId_idx").on(table.userId),
+    index("chat_projectId_idx").on(table.projectId),
+  ],
 );
 
 export type MessagePart = {
@@ -53,6 +58,10 @@ export const chatRelations = relations(chat, ({ one, many }) => ({
   user: one(user, {
     fields: [chat.userId],
     references: [user.id],
+  }),
+  project: one(project, {
+    fields: [chat.projectId],
+    references: [project.id],
   }),
   messages: many(message),
 }));

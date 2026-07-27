@@ -13,6 +13,8 @@ import { logger } from "hono/logger";
 
 import { handleAiAttachments } from "./ai/attachments";
 import { handleAiChat } from "./ai/chat";
+import { handleProjectFileUpload } from "./ai/project-files";
+import { startMemoryWorker } from "./memory/worker";
 
 const app = new Hono();
 
@@ -31,6 +33,7 @@ app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 app.get("/api/auth-options", (c) => c.json(getAuthProviderOptions()));
 app.post("/ai/chat", (c) => handleAiChat(c));
 app.post("/ai/attachments", (c) => handleAiAttachments(c));
+app.post("/ai/projects/:projectId/files", (c) => handleProjectFileUpload(c));
 
 function logHandlerError(error: unknown) {
   console.error(error instanceof Error ? error.message : String(error));
@@ -86,5 +89,6 @@ serve(
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);
+    startMemoryWorker();
   },
 );

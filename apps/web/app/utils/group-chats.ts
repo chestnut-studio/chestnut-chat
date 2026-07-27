@@ -1,6 +1,7 @@
 export type ChatRow = {
   id: string;
   title: string;
+  projectId?: string | null;
   pinned: boolean;
   archived: boolean;
   createdAt: string | Date;
@@ -40,4 +41,21 @@ export function groupChats(chats: ChatRow[]): ChatGroup[] {
   return (["pinned", "today", "yesterday", "week", "month", "earlier"] as const)
     .map((key) => ({ key, chats: buckets[key] }))
     .filter((group) => group.chats.length);
+}
+
+export function partitionChatsByProject(chats: ChatRow[]) {
+  const standalone: ChatRow[] = [];
+  const byProject: Record<string, ChatRow[]> = {};
+
+  for (const chat of chats) {
+    if (!chat.projectId) {
+      standalone.push(chat);
+      continue;
+    }
+    const list = byProject[chat.projectId] ?? [];
+    list.push(chat);
+    byProject[chat.projectId] = list;
+  }
+
+  return { standalone, byProject };
 }

@@ -16,7 +16,9 @@
     "db:studio": "turbo -F @chestnut-chat/db db:studio",
     "db:generate": "turbo -F @chestnut-chat/db db:generate",
     "db:migrate": "turbo -F @chestnut-chat/db db:migrate",
-    "check": "oxlint && oxfmt --write"
+    "check": "oxlint && oxfmt --write",
+    "test": "turbo -F @chestnut-chat/api test",
+    "memory:backfill": "pnpm --filter server memory:backfill"
   },
   "dependencies": {
     "@chestnut-chat/env": "workspace:*",

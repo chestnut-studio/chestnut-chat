@@ -7,7 +7,8 @@
     "check-types": "tsc -b",
     "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
     "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.mjs"
+    "start": "node dist/index.mjs",
+    "memory:backfill": "tsx src/memory/backfill.ts"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^3.0.0",

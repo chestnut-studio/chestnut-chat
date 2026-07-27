@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
+import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
 import type { ChatStatus, FileUIPart } from "ai";
 import { toast } from "vue-sonner";
 
@@ -25,8 +26,17 @@ type ChatBoxPayload = {
 };
 type MaybePromise<T> = T | Promise<T>;
 
+export type ChatBoxProject = {
+  id: string;
+  name: string;
+  iconKind: "emoji" | "lucide";
+  iconValue: string;
+  iconColor?: string;
+};
+
 const props = defineProps<{
   status?: ChatStatus;
+  project?: ChatBoxProject | null;
   beforeSubmit?: (payload: ChatBoxPayload) => MaybePromise<boolean>;
 }>();
 
@@ -293,6 +303,21 @@ async function submitSuggestion(text: string) {
       @paste="onPaste"
       @submit="onSubmit"
     >
+      <template v-if="project" #header>
+        <div class="flex items-center gap-2 px-1 text-sm text-muted">
+          <span v-if="project.iconKind === 'emoji'" aria-hidden="true">{{
+            project.iconValue
+          }}</span>
+          <UIcon
+            v-else
+            :name="`i-lucide-${project.iconValue}`"
+            class="size-4"
+            :class="projectIconColorClass(project.iconColor)"
+          />
+          <span class="truncate font-medium text-highlighted">{{ project.name }}</span>
+        </div>
+      </template>
+
       <UChatPromptSubmit :status="promptStatus" @stop="emit('stop')" @reload="emit('reload')" />
 
       <template #footer>
