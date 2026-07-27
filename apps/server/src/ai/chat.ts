@@ -3,7 +3,6 @@ import {
   REASONING_EFFORTS,
   type ReasoningEffort,
 } from "@chestnut-chat/api/providers/model-capabilities";
-import { env } from "@chestnut-chat/env/server";
 import {
   consumeStream,
   convertToModelMessages,
@@ -20,9 +19,9 @@ import { z } from "zod";
 import {
   DEFAULT_CHAT_TITLE,
   getChatTitle,
-  hasMessages,
   listChatMessages,
   saveAssistantMessage,
+  saveChatLastOptions,
   saveUserMessage,
   truncateFromMessage,
 } from "./chat-store";
@@ -130,6 +129,21 @@ export async function handleAiChat(c: Context): Promise<Response> {
   const title = await getChatTitle(chatId, session.user.id);
   if (title === null) return c.json({ error: "Chat not found" }, 404);
 
+  const selectedModel = body.model ?? resolvedModel.modelId;
+  try {
+    await saveChatLastOptions(chatId, session.user.id, {
+      model: selectedModel,
+      reasoning: Boolean(reasoning),
+      reasoningEffort: reasoningEffort ?? "high",
+      webSearch: Boolean(webSearch),
+    });
+  } catch (error) {
+    console.error(
+      "Failed to save chat composer options:",
+      error instanceof Error ? error.message : String(error),
+    );
+  }
+
   try {
     if (isRegeneration && messageId) {
       await truncateFromMessage(chatId, messageId, "regenerate");
@@ -158,7 +172,6 @@ export async function handleAiChat(c: Context): Promise<Response> {
       );
     }
 
-    const isFirstMessage = !(await hasMessages(chatId));
     try {
       const row = await saveUserMessage(chatId, incomingMessage);
       savedUserMessage = {
@@ -172,13 +185,19 @@ export async function handleAiChat(c: Context): Promise<Response> {
       );
       return c.json({ error: "Failed to save message" }, 500);
     }
-    shouldGenerateTitle =
-      isFirstMessage && title === DEFAULT_CHAT_TITLE && Boolean(env.DEEPSEEK_API_KEY);
+    // Keep trying while the chat still has the default title. Project chats can
+    // lose the first-message window when buildChatContext is slow and the client retries.
+    shouldGenerateTitle = title === DEFAULT_CHAT_TITLE;
   }
 
   if (!savedUserMessage && !isRegeneration) {
     return c.json({ error: "Missing user message" }, 400);
   }
+
+  const titlePromise =
+    shouldGenerateTitle && savedUserMessage
+      ? generateAiTitle(savedUserMessage, chatId, session.user.id)
+      : Promise.resolve<string | undefined>(undefined);
 
   const contextBundle = await buildChatContext({
     chatId,
@@ -212,17 +231,14 @@ export async function handleAiChat(c: Context): Promise<Response> {
     execute: async ({ writer }) => {
       writer.write({ type: "start", messageId: responseMessageId });
 
-      const titleTask =
-        shouldGenerateTitle && savedUserMessage
-          ? generateAiTitle(savedUserMessage, chatId, session.user.id).then((nextTitle) => {
-              if (!nextTitle) return;
-              writer.write({
-                type: "data-chat-title",
-                data: { title: nextTitle },
-                transient: true,
-              });
-            })
-          : Promise.resolve();
+      const titleTask = titlePromise.then((nextTitle) => {
+        if (!nextTitle) return;
+        writer.write({
+          type: "data-chat-title",
+          data: { title: nextTitle },
+          transient: true,
+        });
+      });
 
       let webSearchInstructions: string | undefined;
       if (searchProgressId) {

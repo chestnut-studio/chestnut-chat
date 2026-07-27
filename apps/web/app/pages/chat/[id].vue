@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
 import { useChat } from "@ai-sdk/vue";
-import { useQuery } from "@tanstack/vue-query";
+import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import { DefaultChatTransport, type ChatStatus } from "ai";
 import { toast } from "vue-sonner";
 
@@ -18,6 +18,7 @@ import type { ChatUIMessage } from "~/types/chat";
 
 const route = useRoute();
 const { $orpc } = useNuxtApp();
+const queryClient = useQueryClient();
 const config = useRuntimeConfig();
 const { t } = useI18n();
 const { list: chats, invalidate: invalidateChats, applyTitle } = useChats();
@@ -137,7 +138,7 @@ const lastOptions = ref(
     webSearch: false,
   },
 );
-const hasRestoredModel = ref(false);
+const hasRestoredOptions = ref(Boolean(initialPromptOptions));
 const selectedModel = computed({
   get: () => lastOptions.value.model,
   set: (model: string) => {
@@ -174,7 +175,7 @@ const promptStatus = computed<ChatStatus>(() =>
   isRequestActive.value || isRenderingResponse.value ? "streaming" : status.value,
 );
 
-function restoreModelValue(value: string | null) {
+function restoreModelValue(value: string | null | undefined) {
   if (!value) return null;
   if (decodeChatModelValue(value)) return value;
   if (isLegacyDeepSeekModel(value)) return builtinChatModelValue("deepseek", value);
@@ -182,23 +183,72 @@ function restoreModelValue(value: string | null) {
   return value;
 }
 
-function restoreLastModel(rows: NonNullable<typeof history.data.value>) {
+function isReasoningEffort(value: unknown): value is ReasoningEffort {
+  return value === "low" || value === "high" || value === "max";
+}
+
+function restoreLastOptionsFromChat(
+  options: {
+    model?: string | null;
+    reasoning?: boolean | null;
+    reasoningEffort?: string | null;
+    webSearch?: boolean | null;
+  } | null,
+) {
+  if (!options) return false;
+
+  const restoredModel = restoreModelValue(options.model);
+  if (!restoredModel && options.reasoning == null && options.webSearch == null) return false;
+
+  lastOptions.value = {
+    model: restoredModel ?? lastOptions.value.model,
+    reasoning:
+      typeof options.reasoning === "boolean" ? options.reasoning : lastOptions.value.reasoning,
+    reasoningEffort: isReasoningEffort(options.reasoningEffort)
+      ? options.reasoningEffort
+      : lastOptions.value.reasoningEffort,
+    webSearch:
+      typeof options.webSearch === "boolean" ? options.webSearch : lastOptions.value.webSearch,
+  };
+  return true;
+}
+
+function restoreLastModelFromHistory(rows: NonNullable<typeof history.data.value>) {
   const model = [...rows].reverse().find((row) => row.model)?.model ?? null;
   const restoredModel = restoreModelValue(model);
-  if (!restoredModel) return;
+  if (!restoredModel) return false;
 
   lastOptions.value = { ...lastOptions.value, model: restoredModel };
+  return true;
 }
+
+watch(
+  [() => chatMeta.data.value, () => chatMeta.isPending.value, () => history.data.value, chatId],
+  ([chat, chatPending, rows, id]) => {
+    if (hasRestoredOptions.value) return;
+
+    if (chat?.id === id && chat.lastOptions) {
+      if (restoreLastOptionsFromChat(chat.lastOptions)) {
+        hasRestoredOptions.value = true;
+      }
+      return;
+    }
+
+    // Wait for chat meta so we don't lock in a model-only history restore.
+    if (chatPending || (chat && chat.id !== id)) return;
+
+    if (!rows || !rows.every((row) => row.chatId === id)) return;
+    if (restoreLastModelFromHistory(rows)) {
+      hasRestoredOptions.value = true;
+    }
+  },
+  { immediate: true },
+);
 
 watch(
   () => history.data.value,
   (rows) => {
     if (!rows || !rows.every((row) => row.chatId === chatId.value)) return;
-
-    if (!hasRestoredModel.value) {
-      restoreLastModel(rows);
-      hasRestoredModel.value = true;
-    }
 
     if (messages.value.length === 0) {
       messages.value = rows.map((row) => ({
@@ -213,7 +263,13 @@ watch(
 
 watch(chatId, () => {
   messages.value = [];
-  hasRestoredModel.value = false;
+  hasRestoredOptions.value = false;
+  lastOptions.value = {
+    model: DEFAULT_MODEL,
+    reasoning: false,
+    reasoningEffort: "high",
+    webSearch: false,
+  };
   isRenderingResponse.value = false;
   abortRenderKey.value += 1;
   clearError();
@@ -228,6 +284,14 @@ onMounted(() => {
 
 function requestBody() {
   return { chatId: chatId.value, ...lastOptions.value };
+}
+
+function syncChatLastOptions() {
+  const queryKey = $orpc.chat.get.queryKey({ input: { id: chatId.value } });
+  queryClient.setQueryData(queryKey, (current) => {
+    if (!current || current.id !== chatId.value) return current;
+    return { ...current, lastOptions: { ...lastOptions.value } };
+  });
 }
 
 function send(payload: {
@@ -245,6 +309,7 @@ function send(payload: {
     reasoningEffort: payload.reasoningEffort,
     webSearch: payload.webSearch,
   };
+  syncChatLastOptions();
 
   const files = payload.files ?? [];
   const documents = payload.documents ?? [];
@@ -273,6 +338,7 @@ function send(payload: {
 }
 
 function onRegenerate(messageId: string) {
+  syncChatLastOptions();
   void regenerate({ messageId, body: { ...requestBody(), messageId } });
 }
 
@@ -295,6 +361,7 @@ function confirmEdit() {
 
   const editedId = editTarget.value;
   messages.value = messages.value.slice(0, index);
+  syncChatLastOptions();
   void sendMessage(
     { text: editText.value.trim() },
     { body: { ...requestBody(), messageId: editedId } },

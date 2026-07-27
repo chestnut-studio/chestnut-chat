@@ -6,6 +6,13 @@ import { project } from "./project";
 
 export const messageRoleEnum = pgEnum("message_role", ["user", "assistant", "system"]);
 
+export type ChatLastOptions = {
+  model: string;
+  reasoning: boolean;
+  reasoningEffort: "low" | "high" | "max";
+  webSearch: boolean;
+};
+
 export const chat = pgTable(
   "chat",
   {
@@ -19,6 +26,7 @@ export const chat = pgTable(
     title: text("title").notNull().default("New Chat"),
     pinned: boolean("pinned").default(false).notNull(),
     archived: boolean("archived").default(false).notNull(),
+    lastOptions: jsonb("last_options").$type<ChatLastOptions>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

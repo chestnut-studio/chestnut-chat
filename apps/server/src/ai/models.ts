@@ -180,6 +180,34 @@ export function deepSeekTitleModel(): ResolvedChatModel {
   };
 }
 
+/** Resolve a cheap model for auto chat titles from user providers or server env. */
+export async function resolveTitleModel(userId: string): Promise<ResolvedChatModel> {
+  try {
+    return await configuredProviderModel(
+      {
+        kind: "builtin",
+        providerId: DEEPSEEK_PROVIDER_ID,
+        modelId: DEEPSEEK_TITLE_MODEL_ID,
+      },
+      userId,
+    );
+  } catch {
+    // Fall through to server-managed keys.
+  }
+
+  if (env.DEEPSEEK_API_KEY) {
+    return deepSeekTitleModel();
+  }
+
+  if (env.OPENROUTER_API_KEY) {
+    return openRouterFreeModel();
+  }
+
+  throw new Error(
+    "No title model available. Configure DeepSeek in settings, or set DEEPSEEK_API_KEY / OPENROUTER_API_KEY.",
+  );
+}
+
 export async function resolveChatModel(
   modelValue: string | undefined,
   userId: string,

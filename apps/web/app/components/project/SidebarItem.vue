@@ -58,12 +58,12 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
 <template>
   <div>
     <div
-      class="group flex cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 hover:bg-elevated"
+      class="group flex cursor-pointer items-center gap-1 rounded-md px-2 pl-4 py-1.5 hover:bg-elevated"
       @click="emit('toggle')"
     >
       <UIcon
         :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-        class="size-3.5 shrink-0 text-muted"
+        class="size-4 shrink-0 text-muted"
       />
       <span v-if="project.iconKind === 'emoji'" class="text-sm">{{ project.iconValue }}</span>
       <UIcon

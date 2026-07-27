@@ -36,7 +36,7 @@ const emit = defineEmits<{
       >
         <UIcon
           :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-          class="size-3.5 shrink-0"
+          class="size-5 shrink-0"
         />
         <span class="truncate">{{ $t("project.section") }}</span>
       </button>

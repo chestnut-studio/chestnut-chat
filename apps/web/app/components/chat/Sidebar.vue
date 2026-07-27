@@ -295,7 +295,7 @@ const moveItems = computed(() => [
             >
               <UIcon
                 :name="chatsExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-                class="size-3.5"
+                class="size-5"
               />
               <span>{{ $t("sidebar.chats") }}</span>
             </button>

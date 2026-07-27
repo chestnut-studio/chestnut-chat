@@ -1,5 +1,5 @@
 import { db } from "@chestnut-chat/db";
-import { chat, message } from "@chestnut-chat/db/schema/chat";
+import { chat, message, type ChatLastOptions } from "@chestnut-chat/db/schema/chat";
 import { and, asc, eq, gt, gte } from "drizzle-orm";
 import type { UIMessage } from "ai";
 
@@ -11,6 +11,17 @@ export async function getChatTitle(chatId: string, userId: string) {
     .from(chat)
     .where(and(eq(chat.id, chatId), eq(chat.userId, userId)));
   return ownedChat?.title ?? null;
+}
+
+export async function saveChatLastOptions(
+  chatId: string,
+  userId: string,
+  lastOptions: ChatLastOptions,
+) {
+  await db
+    .update(chat)
+    .set({ lastOptions, updatedAt: new Date() })
+    .where(and(eq(chat.id, chatId), eq(chat.userId, userId)));
 }
 
 export async function hasMessages(chatId: string) {

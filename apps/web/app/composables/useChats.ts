@@ -12,6 +12,12 @@ export function useChats() {
       if (!Array.isArray(chats)) return chats;
       return chats.map((chat) => (chat.id === chatId ? { ...chat, title } : chat));
     });
+
+    const getQueryKey = $orpc.chat.get.queryKey({ input: { id: chatId } });
+    queryClient.setQueryData(getQueryKey, (current) => {
+      if (!current || current.id !== chatId) return current;
+      return { ...current, title };
+    });
   }
 
   const create = useMutation({
