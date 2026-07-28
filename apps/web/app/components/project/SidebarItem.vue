@@ -10,11 +10,13 @@ const props = defineProps<{
   chats: ChatRow[];
   open: boolean;
   activeChatId?: string;
+  activeProjectId?: string;
   forceOpen?: boolean;
 }>();
 
 const emit = defineEmits<{
   toggle: [];
+  select: [ProjectRow];
   newChat: [ProjectRow];
   edit: [ProjectRow];
   delete: [ProjectRow];
@@ -28,6 +30,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const expanded = computed(() => props.forceOpen || props.open);
+const isActive = computed(() => props.activeProjectId === props.project.id);
 
 const items = computed<DropdownMenuItem[][]>(() => [
   [
@@ -59,12 +62,20 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
   <div>
     <div
       class="group flex cursor-pointer items-center gap-1 rounded-md px-2 pl-4 py-1.5 hover:bg-elevated"
-      @click="emit('toggle')"
+      :class="isActive ? 'bg-elevated' : ''"
+      @click="emit('select', project)"
     >
-      <UIcon
-        :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-        class="size-4 shrink-0 text-muted"
-      />
+      <button
+        type="button"
+        class="flex size-4 shrink-0 items-center justify-center rounded text-muted hover:text-default"
+        :aria-label="expanded ? $t('project.collapse') : $t('project.expand')"
+        @click.stop="emit('toggle')"
+      >
+        <UIcon
+          :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
+          class="size-4"
+        />
+      </button>
       <span v-if="project.iconKind === 'emoji'" class="text-sm">{{ project.iconValue }}</span>
       <UIcon
         v-else

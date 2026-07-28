@@ -14,6 +14,12 @@ const TRANSIENT_PATTERNS = [
   /\b(translate|summarize|rewrite)\b/i,
 ];
 
+/** First-person / remember-me cues that usually imply durable memory. */
+const DURABLE_FACT_PATTERNS = [
+  /我[是叫在会能]|我的名字|我喜欢|我偏好|我住在|请记住|记住我|帮我记住/i,
+  /\b(?:i am|i'm|my name is|i prefer|i work|i live|i use|remember (?:that|this|me))\b/i,
+];
+
 export type ExtractedMemoryCandidate = {
   memoryKey: string;
   memoryType: "fact" | "preference" | "goal" | "decision" | "constraint";
@@ -29,6 +35,13 @@ export function looksTransient(text: string) {
   const trimmed = text.trim();
   if (trimmed.length < 12) return true;
   return TRANSIENT_PATTERNS.some((pattern) => pattern.test(trimmed));
+}
+
+/** Heuristic: user text looks like it contains durable personal facts worth extracting. */
+export function transcriptLikelyHasDurableFacts(userText: string) {
+  const trimmed = userText.trim();
+  if (!trimmed || looksTransient(trimmed) || containsSensitiveData(trimmed)) return false;
+  return DURABLE_FACT_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
 
 export function filterMemoryCandidates(candidates: ExtractedMemoryCandidate[], limit = 5) {

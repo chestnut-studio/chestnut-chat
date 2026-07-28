@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/vue-query";
 import type { ProjectRow } from "~/composables/useProjects";
 import type { ChatRow } from "~/utils/group-chats";
 import { groupChats, partitionChatsByProject } from "~/utils/group-chats";
+import { chatPath, projectPath } from "~/utils/chat-path";
 
 const { t } = useI18n();
 const { list, rename, setPinned, setArchived, remove, create: createChat } = useChats();
@@ -94,7 +95,15 @@ const forceProjectsOpen = computed(() => {
 
 const chatsExpanded = computed(() => forceChatsOpen.value || state.value.chatsOpen);
 const projectsExpanded = computed(() => forceProjectsOpen.value || state.value.projectsOpen);
-const activeId = computed(() => route.params.id as string | undefined);
+const activeId = computed(
+  () => (route.params.chatId as string | undefined) ?? (route.params.id as string | undefined),
+);
+const routeProjectId = computed(() => route.params.projectId as string | undefined);
+const activeProjectId = computed(() => {
+  // Only highlight the project row on the project home page, not on nested chats.
+  if (route.params.chatId) return undefined;
+  return routeProjectId.value;
+});
 
 watch(forceChatsOpen, (open) => {
   if (open) setChatsOpen(true);
@@ -107,6 +116,14 @@ watch(forceProjectsOpen, (open) => {
 watch(forceOpenProjectIds, (ids) => {
   for (const id of ids) setProjectOpen(id, true);
 });
+
+watch(
+  routeProjectId,
+  (id) => {
+    if (id) setProjectOpen(id, true);
+  },
+  { immediate: true },
+);
 
 async function onNewChat() {
   const session = await authSession.ensure();
@@ -139,9 +156,13 @@ function openDelete(chat: { id: string }) {
 async function confirmDelete() {
   if (deleteTarget.value) {
     const wasActive = activeId.value === deleteTarget.value.id;
+    const projectId =
+      (list.data.value ?? []).find((chat) => chat.id === deleteTarget.value?.id)?.projectId ??
+      activeProjectId.value ??
+      null;
     await remove.mutateAsync({ id: deleteTarget.value.id });
     if (wasActive) {
-      await navigateTo("/");
+      await navigateTo(projectId ? projectPath(projectId) : "/");
     }
   }
   deleteOpen.value = false;
@@ -173,9 +194,11 @@ function openDeleteProject(project: ProjectRow) {
 async function confirmDeleteProject() {
   if (!deleteProjectTarget.value) return;
   const projectId = deleteProjectTarget.value.id;
-  const activeInProject = (list.data.value ?? []).some(
-    (chat) => chat.id === activeId.value && chat.projectId === projectId,
-  );
+  const activeInProject =
+    activeProjectId.value === projectId ||
+    (list.data.value ?? []).some(
+      (chat) => chat.id === activeId.value && chat.projectId === projectId,
+    );
   await removeProject.mutateAsync({ id: projectId });
   if (activeInProject) await navigateTo("/");
   deleteProjectOpen.value = false;
@@ -183,7 +206,7 @@ async function confirmDeleteProject() {
 
 async function onProjectNewChat(project: ProjectRow) {
   const chat = await createChat.mutateAsync({ projectId: project.id });
-  await navigateTo(`/chat/${chat.id}`);
+  await navigateTo(chatPath({ id: chat.id, projectId: project.id }));
 }
 
 function openMove(chat: ChatRow) {
@@ -194,16 +217,26 @@ function openMove(chat: ChatRow) {
 
 async function confirmMove() {
   if (!moveTarget.value) return;
+  const movedId = moveTarget.value.id;
+  const nextProjectId = moveProjectId.value;
   await moveChat({
-    chatId: moveTarget.value.id,
-    projectId: moveProjectId.value,
+    chatId: movedId,
+    projectId: nextProjectId,
   });
   await list.refetch();
   moveOpen.value = false;
+  if (activeId.value === movedId) {
+    await navigateTo(chatPath({ id: movedId, projectId: nextProjectId }));
+  }
 }
 
-async function onProjectCreated(payload: { chatId: string }) {
-  await navigateTo(`/chat/${payload.chatId}`);
+async function onProjectCreated(payload: { projectId: string; chatId: string }) {
+  await navigateTo(chatPath({ id: payload.chatId, projectId: payload.projectId }));
+}
+
+function onOpenProject(project: ProjectRow) {
+  setProjectOpen(project.id, true);
+  void navigateTo(projectPath(project.id));
 }
 
 const moveItems = computed(() => [
@@ -271,12 +304,14 @@ const moveItems = computed(() => [
             :projects="filteredProjects"
             :chats-by-project="partitioned.byProject"
             :active-chat-id="activeId"
+            :active-project-id="activeProjectId"
             :expanded="projectsExpanded"
             :is-project-open="isProjectOpen"
             :force-open-project-ids="forceOpenProjectIds"
             @create="openCreateProject"
             @toggle-section="toggleProjects"
             @toggle="toggleProject"
+            @select="onOpenProject"
             @new-chat="onProjectNewChat"
             @edit="openEditProject"
             @delete="openDeleteProject"

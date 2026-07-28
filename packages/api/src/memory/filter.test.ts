@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { filterMemoryCandidates, preferNewestByKey } from "./filter";
+import {
+  filterMemoryCandidates,
+  preferNewestByKey,
+  transcriptLikelyHasDurableFacts,
+} from "./filter";
 
 describe("filterMemoryCandidates", () => {
   it("drops sensitive and transient items and caps at five", () => {
@@ -33,6 +37,17 @@ describe("filterMemoryCandidates", () => {
     expect(accepted.find((item) => item.memoryKey === "dup")?.content).toBe(
       "First lasting note about the hobby",
     );
+  });
+});
+
+describe("transcriptLikelyHasDurableFacts", () => {
+  it("detects first-person durable statements", () => {
+    expect(transcriptLikelyHasDurableFacts("我是一个全栈工程师，你可以记住吗？")).toBe(true);
+    expect(transcriptLikelyHasDurableFacts("My name is Ada and I prefer concise answers")).toBe(
+      true,
+    );
+    expect(transcriptLikelyHasDurableFacts("请你结合记忆，评价一下我")).toBe(false);
+    expect(transcriptLikelyHasDurableFacts("translate this sentence")).toBe(false);
   });
 });
 

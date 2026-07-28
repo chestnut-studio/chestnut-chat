@@ -6,6 +6,7 @@ defineProps<{
   projects: ProjectRow[];
   chatsByProject: Record<string, ChatRow[]>;
   activeChatId?: string;
+  activeProjectId?: string;
   expanded: boolean;
   isProjectOpen: (projectId: string) => boolean;
   forceOpenProjectIds: Set<string>;
@@ -15,6 +16,7 @@ const emit = defineEmits<{
   create: [];
   toggleSection: [];
   toggle: [string];
+  select: [ProjectRow];
   newChat: [ProjectRow];
   edit: [ProjectRow];
   delete: [ProjectRow];
@@ -60,7 +62,9 @@ const emit = defineEmits<{
         :open="isProjectOpen(project.id)"
         :force-open="forceOpenProjectIds.has(project.id)"
         :active-chat-id="activeChatId"
+        :active-project-id="activeProjectId"
         @toggle="emit('toggle', project.id)"
+        @select="emit('select', $event)"
         @new-chat="emit('newChat', $event)"
         @edit="emit('edit', $event)"
         @delete="emit('delete', $event)"
@@ -71,7 +75,7 @@ const emit = defineEmits<{
         @move-chat="emit('moveChat', $event)"
       />
 
-      <p v-if="!projects.length" class="px-2 text-xs text-muted">
+      <p v-if="!projects.length" class="px-2 pl-8 text-xs text-muted">
         {{ $t("project.empty") }}
       </p>
     </template>

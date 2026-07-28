@@ -88,6 +88,12 @@ export const projectRouter = {
       .orderBy(desc(project.updatedAt));
   }),
 
+  get: protectedProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .handler(async ({ input, context }) => {
+      return getOwnedProject(input.id, context.session.user.id);
+    }),
+
   create: protectedProcedure.input(projectInputSchema).handler(async ({ input, context }) => {
     iconSchema.parse({
       iconKind: input.iconKind,
