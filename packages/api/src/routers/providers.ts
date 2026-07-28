@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { protectedProcedure } from "../index";
 import { decryptApiKey, encryptApiKey } from "../providers/encryption";
+import { ProviderCreditsFetchError, fetchProviderCredits } from "../providers/credits";
 import {
   BUILTIN_PROVIDER_IDS,
   ProviderModelsFetchError,
@@ -175,6 +176,28 @@ function toProviderFetchError(cause: unknown) {
   });
 }
 
+function resolveCreditsOptions(row: typeof providerSetting.$inferSelect) {
+  if (row.kind === "custom") {
+    return {
+      apiKey: decryptApiKey(row.apiKeyEncrypted),
+      baseUrl: row.baseUrl,
+      isCustom: true as const,
+    };
+  }
+
+  const def = getBuiltinProviderDef(row.providerId as (typeof BUILTIN_PROVIDER_IDS)[number]);
+  if (!def) {
+    throw new ORPCError("NOT_FOUND", { message: "Provider definition not found" });
+  }
+
+  return {
+    apiKey: decryptApiKey(row.apiKeyEncrypted),
+    baseUrl: row.baseUrl ?? def.defaultBaseUrl,
+    providerId: def.id,
+    isCustom: false as const,
+  };
+}
+
 export const providersRouter = {
   list: protectedProcedure.handler(async ({ context }) => {
     const rows = await db
@@ -251,4 +274,43 @@ export const providersRouter = {
         throw toProviderFetchError(cause);
       }
     }),
+
+  fetchCredits: protectedProcedure.handler(async ({ context }) => {
+    const rows = await db
+      .select()
+      .from(providerSetting)
+      .where(eq(providerSetting.userId, context.session.user.id));
+
+    return Promise.all(
+      rows.map(async (row) => {
+        const target =
+          row.kind === "builtin"
+            ? {
+                kind: "builtin" as const,
+                id: row.providerId as (typeof BUILTIN_PROVIDER_IDS)[number],
+              }
+            : { kind: "custom" as const, id: row.providerId };
+
+        try {
+          const credits = await fetchProviderCredits(resolveCreditsOptions(row));
+          return { ...target, credits };
+        } catch (cause) {
+          const message =
+            cause instanceof ProviderCreditsFetchError
+              ? cause.message
+              : cause instanceof Error
+                ? cause.message
+                : "Failed to fetch provider credits";
+
+          return {
+            ...target,
+            credits: {
+              supported: true,
+              error: message,
+            },
+          };
+        }
+      }),
+    );
+  }),
 };

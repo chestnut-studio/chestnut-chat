@@ -62,3 +62,6 @@ export interface ProviderDraft extends ProviderFormFields {
 export type ProviderEditForm = ProviderFormFields;
 
 export type ConnectionTestStatus = "idle" | "testing" | "success" | "error";
+
+export type { ProviderCredits } from "@chestnut-chat/api/providers/credits";
+export type { ProviderCreditsEntry, ProviderCreditsState } from "~/composables/useProviderCredits";
