@@ -6,8 +6,20 @@ export type ChatTitleUpdate = {
   title: string;
 };
 
+export type ChatMessageUsage = {
+  inputTokens?: number;
+  outputTokens?: number;
+  totalTokens?: number;
+  cachedInputTokens?: number;
+  reasoningTokens?: number;
+};
+
+export type ChatMessageMetadata = {
+  usage?: ChatMessageUsage;
+};
+
 export type ChatUIMessage = UIMessage<
-  unknown,
+  ChatMessageMetadata,
   {
     "web-search": WebSearchProgress;
     "chat-title": ChatTitleUpdate;

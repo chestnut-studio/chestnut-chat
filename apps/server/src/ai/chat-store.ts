@@ -1,5 +1,10 @@
 import { db } from "@chestnut-chat/db";
-import { chat, message, type ChatLastOptions } from "@chestnut-chat/db/schema/chat";
+import {
+  chat,
+  message,
+  type ChatLastOptions,
+  type MessageMetadata,
+} from "@chestnut-chat/db/schema/chat";
 import { and, asc, eq, gt, gte } from "drizzle-orm";
 import type { UIMessage } from "ai";
 
@@ -100,6 +105,7 @@ export async function saveAssistantMessage(
       chatId,
       role: "assistant",
       parts: assistantMessage.parts,
+      metadata: (assistantMessage.metadata as MessageMetadata | null | undefined) ?? null,
       model,
     })
     .returning();

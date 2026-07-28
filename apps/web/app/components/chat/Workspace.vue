@@ -143,6 +143,7 @@ const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<
   }),
 );
 const renderedMessages = computed(() => [...messages.value]);
+const chatUsage = useChatUsage(renderedMessages);
 const isHistoryLoading = computed(
   () => history.isPending.value && renderedMessages.value.length === 0,
 );
@@ -272,6 +273,7 @@ watch(
         id: row.id,
         role: row.role as ChatUIMessage["role"],
         parts: row.parts as ChatUIMessage["parts"],
+        metadata: (row.metadata as ChatUIMessage["metadata"]) ?? undefined,
       }));
     }
   },
@@ -419,6 +421,7 @@ function confirmEdit() {
           v-model:web-search="selectedWebSearch"
           :status="promptStatus"
           :project="chatProject"
+          :usage="chatUsage"
           @submit="send"
           @stop="abortResponse"
           @reload="regenerate({ body: requestBody() })"

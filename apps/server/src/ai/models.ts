@@ -133,6 +133,7 @@ async function configuredProviderModel(
     name: row.providerId,
     apiKey,
     baseURL: normalizedBaseUrl,
+    includeUsage: true,
     fetch: providerFetch,
     transformRequestBody,
   });
@@ -154,6 +155,7 @@ export function openRouterFreeModel(): ResolvedChatModel {
     name: OPENROUTER_PROVIDER_ID,
     apiKey: normalizeProviderApiKey(env.OPENROUTER_API_KEY),
     baseURL: OPENROUTER_BASE_URL,
+    includeUsage: true,
   });
   return {
     model: openRouter.chatModel(OPENROUTER_FREE_MODEL_ID),

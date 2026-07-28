@@ -130,9 +130,10 @@ export async function extractAndPersistMemories(input: {
   });
 
   const userText = messageText(input.userMessage);
-  const transcript = [`User: ${userText}`, `Assistant: ${messageText(input.assistantMessage)}`].join(
-    "\n",
-  );
+  const transcript = [
+    `User: ${userText}`,
+    `Assistant: ${messageText(input.assistantMessage)}`,
+  ].join("\n");
   const likelyDurable = transcriptLikelyHasDurableFacts(userText);
   const useDeepSeekJsonObject = isMemoryChatDeepSeek();
   const maxAttempts = likelyDurable ? 1 + MAX_EMPTY_RETRIES : 1;

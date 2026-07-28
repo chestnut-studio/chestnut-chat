@@ -26,7 +26,8 @@ import {
   truncateFromMessage,
 } from "./chat-store";
 import { generateAiTitle } from "./chat-title";
-import type { ChatRequestBody, ChatUIMessage } from "./chat-types";
+import type { ChatMessageUsage, ChatRequestBody, ChatUIMessage } from "./chat-types";
+import { chatMessageUsageFromLanguageModelUsage } from "./chat-types";
 import { deepSeekProviderOptions } from "./deepseek";
 import { kimiProviderOptions } from "./kimi";
 import { miniMaxProviderOptions } from "./minimax";
@@ -225,6 +226,8 @@ export async function handleAiChat(c: Context): Promise<Response> {
     latencyMs: contextBundle.retrieval.latencyMs,
   });
 
+  let capturedUsage: ChatMessageUsage | undefined;
+
   const stream = createUIMessageStream<ChatUIMessage>({
     originalMessages: contextBundle.historyMessages as ChatUIMessage[],
     onError: streamErrorMessage,
@@ -308,14 +311,47 @@ export async function handleAiChat(c: Context): Promise<Response> {
         ),
       });
 
-      writer.merge(toUIMessageStream({ stream: result.stream, sendStart: false }));
+      writer.merge(
+        toUIMessageStream({
+          stream: result.stream,
+          sendStart: false,
+          messageMetadata: ({ part }) => {
+            if (part.type !== "finish") return undefined;
+            const usage = chatMessageUsageFromLanguageModelUsage(part.totalUsage);
+            if (usage) capturedUsage = usage;
+            return usage ? { usage } : undefined;
+          },
+        }),
+      );
+
+      // Ensure usage is available even if the finish chunk omitted metadata.
+      const usage =
+        chatMessageUsageFromLanguageModelUsage(await result.totalUsage) ?? capturedUsage;
+      if (usage) {
+        capturedUsage = usage;
+        writer.write({
+          type: "message-metadata",
+          messageMetadata: { usage },
+        });
+      }
+
       await titleTask;
     },
     onEnd: async ({ responseMessage }) => {
       try {
+        const metadata = responseMessage.metadata?.usage
+          ? responseMessage.metadata
+          : capturedUsage
+            ? { ...responseMessage.metadata, usage: capturedUsage }
+            : responseMessage.metadata;
+
         const saved = await saveAssistantMessage(
           chatId,
-          { ...responseMessage, id: responseMessage.id || responseMessageId },
+          {
+            ...responseMessage,
+            id: responseMessage.id || responseMessageId,
+            metadata,
+          },
           body.model ?? resolvedModel.modelId,
         );
 

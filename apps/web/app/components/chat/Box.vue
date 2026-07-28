@@ -13,7 +13,13 @@ import {
   uploadAttachments,
   validateAttachmentSelection,
 } from "~/utils/attachments";
-import { DEFAULT_MODEL, buildProviderModelOptions, decodeChatModelValue } from "~/utils/models";
+import {
+  DEFAULT_MODEL,
+  buildProviderModelOptions,
+  decodeChatModelValue,
+  resolveContextWindow,
+} from "~/utils/models";
+import type { ChatMessageUsage } from "~/types/chat";
 
 type ChatBoxPayload = {
   text: string;
@@ -37,6 +43,7 @@ export type ChatBoxProject = {
 const props = defineProps<{
   status?: ChatStatus;
   project?: ChatBoxProject | null;
+  usage?: ChatMessageUsage | null;
   beforeSubmit?: (payload: ChatBoxPayload) => MaybePromise<boolean>;
 }>();
 
@@ -106,6 +113,9 @@ const selectedModelReasoningEfforts = computed(
 );
 const selectedModelRequiresReasoning = computed(
   () => findModelOption(model.value)?.reasoningRequired ?? false,
+);
+const contextWindow = computed(() =>
+  resolveContextWindow(findModelOption(model.value)?.contextWindow),
 );
 const selectedReasoningEnabled = computed(
   () =>
@@ -305,9 +315,9 @@ async function submitSuggestion(text: string) {
     >
       <template v-if="project" #header>
         <div class="flex items-center gap-2 px-1 text-sm text-muted">
-          <span v-if="project.iconKind === 'emoji'" aria-hidden="true">{{
-            project.iconValue
-          }}</span>
+          <span v-if="project.iconKind === 'emoji'" aria-hidden="true">
+            {{ project.iconValue }}
+          </span>
           <UIcon
             v-else
             :name="`i-lucide-${project.iconValue}`"
@@ -368,6 +378,8 @@ async function submitSuggestion(text: string) {
               @click="fileInput?.click()"
             />
           </UTooltip>
+
+          <ChatUsageIndicator v-if="usage" :usage="usage" :context-window="contextWindow" />
 
           <input
             ref="fileInput"

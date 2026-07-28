@@ -45,6 +45,16 @@ export type MessagePart = {
   [key: string]: unknown;
 };
 
+export type MessageMetadata = {
+  usage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
+    cachedInputTokens?: number;
+    reasoningTokens?: number;
+  };
+};
+
 export const message = pgTable(
   "message",
   {
@@ -56,6 +66,7 @@ export const message = pgTable(
       .references(() => chat.id, { onDelete: "cascade" }),
     role: messageRoleEnum("role").notNull(),
     parts: jsonb("parts").$type<MessagePart[]>().notNull(),
+    metadata: jsonb("metadata").$type<MessageMetadata | null>(),
     model: text("model"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },

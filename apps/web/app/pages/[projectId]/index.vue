@@ -167,9 +167,11 @@ function openChat(chat: ChatRow) {
             size="sm"
             square
             :aria-label="$t('project.edit')"
-            @click="() => {
-              projectFormOpen = true
-            }"
+            @click="
+              () => {
+                projectFormOpen = true;
+              }
+            "
           />
         </div>
 

@@ -22,6 +22,8 @@ export type ProviderModel = {
   ownedBy?: string;
   supportsReasoning?: boolean;
   supportsVision?: boolean;
+  /** Max context window in tokens when known from the provider catalog. */
+  contextWindow?: number;
   inputModalities?: string[];
   outputModalities?: string[];
   supportedParameters?: string[];
