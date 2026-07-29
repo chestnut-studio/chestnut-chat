@@ -299,7 +299,7 @@ const moveItems = computed(() => [
           size="sm"
         />
 
-        <div v-if="!isCollapsed" class="min-h-0 flex-1 space-y-4 overflow-y-auto">
+        <div v-if="!isCollapsed" class="-me-4 min-h-0 flex-1 space-y-4 overflow-y-auto pe-1">
           <ProjectSidebarSection
             :projects="filteredProjects"
             :chats-by-project="partitioned.byProject"
