@@ -32,6 +32,7 @@ export type AuthProviderOptions = ReturnType<typeof getAuthProviderOptions>;
 function getOtpSubject(type: string) {
   if (type === "email-verification") return "Verify your Chestnut Chat email";
   if (type === "forget-password") return "Reset your Chestnut Chat password";
+  if (type === "change-email") return "Verify your new Chestnut Chat email";
 
   return "Your Chestnut Chat sign-in code";
 }

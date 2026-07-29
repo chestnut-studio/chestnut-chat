@@ -239,6 +239,23 @@
     "signedIn": "已登录",
     "signInFailed": "登录失败"
   },
+  "verifyOtp": {
+    "title": "查看您的邮箱",
+    "description": "我们向以下邮箱发送了 6 位验证码",
+    "back": "返回",
+    "expiresIn": "验证码有效期",
+    "resendIn": "{seconds} 秒后可重新发送",
+    "resend": "重新发送验证码",
+    "resentSuccess": "验证码已重新发送",
+    "verifying": "验证中…",
+    "invalidCode": "验证码错误",
+    "invalidCodeDescription": "请检查后重试。",
+    "tooManyAttempts": "尝试次数过多",
+    "tooManyAttemptsDescription": "请重新获取验证码后再试。",
+    "expired": "验证码已过期",
+    "expiredDescription": "请重新获取验证码。",
+    "genericError": "出了点问题"
+  },
   "chat": {
     "loadingHistory": "正在加载对话记录",
     "placeholder": "给 Chestnut Chat 发送消息",

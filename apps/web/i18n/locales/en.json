@@ -239,6 +239,23 @@
     "signedIn": "Signed in",
     "signInFailed": "Sign in failed"
   },
+  "verifyOtp": {
+    "title": "Check your email",
+    "description": "We sent a 6-digit code to",
+    "back": "Back",
+    "expiresIn": "Code expires in",
+    "resendIn": "Resend in {seconds}s",
+    "resend": "Resend code",
+    "resentSuccess": "Code resent",
+    "verifying": "Verifying…",
+    "invalidCode": "Invalid code",
+    "invalidCodeDescription": "Please check and try again.",
+    "tooManyAttempts": "Too many attempts",
+    "tooManyAttemptsDescription": "Please request a new code and try again.",
+    "expired": "Code expired",
+    "expiredDescription": "Please request a new code.",
+    "genericError": "Something went wrong"
+  },
   "chat": {
     "loadingHistory": "Loading chat history",
     "placeholder": "Message Chestnut Chat",
