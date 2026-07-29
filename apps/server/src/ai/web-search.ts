@@ -1,16 +1,23 @@
-import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
+import {
+  MAX_WEB_SEARCH_QUERIES,
+  MAX_WEB_SEARCH_QUERY_LENGTH,
+  normalizeWebSearchQueries,
+  type WebSearchSource,
+} from "@chestnut-chat/api/chat/web-search";
 import { decryptApiKey } from "@chestnut-chat/api/providers/encryption";
-import { normalizeProviderApiKey } from "@chestnut-chat/api/providers/models";
+import { normalizeBaseUrl, normalizeProviderApiKey } from "@chestnut-chat/api/providers/models";
 import { db } from "@chestnut-chat/db";
 import { providerSetting } from "@chestnut-chat/db/schema/provider";
 import { env } from "@chestnut-chat/env/server";
 import { and, eq } from "drizzle-orm";
+import type { UIMessage } from "ai";
 
-import { normalizeBaseUrl } from "@chestnut-chat/api/providers/models";
-
-import { OPENROUTER_BASE_URL, OPENROUTER_PROVIDER_ID } from "./utils";
+import { messageText, OPENROUTER_BASE_URL, OPENROUTER_PROVIDER_ID } from "./utils";
 
 const OPENROUTER_SEARCH_MODEL = "openrouter/free";
+const SEARCH_QUERY_TOOL_NAME = "plan_web_search";
+const MAX_SEARCH_CONTEXT_MESSAGES = 8;
+const MAX_SEARCH_CONTEXT_LENGTH = 8_000;
 const MAX_RESEARCH_LENGTH = 12_000;
 const MAX_CITATION_CONTENT_LENGTH = 3_000;
 const MAX_SOURCE_EXCERPT_LENGTH = 500;
@@ -21,7 +28,15 @@ type SearchCitation = WebSearchSource & {
 
 export type WebSearchResult = {
   instructions: string;
+  queries: string[];
   sources: WebSearchSource[];
+};
+
+type SearchWebInput = {
+  messages: UIMessage[];
+  userId: string;
+  abortSignal: AbortSignal;
+  onQueries?: (queries: string[]) => void;
 };
 
 function isOpenRouterUrl(baseUrl: string | null) {
@@ -103,6 +118,152 @@ function responseCitations(message: Record<string, unknown>) {
   return [...citations.values()];
 }
 
+function responseMessage(body: string) {
+  let payload: Record<string, unknown> | null;
+  try {
+    payload = objectFrom(JSON.parse(body));
+  } catch {
+    throw new Error("Web search returned invalid JSON.");
+  }
+
+  const choices = Array.isArray(payload?.choices) ? payload.choices : [];
+  const firstChoice = objectFrom(choices[0]);
+  const message = objectFrom(firstChoice?.message);
+  if (!message) throw new Error("Web search returned an invalid response.");
+
+  return message;
+}
+
+function recentSearchContext(messages: UIMessage[]) {
+  const candidates = messages
+    .filter(
+      (message): message is UIMessage & { role: "user" | "assistant" } =>
+        message.role === "user" || message.role === "assistant",
+    )
+    .map((message) => ({
+      role: message.role,
+      content: messageText(message).replace(/\s+/g, " ").trim(),
+    }))
+    .filter((message) => message.content)
+    .slice(-MAX_SEARCH_CONTEXT_MESSAGES);
+
+  const selected: typeof candidates = [];
+  let remainingLength = MAX_SEARCH_CONTEXT_LENGTH;
+  for (let index = candidates.length - 1; index >= 0 && remainingLength > 0; index -= 1) {
+    const message = candidates[index];
+    if (!message) continue;
+
+    const content = message.content.slice(0, remainingLength);
+    selected.unshift({ ...message, content });
+    remainingLength -= content.length;
+  }
+
+  return selected;
+}
+
+function toolCallQueries(message: Record<string, unknown>) {
+  const toolCalls = Array.isArray(message.tool_calls) ? message.tool_calls : [];
+
+  for (const rawToolCall of toolCalls) {
+    const toolCall = objectFrom(rawToolCall);
+    const functionCall = objectFrom(toolCall?.function);
+    if (textFrom(functionCall?.name) !== SEARCH_QUERY_TOOL_NAME) continue;
+
+    const rawArguments = functionCall?.arguments;
+    let parsedArguments: unknown = rawArguments;
+    if (typeof rawArguments === "string") {
+      try {
+        parsedArguments = JSON.parse(rawArguments);
+      } catch {
+        continue;
+      }
+    }
+
+    const queries = normalizeWebSearchQueries(objectFrom(parsedArguments)?.queries);
+    if (queries.length) return queries;
+  }
+
+  return [];
+}
+
+async function planWebSearchQueries(
+  messages: UIMessage[],
+  credential: { apiKey: string; baseUrl: string },
+  abortSignal: AbortSignal,
+) {
+  const conversation = recentSearchContext(messages);
+  if (!conversation.some((message) => message.role === "user")) {
+    throw new Error("Web search could not find a user request to research.");
+  }
+
+  const response = await fetch(`${credential.baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${credential.apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: OPENROUTER_SEARCH_MODEL,
+      messages: [
+        {
+          role: "system",
+          content: [
+            "You plan focused web searches for a chat assistant.",
+            `Call ${SEARCH_QUERY_TOOL_NAME} exactly once with 1 to ${MAX_WEB_SEARCH_QUERIES} concise, standalone search-engine queries.`,
+            "Use prior turns only to resolve references in the newest user request.",
+            "Remove conversational filler and answer-writing instructions. Preserve essential names, quoted phrases, versions, dates, locations, and comparison targets.",
+            "Use multiple queries only when distinct subquestions require different searches. Do not answer the request.",
+          ].join(" "),
+        },
+        ...conversation,
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: SEARCH_QUERY_TOOL_NAME,
+            description: "Submit the focused queries that should be sent to the web search engine.",
+            parameters: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                queries: {
+                  type: "array",
+                  minItems: 1,
+                  maxItems: MAX_WEB_SEARCH_QUERIES,
+                  items: {
+                    type: "string",
+                    minLength: 1,
+                    maxLength: MAX_WEB_SEARCH_QUERY_LENGTH,
+                  },
+                },
+              },
+              required: ["queries"],
+            },
+          },
+        },
+      ],
+      tool_choice: {
+        type: "function",
+        function: { name: SEARCH_QUERY_TOOL_NAME },
+      },
+      parallel_tool_calls: false,
+      temperature: 0,
+      max_tokens: 256,
+      stream: false,
+    }),
+    signal: abortSignal,
+  });
+
+  const body = await response.text();
+  if (!response.ok) throw new Error(responseError(response.status, body));
+
+  const queries = toolCallQueries(responseMessage(body));
+  if (!queries.length) throw new Error("Web search could not generate a focused search query.");
+
+  return queries;
+}
+
 async function searchCredential(userId: string) {
   const configuredProviders = await db
     .select({
@@ -144,8 +305,9 @@ async function searchCredential(userId: string) {
   );
 }
 
-function searchInstructions(summary: string, citations: SearchCitation[]) {
+function searchInstructions(summary: string, queries: string[], citations: SearchCitation[]) {
   const research = {
+    queries,
     summary: summary.slice(0, MAX_RESEARCH_LENGTH),
     sources: citations.map(({ sourceId: _, ...citation }) => citation),
   };
@@ -172,12 +334,15 @@ function responseError(status: number, body: string) {
   return `Web search failed with status ${status}.`;
 }
 
-export async function searchWeb(query: string, userId: string, abortSignal: AbortSignal) {
-  const { apiKey, baseUrl } = await searchCredential(userId);
-  const response = await fetch(`${baseUrl}/chat/completions`, {
+export async function searchWeb({ messages, userId, abortSignal, onQueries }: SearchWebInput) {
+  const credential = await searchCredential(userId);
+  const queries = await planWebSearchQueries(messages, credential, abortSignal);
+  onQueries?.(queries);
+
+  const response = await fetch(`${credential.baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${credential.apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -186,21 +351,26 @@ export async function searchWeb(query: string, userId: string, abortSignal: Abor
         {
           role: "system",
           content:
-            "Search the web for the user's request. Return a concise factual research brief with the most relevant and recent findings.",
+            "Research every supplied query with the web search tool. Return a concise factual brief covering each query with the most relevant and recent findings.",
         },
-        { role: "user", content: query },
+        {
+          role: "user",
+          content: queries.map((query, index) => `${index + 1}. ${query}`).join("\n"),
+        },
       ],
       tools: [
         {
           type: "openrouter:web_search",
           parameters: {
             max_results: 5,
+            max_uses: queries.length,
             max_total_results: 10,
             search_context_size: "low",
           },
         },
       ],
       tool_choice: "required",
+      max_tool_calls: queries.length,
       stream: false,
     }),
     signal: abortSignal,
@@ -209,18 +379,15 @@ export async function searchWeb(query: string, userId: string, abortSignal: Abor
   const body = await response.text();
   if (!response.ok) throw new Error(responseError(response.status, body));
 
-  const payload = objectFrom(JSON.parse(body));
-  const choices = Array.isArray(payload?.choices) ? payload.choices : [];
-  const firstChoice = objectFrom(choices[0]);
-  const message = objectFrom(firstChoice?.message);
-  if (!message) throw new Error("Web search returned an invalid response.");
+  const message = responseMessage(body);
 
   const summary = responseText(message);
   const citations = responseCitations(message);
   if (!summary && citations.length === 0) throw new Error("Web search returned no results.");
 
   return {
-    instructions: searchInstructions(summary, citations),
+    instructions: searchInstructions(summary, queries, citations),
+    queries,
     sources: citations.map(({ content, ...source }) => ({
       ...source,
       ...(content ? { excerpt: content.slice(0, MAX_SOURCE_EXCERPT_LENGTH) } : {}),

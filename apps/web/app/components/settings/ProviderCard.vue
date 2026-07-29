@@ -2,9 +2,11 @@
 import type { ProviderModel } from "~/composables/useProviderKeys";
 import type {
   ConnectionTestStatus,
+  ProviderCreditsEntry,
   ProviderEditForm,
   SettingsProviderCard,
 } from "~/types/providers";
+import { formatProviderCredits } from "~/utils/format-credits";
 
 const props = defineProps<{
   provider: SettingsProviderCard;
@@ -13,6 +15,7 @@ const props = defineProps<{
   fetchingModels: boolean;
   modelCatalog: readonly ProviderModel[];
   connectionStatus: ConnectionTestStatus;
+  credits: ProviderCreditsEntry;
 }>();
 
 const emit = defineEmits<{
@@ -61,6 +64,37 @@ const connectionLabel = computed(() => {
   }
   return t("settings.testConnection");
 });
+
+const creditsLabel = computed(() => {
+  const { credits, state } = props.credits;
+  if (state === "loading") return t("settings.creditsLoading");
+  if (state === "unsupported") return t("settings.creditsUnsupported");
+  if (state === "error") return credits?.error ?? t("settings.creditsFailed");
+  if (!credits) return "";
+
+  const formatted = formatProviderCredits(credits);
+  if (!formatted) return "";
+
+  if (credits.kind === "currency") {
+    return credits.label === "remaining"
+      ? t("settings.creditsRemaining", { amount: formatted })
+      : t("settings.creditsBalance", { amount: formatted });
+  }
+
+  if (credits.kind === "usage_percent") {
+    return t("settings.creditsUsageRemaining", { amount: formatted });
+  }
+
+  return t("settings.creditsTokensRemaining", { amount: formatted });
+});
+
+const showCredits = computed(() => props.credits.state !== "idle");
+
+const creditsColor = computed(() => {
+  if (props.credits.state === "error") return "error";
+  if (props.credits.state === "unsupported") return "neutral";
+  return "primary";
+});
 </script>
 
 <template>
@@ -69,6 +103,22 @@ const connectionLabel = computed(() => {
       <ProviderIcon :provider="provider.iconProvider" size="sm" />
       <div class="min-w-0 flex-1">
         <p class="font-semibold">{{ provider.name }}</p>
+        <div v-if="showCredits" class="mt-1 flex items-center gap-1.5">
+          <UIcon
+            v-if="credits.state === 'loading'"
+            name="i-lucide-loader-circle"
+            class="text-muted size-3.5 animate-spin"
+          />
+          <UBadge
+            v-else
+            :color="creditsColor"
+            variant="subtle"
+            size="sm"
+            class="max-w-full truncate font-normal"
+          >
+            {{ creditsLabel }}
+          </UBadge>
+        </div>
       </div>
       <div class="flex items-center gap-1">
         <div

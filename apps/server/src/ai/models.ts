@@ -133,6 +133,7 @@ async function configuredProviderModel(
     name: row.providerId,
     apiKey,
     baseURL: normalizedBaseUrl,
+    includeUsage: true,
     fetch: providerFetch,
     transformRequestBody,
   });
@@ -154,6 +155,7 @@ export function openRouterFreeModel(): ResolvedChatModel {
     name: OPENROUTER_PROVIDER_ID,
     apiKey: normalizeProviderApiKey(env.OPENROUTER_API_KEY),
     baseURL: OPENROUTER_BASE_URL,
+    includeUsage: true,
   });
   return {
     model: openRouter.chatModel(OPENROUTER_FREE_MODEL_ID),
@@ -178,6 +180,34 @@ export function deepSeekTitleModel(): ResolvedChatModel {
     providerId: DEEPSEEK_PROVIDER_ID,
     supportsVision: modelSupportsVision(DEEPSEEK_PROVIDER_ID, DEEPSEEK_TITLE_MODEL_ID),
   };
+}
+
+/** Resolve a cheap model for auto chat titles from user providers or server env. */
+export async function resolveTitleModel(userId: string): Promise<ResolvedChatModel> {
+  try {
+    return await configuredProviderModel(
+      {
+        kind: "builtin",
+        providerId: DEEPSEEK_PROVIDER_ID,
+        modelId: DEEPSEEK_TITLE_MODEL_ID,
+      },
+      userId,
+    );
+  } catch {
+    // Fall through to server-managed keys.
+  }
+
+  if (env.DEEPSEEK_API_KEY) {
+    return deepSeekTitleModel();
+  }
+
+  if (env.OPENROUTER_API_KEY) {
+    return openRouterFreeModel();
+  }
+
+  throw new Error(
+    "No title model available. Configure DeepSeek in settings, or set DEEPSEEK_API_KEY / OPENROUTER_API_KEY.",
+  );
 }
 
 export async function resolveChatModel(

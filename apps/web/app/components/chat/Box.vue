@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
+import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
 import type { ChatStatus, FileUIPart } from "ai";
 import { toast } from "vue-sonner";
 
@@ -12,7 +13,13 @@ import {
   uploadAttachments,
   validateAttachmentSelection,
 } from "~/utils/attachments";
-import { DEFAULT_MODEL, buildProviderModelOptions, decodeChatModelValue } from "~/utils/models";
+import {
+  DEFAULT_MODEL,
+  buildProviderModelOptions,
+  decodeChatModelValue,
+  resolveContextWindow,
+} from "~/utils/models";
+import type { ChatMessageUsage } from "~/types/chat";
 
 type ChatBoxPayload = {
   text: string;
@@ -25,8 +32,18 @@ type ChatBoxPayload = {
 };
 type MaybePromise<T> = T | Promise<T>;
 
+export type ChatBoxProject = {
+  id: string;
+  name: string;
+  iconKind: "emoji" | "lucide";
+  iconValue: string;
+  iconColor?: string;
+};
+
 const props = defineProps<{
   status?: ChatStatus;
+  project?: ChatBoxProject | null;
+  usage?: ChatMessageUsage | null;
   beforeSubmit?: (payload: ChatBoxPayload) => MaybePromise<boolean>;
 }>();
 
@@ -96,6 +113,9 @@ const selectedModelReasoningEfforts = computed(
 );
 const selectedModelRequiresReasoning = computed(
   () => findModelOption(model.value)?.reasoningRequired ?? false,
+);
+const contextWindow = computed(() =>
+  resolveContextWindow(findModelOption(model.value)?.contextWindow),
 );
 const selectedReasoningEnabled = computed(
   () =>
@@ -293,6 +313,21 @@ async function submitSuggestion(text: string) {
       @paste="onPaste"
       @submit="onSubmit"
     >
+      <template v-if="project" #header>
+        <div class="flex items-center gap-2 px-1 text-sm text-muted">
+          <span v-if="project.iconKind === 'emoji'" aria-hidden="true">
+            {{ project.iconValue }}
+          </span>
+          <UIcon
+            v-else
+            :name="`i-lucide-${project.iconValue}`"
+            class="size-4"
+            :class="projectIconColorClass(project.iconColor)"
+          />
+          <span class="truncate font-medium text-highlighted">{{ project.name }}</span>
+        </div>
+      </template>
+
       <UChatPromptSubmit :status="promptStatus" @stop="emit('stop')" @reload="emit('reload')" />
 
       <template #footer>
@@ -343,6 +378,8 @@ async function submitSuggestion(text: string) {
               @click="fileInput?.click()"
             />
           </UTooltip>
+
+          <ChatUsageIndicator v-if="usage" :usage="usage" :context-window="contextWindow" />
 
           <input
             ref="fileInput"

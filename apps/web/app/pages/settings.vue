@@ -8,8 +8,7 @@ definePageMeta({
 
 const { $authClient } = useNuxtApp();
 const authSession = useAuthSession();
-const colorMode = useColorMode();
-const { locale, locales, setLocale, t } = useI18n();
+const { t } = useI18n();
 
 useHead(() => ({
   title: t("settings.title"),
@@ -22,24 +21,6 @@ const tabs = computed(() => [
   { label: t("settings.providers"), slot: "providers" as const },
   { label: t("settings.about"), slot: "about" as const },
 ]);
-
-const modeOptions = computed(() => [
-  { label: t("settings.system"), value: "system" },
-  { label: t("settings.light"), value: "light" },
-  { label: t("settings.dark"), value: "dark" },
-]);
-
-const languageOptions = computed(() =>
-  (locales.value as { code: string; name: string }[]).map((item) => ({
-    label: item.name,
-    value: item.code,
-  })),
-);
-
-const language = computed({
-  get: () => locale.value,
-  set: (value: string) => setLocale(value as "en" | "zh"),
-});
 
 const deleteConfirmOpen = shallowRef(false);
 const isDeletingAccount = shallowRef(false);
@@ -85,7 +66,7 @@ async function deleteAccount() {
 <template>
   <div class="bg-muted/30 min-h-screen">
     <div class="border-default border-b bg-background">
-      <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <UButton
           to="/"
           variant="ghost"
@@ -105,10 +86,10 @@ async function deleteAccount() {
       </div>
     </div>
 
-    <div class="mx-auto max-w-6xl px-6 py-10">
-      <div class="flex gap-10">
-        <aside class="w-56 shrink-0">
-          <div class="flex flex-col items-center gap-3 text-center">
+    <div class="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+      <div class="flex flex-col gap-8 lg:flex-row lg:gap-10">
+        <aside class="shrink-0 lg:w-56">
+          <div class="flex items-center gap-3 lg:flex-col lg:text-center">
             <UAvatar
               :src="authSession.data?.user?.image ?? undefined"
               :alt="authSession.data?.user?.name"
@@ -149,23 +130,7 @@ async function deleteAccount() {
             </template>
 
             <template #customization>
-              <div class="mt-6 space-y-6">
-                <div class="flex items-center justify-between gap-4">
-                  <div>
-                    <p class="font-medium">{{ $t("settings.appearance") }}</p>
-                    <p class="text-muted text-sm">{{ $t("settings.appearanceDescription") }}</p>
-                  </div>
-                  <USelect v-model="colorMode.preference" :items="modeOptions" class="w-40" />
-                </div>
-                <USeparator />
-                <div class="flex items-center justify-between gap-4">
-                  <div>
-                    <p class="font-medium">{{ $t("settings.language") }}</p>
-                    <p class="text-muted text-sm">{{ $t("settings.languageDescription") }}</p>
-                  </div>
-                  <USelect v-model="language" :items="languageOptions" class="w-40" />
-                </div>
-              </div>
+              <SettingsCustomizationPanel />
             </template>
 
             <template #providers>

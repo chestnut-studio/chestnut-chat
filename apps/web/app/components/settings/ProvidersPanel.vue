@@ -33,7 +33,13 @@ const {
   manualModelForm,
   manualModelProviderName,
   submitManualModel,
+  loadProviderCredits,
+  creditsForProvider,
 } = useSettingsProviders();
+
+onMounted(() => {
+  void loadProviderCredits();
+});
 </script>
 
 <template>
@@ -91,6 +97,7 @@ const {
       :fetching-models="isFetchingModels(provider)"
       :model-catalog="modelCatalogForProvider(provider)"
       :connection-status="connectionStatusForProvider(provider)"
+      :credits="creditsForProvider(provider)"
       @edit="editProvider(provider)"
       @cancel-edit="cancelEditProvider"
       @save-edit="submitEditProvider(provider)"

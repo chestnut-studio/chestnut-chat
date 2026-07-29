@@ -208,6 +208,39 @@ function booleanFrom(value: unknown) {
   return typeof value === "boolean" ? value : undefined;
 }
 
+function numberFrom(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return Math.floor(value);
+  }
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) return Math.floor(parsed);
+  }
+  return undefined;
+}
+
+function contextWindowFrom(record: Record<string, unknown>) {
+  const architecture = recordFrom(record.architecture);
+  const limits = recordFrom(record.limits) ?? recordFrom(architecture?.limits);
+  return (
+    numberFrom(record.context_length) ??
+    numberFrom(record.contextLength) ??
+    numberFrom(record.context_window) ??
+    numberFrom(record.contextWindow) ??
+    numberFrom(record.max_model_len) ??
+    numberFrom(record.maxModelLen) ??
+    numberFrom(record.max_input_tokens) ??
+    numberFrom(record.maxInputTokens) ??
+    numberFrom(architecture?.context_length) ??
+    numberFrom(architecture?.contextLength) ??
+    numberFrom(architecture?.max_context_length) ??
+    numberFrom(limits?.context_length) ??
+    numberFrom(limits?.contextLength) ??
+    numberFrom(limits?.max_input_tokens) ??
+    numberFrom(limits?.maxInputTokens)
+  );
+}
+
 function stringsFrom(value: unknown, maximum: number) {
   if (!Array.isArray(value)) return undefined;
 
@@ -304,6 +337,7 @@ function normalizeModel(item: unknown): ProviderModel | null {
     ownedBy: textFrom(record.owned_by) ?? textFrom(record.ownedBy),
     supportsReasoning: reasoningSupportFrom(record),
     supportsVision: visionSupportFrom(record, inputModalities),
+    contextWindow: contextWindowFrom(record),
     inputModalities,
     outputModalities,
     supportedParameters,

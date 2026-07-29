@@ -3,8 +3,18 @@ import { en, zh_cn } from "@nuxt/ui/locale";
 
 const { locale } = useI18n();
 const colorMode = useColorMode();
+const { radius } = useThemePreferences();
 const uiLocale = computed(() => (locale.value === "zh" ? zh_cn : en));
 const sonnerTheme = computed(() => (colorMode.value === "dark" ? "dark" : "light"));
+
+useHead(() => ({
+  style: [
+    {
+      key: "theme-radius",
+      innerHTML: `:root { --ui-radius: ${radius.value}rem; }`,
+    },
+  ],
+}));
 
 const VueQueryDevtools = import.meta.dev
   ? defineAsyncComponent(() =>

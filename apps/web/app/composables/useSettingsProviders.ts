@@ -95,6 +95,7 @@ export function useSettingsProviders() {
   const editForm = shallowRef<ProviderEditForm | null>(null);
   const deleteConfirmOpen = shallowRef(false);
   const deleteTarget = shallowRef<SettingsProviderCard | null>(null);
+  const { isLoadingCredits, loadProviderCredits, creditsForProvider } = useProviderCredits();
 
   const configuredBuiltin = computed(() =>
     BUILTIN_PROVIDERS.filter((def) => !!providerStorage.value.builtin[def.id]?.hasApiKey),
@@ -583,5 +584,8 @@ export function useSettingsProviders() {
     manualModelForm,
     manualModelProviderName,
     submitManualModel,
+    isLoadingCredits,
+    loadProviderCredits,
+    creditsForProvider,
   };
 }

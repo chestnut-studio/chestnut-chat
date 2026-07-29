@@ -2,6 +2,7 @@
 import type { DropdownMenuItem } from "@nuxt/ui";
 
 import type { ChatRow } from "~/utils/group-chats";
+import { chatPath } from "~/utils/chat-path";
 
 const props = defineProps<{
   chat: ChatRow;
@@ -13,6 +14,7 @@ const emit = defineEmits<{
   pin: [ChatRow];
   archive: [ChatRow];
   delete: [ChatRow];
+  move: [ChatRow];
 }>();
 
 const { t } = useI18n();
@@ -34,6 +36,11 @@ const items = computed<DropdownMenuItem[][]>(() => [
       icon: "i-lucide-archive",
       onSelect: () => emit("archive", props.chat),
     },
+    {
+      label: t("project.moveToProject"),
+      icon: "i-lucide-folder-input",
+      onSelect: () => emit("move", props.chat),
+    },
   ],
   [
     {
@@ -50,7 +57,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
   <div
     class="group flex cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 hover:bg-elevated"
     :class="active ? 'bg-elevated' : ''"
-    @click="navigateTo(`/chat/${chat.id}`)"
+    @click="navigateTo(chatPath(chat))"
   >
     <UIcon v-if="chat.pinned" name="i-lucide-pin" class="size-3 shrink-0 text-muted" />
     <span class="min-w-0 flex-1 truncate text-sm">{{ chat.title }}</span>

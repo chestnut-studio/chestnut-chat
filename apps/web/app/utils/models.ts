@@ -26,6 +26,7 @@ export type ModelOption = {
   reasoningRequired: boolean;
   reasoningEfforts: readonly ReasoningEffort[];
   vision: boolean;
+  contextWindow?: number;
 };
 
 interface ConfiguredProviderModelSource {
@@ -88,6 +89,13 @@ export const MODELS: ModelOption[] = [
 export const DEFAULT_MODEL =
   MODELS[0]?.value ?? builtinChatModelValue("openrouter", "openrouter/free");
 
+/** Fallback when a provider catalog does not expose a context window. */
+export const DEFAULT_CONTEXT_WINDOW = 128_000;
+
+export function resolveContextWindow(contextWindow: number | undefined) {
+  return contextWindow && contextWindow > 0 ? contextWindow : DEFAULT_CONTEXT_WINDOW;
+}
+
 export function isLegacyDeepSeekModel(value: string) {
   return LEGACY_DEEPSEEK_MODEL_IDS.includes(value as (typeof LEGACY_DEEPSEEK_MODEL_IDS)[number]);
 }
@@ -111,6 +119,7 @@ export function buildProviderModelOptions(
       reasoningRequired: modelRequiresReasoning(provider.id, model.id),
       reasoningEfforts: modelReasoningEfforts(provider.id, model.id),
       vision: modelSupportsVision(provider.id, model.id, model.supportsVision),
+      contextWindow: model.contextWindow,
     }));
   });
 

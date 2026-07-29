@@ -2,8 +2,16 @@ import { relations } from "drizzle-orm";
 import { boolean, index, jsonb, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
+import { project } from "./project";
 
 export const messageRoleEnum = pgEnum("message_role", ["user", "assistant", "system"]);
+
+export type ChatLastOptions = {
+  model: string;
+  reasoning: boolean;
+  reasoningEffort: "low" | "high" | "max";
+  webSearch: boolean;
+};
 
 export const chat = pgTable(
   "chat",
@@ -14,22 +22,37 @@ export const chat = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    projectId: text("project_id").references(() => project.id, { onDelete: "cascade" }),
     title: text("title").notNull().default("New Chat"),
     pinned: boolean("pinned").default(false).notNull(),
     archived: boolean("archived").default(false).notNull(),
+    lastOptions: jsonb("last_options").$type<ChatLastOptions>(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("chat_userId_idx").on(table.userId)],
+  (table) => [
+    index("chat_userId_idx").on(table.userId),
+    index("chat_projectId_idx").on(table.projectId),
+  ],
 );
 
 export type MessagePart = {
   type: string;
   text?: string;
   [key: string]: unknown;
+};
+
+export type MessageMetadata = {
+  usage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
+    cachedInputTokens?: number;
+    reasoningTokens?: number;
+  };
 };
 
 export const message = pgTable(
@@ -43,6 +66,7 @@ export const message = pgTable(
       .references(() => chat.id, { onDelete: "cascade" }),
     role: messageRoleEnum("role").notNull(),
     parts: jsonb("parts").$type<MessagePart[]>().notNull(),
+    metadata: jsonb("metadata").$type<MessageMetadata | null>(),
     model: text("model"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
@@ -53,6 +77,10 @@ export const chatRelations = relations(chat, ({ one, many }) => ({
   user: one(user, {
     fields: [chat.userId],
     references: [user.id],
+  }),
+  project: one(project, {
+    fields: [chat.projectId],
+    references: [project.id],
   }),
   messages: many(message),
 }));
