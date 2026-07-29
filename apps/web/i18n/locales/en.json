@@ -276,6 +276,7 @@
     "reasoningHigh": "High",
     "reasoningMax": "Max",
     "webSearch": "Web search",
+    "planningWebSearch": "Planning web search",
     "searchingWeb": "Searching the web",
     "searchedWeb": "Searched the web",
     "webSearchFailed": "Web search failed",

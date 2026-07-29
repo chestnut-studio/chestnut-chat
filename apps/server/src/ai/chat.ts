@@ -214,9 +214,11 @@ export async function handleAiChat(c: Context): Promise<Response> {
 
   if (!contextBundle) return c.json({ error: "Chat not found" }, 404);
 
-  const searchQuery = savedUserMessage ? messageText(savedUserMessage).trim() : "";
+  const hasSearchRequest = contextBundle.historyMessages.some(
+    (message) => message.role === "user" && messageText(message).trim(),
+  );
   const searchProgressId =
-    webSearch && searchQuery ? `web-search-${crypto.randomUUID()}` : undefined;
+    webSearch && hasSearchRequest ? `web-search-${crypto.randomUUID()}` : undefined;
   const responseMessageId = crypto.randomUUID();
 
   console.info("memory_retrieval", {
@@ -245,21 +247,35 @@ export async function handleAiChat(c: Context): Promise<Response> {
 
       let webSearchInstructions: string | undefined;
       if (searchProgressId) {
+        let activeSearchQuery = "";
         writer.write({
           type: "data-web-search",
           id: searchProgressId,
-          data: { query: searchQuery, status: "searching" },
+          data: { query: activeSearchQuery, status: "planning" },
         });
 
         try {
-          const searchResult = await searchWeb(searchQuery, session.user.id, c.req.raw.signal);
+          const searchResult = await searchWeb({
+            messages: contextBundle.historyMessages,
+            userId: session.user.id,
+            abortSignal: c.req.raw.signal,
+            onQueries: (queries) => {
+              activeSearchQuery = queries.join(" · ");
+              writer.write({
+                type: "data-web-search",
+                id: searchProgressId,
+                data: { query: activeSearchQuery, status: "searching" },
+              });
+            },
+          });
           webSearchInstructions = searchResult.instructions;
+          activeSearchQuery = searchResult.queries.join(" · ");
 
           writer.write({
             type: "data-web-search",
             id: searchProgressId,
             data: {
-              query: searchQuery,
+              query: activeSearchQuery,
               status: "complete",
               sources: searchResult.sources,
             },
@@ -272,7 +288,7 @@ export async function handleAiChat(c: Context): Promise<Response> {
             type: "data-web-search",
             id: searchProgressId,
             data: {
-              query: searchQuery,
+              query: activeSearchQuery,
               status: "error",
               error: streamErrorMessage(error),
             },

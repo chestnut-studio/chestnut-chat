@@ -16,9 +16,11 @@ const displaySources = computed(() =>
   mergeWebSearchSources(props.progress.sources ?? [], props.sources),
 );
 
+const isPlanning = computed(() => props.progress.status === "planning");
 const isSearching = computed(() => props.progress.status === "searching");
+const isPending = computed(() => isPlanning.value || isSearching.value);
 const isError = computed(() => props.progress.status === "error");
-const canOpenSources = computed(() => !isSearching.value && displaySources.value.length > 0);
+const canOpenSources = computed(() => !isPending.value && displaySources.value.length > 0);
 
 const readingLabels = computed(() => {
   const labels = displaySources.value
@@ -28,6 +30,7 @@ const readingLabels = computed(() => {
 });
 
 const statusTitle = computed(() => {
+  if (isPlanning.value) return t("chat.planningWebSearch");
   if (isSearching.value) return t("chat.searchingWeb");
   if (isError.value) return t("chat.webSearchFailed");
   if (displaySources.value.length) {
@@ -38,6 +41,7 @@ const statusTitle = computed(() => {
 
 const statusDetail = computed(() => {
   if (isError.value) return props.progress.error || props.progress.query;
+  if (isPlanning.value) return "";
   if (isSearching.value) return props.progress.query;
   if (readingLabels.value.length) {
     return t("chat.webSearchReading", { sites: readingLabels.value.join(", ") });
@@ -59,7 +63,7 @@ function onStatusClick() {
       :class="[
         isError
           ? 'border-error/30 bg-error/5'
-          : isSearching
+          : isPending
             ? 'border-primary/25 bg-primary/5'
             : 'border-default/80 bg-elevated/40',
         canOpenSources
@@ -76,27 +80,23 @@ function onStatusClick() {
         :class="
           isError
             ? 'bg-error/10 text-error'
-            : isSearching
+            : isPending
               ? 'bg-primary/10 text-primary'
               : 'bg-elevated text-muted'
         "
       >
         <UIcon
           :name="
-            isError
-              ? 'i-lucide-globe-off'
-              : isSearching
-                ? 'i-lucide-loader-circle'
-                : 'i-lucide-radar'
+            isError ? 'i-lucide-globe-off' : isPending ? 'i-lucide-loader-circle' : 'i-lucide-radar'
           "
           class="size-3.5"
-          :class="isSearching ? 'animate-spin' : undefined"
+          :class="isPending ? 'animate-spin' : undefined"
         />
       </div>
 
       <div class="min-w-0 flex-1">
         <p class="text-sm font-medium text-default">{{ statusTitle }}</p>
-        <p class="mt-0.5 truncate text-xs text-muted" :title="statusDetail">
+        <p v-if="statusDetail" class="mt-0.5 truncate text-xs text-muted" :title="statusDetail">
           {{ statusDetail }}
         </p>
       </div>
