@@ -176,7 +176,13 @@ async function onArchive(chat: { id: string }) {
   await setArchived.mutateAsync({ id: chat.id, archived: true });
 }
 
-function openCreateProject() {
+async function openCreateProject() {
+  const session = await authSession.ensure();
+  if (!session?.user) {
+    showLogin();
+    return;
+  }
+
   editingProject.value = null;
   projectFormOpen.value = true;
 }
