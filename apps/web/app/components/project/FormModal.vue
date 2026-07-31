@@ -23,6 +23,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { $orpc } = useNuxtApp();
+const authSession = useAuthSession();
 const { createWithFiles, update, uploadFiles, deleteFile } = useProjects();
 
 const name = ref("");
@@ -41,11 +42,10 @@ const submitting = ref(false);
 const isEdit = computed(() => Boolean(props.project));
 
 const existingFiles = useQuery(
-  computed(() =>
-    props.project
-      ? $orpc.project.files.queryOptions({ input: { projectId: props.project.id } })
-      : { queryKey: ["project-files-idle"], queryFn: async () => [], enabled: false },
-  ),
+  computed(() => ({
+    ...$orpc.project.files.queryOptions({ input: { projectId: props.project?.id ?? "" } }),
+    enabled: Boolean(props.project) && authSession.isAuthenticated,
+  })),
 );
 
 watch(

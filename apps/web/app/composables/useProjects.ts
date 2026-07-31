@@ -24,11 +24,17 @@ export type ProjectFormInput = {
 
 export function useProjects() {
   const { $orpc } = useNuxtApp();
+  const authSession = useAuthSession();
   const queryClient = useQueryClient();
   const { t } = useI18n();
   const config = useRuntimeConfig();
   const listQueryKey = $orpc.project.list.queryKey();
-  const list = useQuery($orpc.project.list.queryOptions());
+  const list = useQuery(
+    computed(() => ({
+      ...$orpc.project.list.queryOptions(),
+      enabled: authSession.isAuthenticated,
+    })),
+  );
   const { invalidate: invalidateChats } = useChats();
 
   const invalidate = async () => {

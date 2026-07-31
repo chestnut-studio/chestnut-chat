@@ -2,9 +2,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 
 export function useChats() {
   const { $orpc } = useNuxtApp();
+  const authSession = useAuthSession();
   const queryClient = useQueryClient();
   const listQueryKey = $orpc.chat.list.queryKey();
-  const list = useQuery($orpc.chat.list.queryOptions());
+  const list = useQuery(
+    computed(() => ({
+      ...$orpc.chat.list.queryOptions(),
+      enabled: authSession.isAuthenticated,
+    })),
+  );
   const invalidate = () => queryClient.invalidateQueries({ queryKey: listQueryKey });
 
   function applyTitle(chatId: string, title: string) {
