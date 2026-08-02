@@ -145,8 +145,12 @@ function messageText(message: ChatUIMessage) {
 }
 
 async function copy(message: ChatUIMessage) {
-  await navigator.clipboard.writeText(messageText(message));
-  toast.success(t("toast.copied"));
+  try {
+    await navigator.clipboard.writeText(messageText(message));
+    toast.success(t("toast.copied"));
+  } catch {
+    toast.error(t("toast.copyFailed"));
+  }
 }
 
 function actionsFor(message: ChatUIMessage) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMutation } from "@tanstack/vue-query";
+import { useMutation, useQueryClient } from "@tanstack/vue-query";
 
 import type { ProjectRow } from "~/composables/useProjects";
 import type { ChatRow } from "~/utils/group-chats";
@@ -23,6 +23,7 @@ const authSession = useAuthSession();
 const { show: showLogin } = useLoginModal();
 const route = useRoute();
 const { $orpc } = useNuxtApp();
+const queryClient = useQueryClient();
 const { mutateAsync: moveChat, isPending: isMoving } = useMutation(
   $orpc.chat.move.mutationOptions(),
 );
@@ -230,6 +231,11 @@ async function confirmMove() {
     projectId: nextProjectId,
   });
   await list.refetch();
+  // The chat.get cache still holds the old projectId; the workspace watch
+  // would bounce the navigation back to the stale project path otherwise.
+  void queryClient.invalidateQueries({
+    queryKey: $orpc.chat.get.queryKey({ input: { id: movedId } }),
+  });
   moveOpen.value = false;
   if (activeId.value === movedId) {
     await navigateTo(chatPath({ id: movedId, projectId: nextProjectId }));

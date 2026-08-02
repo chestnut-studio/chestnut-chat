@@ -138,6 +138,14 @@ const { messages, status, sendMessage, regenerate, stop, clearError } = useChat<
     onFinish({ isAbort, isError }) {
       if (!isAbort && !isError) {
         void invalidateChats();
+        // Keep the messages/get caches fresh so revisiting the chat does not
+        // serve pre-stream rows (the history watcher only merges from cache).
+        void queryClient.invalidateQueries({
+          queryKey: $orpc.chat.messages.queryKey({ input: { chatId: chatId.value } }),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: $orpc.chat.get.queryKey({ input: { id: chatId.value } }),
+        });
       }
     },
   }),
@@ -263,22 +271,28 @@ watch(
   { immediate: true },
 );
 
-watch(
-  () => history.data.value,
-  (rows) => {
-    if (!rows || !rows.every((row) => row.chatId === chatId.value)) return;
+// Reconcile client messages with the persisted history. Always syncs (not just
+// when empty) so a stale cache or an out-of-date refetch cannot hide the last
+// exchange, but never clobbers an in-flight stream.
+function syncFromHistory(rows: typeof history.data.value) {
+  if (!rows || !rows.every((row) => row.chatId === chatId.value)) return false;
+  if (isRequestActive.value) return false;
 
-    if (messages.value.length === 0) {
-      messages.value = rows.map((row) => ({
-        id: row.id,
-        role: row.role as ChatUIMessage["role"],
-        parts: row.parts as ChatUIMessage["parts"],
-        metadata: (row.metadata as ChatUIMessage["metadata"]) ?? undefined,
-      }));
-    }
-  },
-  { immediate: true },
-);
+  const synced = rows.map((row) => ({
+    id: row.id,
+    role: row.role as ChatUIMessage["role"],
+    parts: row.parts as ChatUIMessage["parts"],
+    metadata: (row.metadata as ChatUIMessage["metadata"]) ?? undefined,
+  }));
+
+  if (
+    synced.length !== messages.value.length ||
+    synced.some((message, index) => message.id !== messages.value[index]?.id)
+  ) {
+    messages.value = synced;
+  }
+  return true;
+}
 
 watch(chatId, () => {
   messages.value = [];
@@ -292,7 +306,16 @@ watch(chatId, () => {
   isRenderingResponse.value = false;
   abortRenderKey.value += 1;
   clearError();
+  syncFromHistory(history.data.value);
 });
+
+watch(
+  () => history.data.value,
+  (rows) => {
+    syncFromHistory(rows);
+  },
+  { immediate: true },
+);
 
 onMounted(() => {
   const payload = pendingChatPrompt.consume(chatId.value);

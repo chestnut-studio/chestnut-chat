@@ -1,11 +1,11 @@
 const TARGET_CHUNK_CHARS = 2000;
 const CHUNK_OVERLAP_CHARS = 200;
 
-function findBreak(text: string, start: number, idealEnd: number) {
+function findBreak(text: string, start: number, idealEnd: number, target: number) {
   const hardEnd = Math.min(text.length, idealEnd);
   if (hardEnd >= text.length) return text.length;
 
-  const windowStart = Math.max(start + Math.floor(TARGET_CHUNK_CHARS * 0.6), start);
+  const windowStart = Math.max(start + Math.floor(target * 0.6), start);
   const slice = text.slice(windowStart, hardEnd);
 
   const paragraph = slice.lastIndexOf("\n\n");
@@ -39,12 +39,14 @@ export function chunkDocument(
 
   while (start < normalized.length) {
     const idealEnd = start + target;
-    const end = findBreak(normalized, start, idealEnd);
+    const end = findBreak(normalized, start, idealEnd, target);
     const chunk = normalized.slice(start, end).trim();
     if (chunk) chunks.push(chunk);
     if (end >= normalized.length) break;
-    start = Math.max(0, end - overlap);
-    if (start >= end) start = end;
+
+    // Overlap only when it is smaller than the chunk; otherwise it would move
+    // the start backwards (or stall) and loop forever.
+    start = overlap > 0 && overlap < end - start ? end - overlap : end;
   }
 
   return chunks;

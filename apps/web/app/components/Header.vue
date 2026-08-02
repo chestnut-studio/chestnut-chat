@@ -2,9 +2,10 @@
 import type { NavigationMenuItem } from "@nuxt/ui";
 
 const route = useRoute();
+const { t } = useI18n();
 
 const items = computed<NavigationMenuItem[]>(() => [
-  { label: "Home", to: "/", active: route.path === "/" },
+  { label: t("nav.home"), to: "/", active: route.path === "/" },
 ]);
 </script>
 

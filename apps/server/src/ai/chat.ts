@@ -34,7 +34,7 @@ import { miniMaxProviderOptions } from "./minimax";
 import { resolveChatModel } from "./models";
 import { messageText } from "./utils";
 import { searchWeb } from "./web-search";
-import { buildChatContext } from "../memory/context";
+import { buildChatContext, type ChatContextBundle } from "../memory/context";
 import { enqueuePostChatJobs } from "../memory/queue";
 
 const WORD_STREAM_CHUNKING = new Intl.Segmenter(undefined, { granularity: "word" });
@@ -45,6 +45,7 @@ const STREAM_HEADERS = {
   "X-Accel-Buffering": "no",
 };
 const DEFAULT_STREAM_ERROR = "The AI provider could not complete the request.";
+const CHAT_STREAM_TIMEOUT_MS = 5 * 60 * 1_000;
 
 const chatRequestSchema = z.object({
   chatId: z.string().min(1),
@@ -84,11 +85,21 @@ function chatProviderOptions(
 }
 
 function streamErrorMessage(error: unknown) {
-  return error instanceof Error && error.message ? error.message : DEFAULT_STREAM_ERROR;
+  // Upstream provider errors can contain key prefixes, URLs, or billing
+  // details; never forward them to the client. Log the original for debugging.
+  console.error(
+    "ai_stream_error",
+    error instanceof Error ? (error.stack ?? error.message) : String(error),
+  );
+  return DEFAULT_STREAM_ERROR;
 }
 
 function isImageFilePart(part: ChatUIMessage["parts"][number]) {
-  return isFileUIPart(part) && part.mediaType.toLowerCase().startsWith("image/");
+  return (
+    isFileUIPart(part) &&
+    typeof part.mediaType === "string" &&
+    part.mediaType.toLowerCase().startsWith("image/")
+  );
 }
 
 function messagesContainImages(messages: ChatUIMessage[]) {
@@ -200,21 +211,37 @@ export async function handleAiChat(c: Context): Promise<Response> {
       ? generateAiTitle(savedUserMessage, chatId, session.user.id)
       : Promise.resolve<string | undefined>(undefined);
 
-  const contextBundle = await buildChatContext({
-    chatId,
-    userId: session.user.id,
-    newestUserMessage:
-      savedUserMessage ??
-      ({
-        id: crypto.randomUUID(),
-        role: "user",
-        parts: [{ type: "text", text: "" }],
-      } satisfies ChatUIMessage),
-  });
+  let contextBundle: ChatContextBundle | null = null;
+  try {
+    contextBundle = await buildChatContext({
+      chatId,
+      userId: session.user.id,
+      newestUserMessage:
+        savedUserMessage ??
+        ({
+          id: crypto.randomUUID(),
+          role: "user",
+          parts: [{ type: "text", text: "" }],
+        } satisfies ChatUIMessage),
+    });
+  } catch (error) {
+    console.error(
+      "Failed to build chat context:",
+      error instanceof Error ? error.message : String(error),
+    );
+    return c.json({ error: "Failed to prepare chat history" }, 500);
+  }
 
   if (!contextBundle) return c.json({ error: "Chat not found" }, 404);
+  const bundle = contextBundle;
 
-  const hasSearchRequest = contextBundle.historyMessages.some(
+  // Regeneration reuses the user turn that precedes the regenerated reply;
+  // it was kept by truncateFromMessage, so it is safe to re-enqueue memory jobs.
+  const regeneratedUserMessage = isRegeneration
+    ? ([...bundle.historyMessages].reverse().find((message) => message.role === "user") ?? null)
+    : null;
+
+  const hasSearchRequest = bundle.historyMessages.some(
     (message) => message.role === "user" && messageText(message).trim(),
   );
   const searchProgressId =
@@ -223,15 +250,15 @@ export async function handleAiChat(c: Context): Promise<Response> {
 
   console.info("memory_retrieval", {
     chatId,
-    memoryCount: contextBundle.retrieval.memoryCount,
-    chunkCount: contextBundle.retrieval.chunkCount,
-    latencyMs: contextBundle.retrieval.latencyMs,
+    memoryCount: bundle.retrieval.memoryCount,
+    chunkCount: bundle.retrieval.chunkCount,
+    latencyMs: bundle.retrieval.latencyMs,
   });
 
   let capturedUsage: ChatMessageUsage | undefined;
 
   const stream = createUIMessageStream<ChatUIMessage>({
-    originalMessages: contextBundle.historyMessages as ChatUIMessage[],
+    originalMessages: bundle.historyMessages as ChatUIMessage[],
     onError: streamErrorMessage,
     execute: async ({ writer }) => {
       writer.write({ type: "start", messageId: responseMessageId });
@@ -256,7 +283,7 @@ export async function handleAiChat(c: Context): Promise<Response> {
 
         try {
           const searchResult = await searchWeb({
-            messages: contextBundle.historyMessages,
+            messages: bundle.historyMessages,
             userId: session.user.id,
             abortSignal: c.req.raw.signal,
             onQueries: (queries) => {
@@ -297,7 +324,7 @@ export async function handleAiChat(c: Context): Promise<Response> {
         }
       }
 
-      const instructions = [contextBundle.instructions, webSearchInstructions]
+      const instructions = [bundle.instructions, webSearchInstructions]
         .filter(Boolean)
         .join("\n\n");
 
@@ -305,7 +332,7 @@ export async function handleAiChat(c: Context): Promise<Response> {
         model: resolvedModel.model,
         instructions,
         messages: await convertToModelMessages<ChatUIMessage>(
-          contextBundle.historyMessages as ChatUIMessage[],
+          bundle.historyMessages as ChatUIMessage[],
           {
             convertDataPart: (part) => {
               if (part.type === "data-document") {
@@ -318,6 +345,7 @@ export async function handleAiChat(c: Context): Promise<Response> {
           },
         ),
         abortSignal: c.req.raw.signal,
+        timeout: CHAT_STREAM_TIMEOUT_MS,
         experimental_transform: smoothStream({ chunking: WORD_STREAM_CHUNKING, delayInMs: 12 }),
         providerOptions: chatProviderOptions(
           resolvedModel.providerId,
@@ -371,12 +399,13 @@ export async function handleAiChat(c: Context): Promise<Response> {
           body.model ?? resolvedModel.modelId,
         );
 
-        if (savedUserMessage) {
+        const userMessageId = savedUserMessage?.id ?? regeneratedUserMessage?.id;
+        if (userMessageId) {
           await enqueuePostChatJobs({
             userId: session.user.id,
             chatId,
-            projectId: contextBundle.project?.id ?? null,
-            userMessageId: savedUserMessage.id,
+            projectId: bundle.project?.id ?? null,
+            userMessageId,
             assistantMessageId: saved?.id ?? responseMessageId,
           });
         }

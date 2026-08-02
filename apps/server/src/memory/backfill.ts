@@ -38,7 +38,7 @@ export async function backfillGlobalMemory(options?: { batchSize?: number; offse
         type: "extract",
         chatId: row.id,
         projectId: null,
-        dedupeParts: ["backfill_extract", row.id, assistant.id],
+        dedupeParts: ["extract", row.id, assistant.id],
         payload: {
           userMessageId: user.id,
           assistantMessageId: assistant.id,

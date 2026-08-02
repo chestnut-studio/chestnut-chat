@@ -4,7 +4,7 @@ import {
   normalizeWebSearchQueries,
   type WebSearchSource,
 } from "@chestnut-chat/api/chat/web-search";
-import { decryptApiKey } from "@chestnut-chat/api/providers/encryption";
+import { decryptApiKeyForRequest } from "@chestnut-chat/api/providers/encryption";
 import { normalizeBaseUrl, normalizeProviderApiKey } from "@chestnut-chat/api/providers/models";
 import { db } from "@chestnut-chat/db";
 import { providerSetting } from "@chestnut-chat/db/schema/provider";
@@ -288,7 +288,9 @@ async function searchCredential(userId: string) {
 
   if (configuredOpenRouter) {
     return {
-      apiKey: normalizeProviderApiKey(decryptApiKey(configuredOpenRouter.apiKeyEncrypted)),
+      apiKey: normalizeProviderApiKey(
+        decryptApiKeyForRequest(configuredOpenRouter.apiKeyEncrypted),
+      ),
       baseUrl: normalizeBaseUrl(configuredOpenRouter.baseUrl ?? OPENROUTER_BASE_URL),
     };
   }

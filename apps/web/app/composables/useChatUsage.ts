@@ -29,7 +29,6 @@ export function contextTokensUsed(usage: ChatMessageUsage) {
 /** Format context fill for compact display (avoid rounding small values to 0%). */
 export function formatUsagePercent(percent: number) {
   if (percent <= 0) return "0";
-  if (percent < 1) return percent.toFixed(1).replace(/\.0$/, "");
   if (percent < 10) return percent.toFixed(1).replace(/\.0$/, "");
   return `${Math.round(percent)}`;
 }

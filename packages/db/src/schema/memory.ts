@@ -96,6 +96,12 @@ export const memoryItem = pgTable(
     index("memory_item_projectId_idx").on(table.projectId),
     index("memory_item_sourceChatId_idx").on(table.sourceChatId),
     index("memory_item_user_key_idx").on(table.userId, table.memoryKey),
+    // One memory per extracted turn + key; regeneration overwrites in place.
+    uniqueIndex("memory_item_source_message_key_idx").on(
+      table.sourceChatId,
+      table.sourceMessageId,
+      table.memoryKey,
+    ),
     index("memory_item_embedding_idx").using("hnsw", table.embedding.op("vector_cosine_ops")),
     index("memory_item_content_trgm_idx").using("gin", table.content.op("gin_trgm_ops")),
   ],
