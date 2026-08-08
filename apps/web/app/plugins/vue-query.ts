@@ -27,7 +27,8 @@ function isUnauthorizedError(error: unknown) {
 
 export default defineNuxtPlugin((nuxt) => {
   const vueQueryState = useState<DehydratedState | null>("vue-query");
-  const { t } = useI18n();
+  // `useI18n()` requires an active Vue setup context; plugins run outside it in Nuxt 4.
+  const { t } = useNuxtApp().$i18n;
 
   const queryClient = new QueryClient({
     defaultOptions: {
