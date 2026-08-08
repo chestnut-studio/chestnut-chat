@@ -263,6 +263,7 @@
     "selectedModel": "当前模型",
     "searchModels": "搜索模型...",
     "noMatchingModels": "没有匹配的模型",
+    "modelUsed": "当前对话使用的模型",
     "reasoning": "推理",
     "reasoningSupported": "支持推理",
     "visionSupported": "支持视觉",

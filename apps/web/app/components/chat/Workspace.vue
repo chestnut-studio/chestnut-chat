@@ -67,6 +67,16 @@ const history = useQuery(
   computed(() => $orpc.chat.messages.queryOptions({ input: { chatId: chatId.value } })),
 );
 
+// Model shown in the page header: the options of the last send, falling back
+// to the most recent assistant message, then to the default model.
+const headerModel = computed(() => {
+  if (chatMeta.data.value?.lastOptions?.model) return chatMeta.data.value.lastOptions.model;
+  const lastModelRow = [...(history.data.value ?? [])].reverse().find((row) => row.model);
+  return lastModelRow?.model ?? DEFAULT_MODEL;
+});
+const headerReasoning = computed(() => chatMeta.data.value?.lastOptions?.reasoning ?? false);
+const headerWebSearch = computed(() => chatMeta.data.value?.lastOptions?.webSearch ?? false);
+
 const initialPrompt = pendingChatPrompt.peek(chatId.value);
 const initialPromptOptions = initialPrompt
   ? {
@@ -417,6 +427,16 @@ function confirmEdit() {
     :id="`chat-${chatId}`"
     :ui="{ body: 'min-h-0 gap-0 overflow-hidden p-0 sm:gap-0 sm:p-0' }"
   >
+    <template #header>
+      <ChatHeader
+        :title="chatTitle"
+        :model="headerModel"
+        :reasoning="headerReasoning"
+        :web-search="headerWebSearch"
+        :project="chatProject"
+      />
+    </template>
+
     <template #body>
       <div
         class="group relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6"

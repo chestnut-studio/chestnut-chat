@@ -263,6 +263,7 @@
     "selectedModel": "Selected model",
     "searchModels": "Search models...",
     "noMatchingModels": "No matching models",
+    "modelUsed": "Model used in this chat",
     "reasoning": "Reasoning",
     "reasoningSupported": "Supports reasoning",
     "visionSupported": "Supports vision",
