@@ -6,7 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
-import { decryptApiKey, encryptApiKey } from "../providers/encryption";
+import { decryptApiKeyForRequest, encryptApiKey } from "../providers/encryption";
 import { ProviderCreditsFetchError, fetchProviderCredits } from "../providers/credits";
 import {
   BUILTIN_PROVIDER_IDS,
@@ -137,7 +137,7 @@ function toProviderDto(row: typeof providerSetting.$inferSelect) {
 function resolveFetchOptions(row: typeof providerSetting.$inferSelect) {
   if (row.kind === "custom") {
     return {
-      apiKey: decryptApiKey(row.apiKeyEncrypted),
+      apiKey: decryptApiKeyForRequest(row.apiKeyEncrypted),
       baseUrl: row.baseUrl,
       fetchMode: "openai" as const,
     };
@@ -149,7 +149,7 @@ function resolveFetchOptions(row: typeof providerSetting.$inferSelect) {
   }
 
   return {
-    apiKey: decryptApiKey(row.apiKeyEncrypted),
+    apiKey: decryptApiKeyForRequest(row.apiKeyEncrypted),
     baseUrl: row.baseUrl ?? def.defaultBaseUrl,
     fetchMode: def.fetchMode,
     authModes: def.authModes,
@@ -179,7 +179,7 @@ function toProviderFetchError(cause: unknown) {
 function resolveCreditsOptions(row: typeof providerSetting.$inferSelect) {
   if (row.kind === "custom") {
     return {
-      apiKey: decryptApiKey(row.apiKeyEncrypted),
+      apiKey: decryptApiKeyForRequest(row.apiKeyEncrypted),
       baseUrl: row.baseUrl,
       isCustom: true as const,
     };
@@ -191,7 +191,7 @@ function resolveCreditsOptions(row: typeof providerSetting.$inferSelect) {
   }
 
   return {
-    apiKey: decryptApiKey(row.apiKeyEncrypted),
+    apiKey: decryptApiKeyForRequest(row.apiKeyEncrypted),
     baseUrl: row.baseUrl ?? def.defaultBaseUrl,
     providerId: def.id,
     isCustom: false as const,

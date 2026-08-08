@@ -19,6 +19,7 @@ export function useAuthSession() {
   const error = useState<AuthSessionError>("auth-session:error", () => null);
   const initialized = useState("auth-session:initialized", () => false);
   const isPending = useState("auth-session:pending", () => false);
+  const isAuthenticated = computed(() => Boolean(data.value?.user));
 
   async function refresh() {
     if (import.meta.client && clientRefreshPromise) {
@@ -74,6 +75,7 @@ export function useAuthSession() {
     error: readonly(error),
     initialized: readonly(initialized),
     isPending: readonly(isPending),
+    isAuthenticated,
     refresh,
     ensure,
     clear,

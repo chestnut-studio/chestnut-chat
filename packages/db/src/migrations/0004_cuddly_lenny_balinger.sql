@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "memory_item_source_message_key_idx" ON "memory_item" USING btree ("source_chat_id","source_message_id","memory_key");

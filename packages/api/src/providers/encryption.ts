@@ -40,3 +40,19 @@ export function decryptApiKey(value: string) {
     decipher.final(),
   ]).toString("utf8");
 }
+
+/**
+ * Decrypt for request-facing paths. Crypto internals (GCM tag failures,
+ * format details) must not reach the client; keep the original for logs.
+ */
+export function decryptApiKeyForRequest(value: string) {
+  try {
+    return decryptApiKey(value);
+  } catch (error) {
+    console.error(
+      "provider_key_decrypt_failed",
+      error instanceof Error ? error.message : String(error),
+    );
+    throw new Error("Provider API key cannot be decrypted. Re-enter the key in settings.");
+  }
+}

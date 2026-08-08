@@ -76,7 +76,8 @@ export function kimiProviderOptions(
     };
   }
 
-  if (isKimiK25Model(modelId) || isKimiThinkingModel(modelId)) {
+  // kimi-k2.5 and newer k2.x: thinking.type only.
+  if (isKimiThinkingModel(modelId)) {
     return {
       kimi: {
         thinking: { type: reasoning ? "enabled" : "disabled" },

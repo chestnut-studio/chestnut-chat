@@ -2,6 +2,12 @@ import { buildDedupeKey } from "@chestnut-chat/api/memory/jobs";
 import { db } from "@chestnut-chat/db";
 import { memoryJob } from "@chestnut-chat/db/schema/memory";
 
+function isUniqueViolation(error: unknown) {
+  return (
+    typeof error === "object" && error !== null && (error as { code?: unknown }).code === "23505"
+  );
+}
+
 export async function enqueueMemoryJob(input: {
   userId: string;
   type: "extract" | "summarize" | "file_index" | "chat_reindex";
@@ -28,7 +34,10 @@ export async function enqueueMemoryJob(input: {
     });
     return { enqueued: true, dedupeKey };
   } catch (error) {
-    // Unique dedupe key collisions are treated as idempotent success.
+    // Only a unique-key collision is an idempotent dedupe hit; any other
+    // failure (connection, constraint) must surface so the caller can retry.
+    if (!isUniqueViolation(error)) throw error;
+
     console.warn("memory_job_enqueue_skipped", {
       dedupeKey,
       error: error instanceof Error ? error.message : String(error),

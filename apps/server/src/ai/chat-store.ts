@@ -5,7 +5,7 @@ import {
   type ChatLastOptions,
   type MessageMetadata,
 } from "@chestnut-chat/db/schema/chat";
-import { and, asc, eq, gt, gte } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import type { UIMessage } from "ai";
 
 export const DEFAULT_CHAT_TITLE = "New Chat";
@@ -29,15 +29,6 @@ export async function saveChatLastOptions(
     .where(and(eq(chat.id, chatId), eq(chat.userId, userId)));
 }
 
-export async function hasMessages(chatId: string) {
-  const [existingMessage] = await db
-    .select({ id: message.id })
-    .from(message)
-    .where(eq(message.chatId, chatId))
-    .limit(1);
-  return Boolean(existingMessage);
-}
-
 export async function listChatMessages(chatId: string) {
   return db
     .select()
@@ -46,38 +37,45 @@ export async function listChatMessages(chatId: string) {
     .orderBy(asc(message.createdAt));
 }
 
-/** Truncate the persisted branch at/after a message for edit or regenerate. */
+/**
+ * Truncate the persisted branch at/after a message for edit or regenerate.
+ *
+ * Deletion is driven by the message id list in insertion order instead of
+ * `createdAt` comparisons, so two messages created in the same millisecond
+ * cannot be mis-ordered. Missing targets are a no-op so client retries after
+ * a partial failure do not 500.
+ */
 export async function truncateFromMessage(
   chatId: string,
   messageId: string,
   mode: "edit" | "regenerate",
 ) {
-  const [target] = await db
-    .select()
+  const rows = await db
+    .select({ id: message.id, role: message.role })
     .from(message)
-    .where(and(eq(message.id, messageId), eq(message.chatId, chatId)))
-    .limit(1);
+    .where(eq(message.chatId, chatId))
+    .orderBy(asc(message.createdAt));
 
-  if (!target) {
-    throw new Error("Message not found for truncate");
-  }
+  const targetIndex = rows.findIndex((row) => row.id === messageId);
+  if (targetIndex === -1) return;
+
+  const target = rows[targetIndex];
+  if (!target) return;
+
+  const idsToDelete = rows.slice(targetIndex + 1).map((row) => row.id);
 
   if (mode === "edit") {
-    await db
-      .delete(message)
-      .where(and(eq(message.chatId, chatId), gte(message.createdAt, target.createdAt)));
-    return;
+    // Replace from the edited message onward.
+    idsToDelete.unshift(target.id);
+  } else if (target.role === "assistant") {
+    // Regenerate: keep the target user message, drop a regenerated assistant
+    // message together with everything after it.
+    idsToDelete.unshift(target.id);
   }
 
-  // regenerate: keep the target user message; delete everything after it
-  await db
-    .delete(message)
-    .where(and(eq(message.chatId, chatId), gt(message.createdAt, target.createdAt)));
+  if (!idsToDelete.length) return;
 
-  // If regenerating an assistant message, delete that assistant message too.
-  if (target.role === "assistant") {
-    await db.delete(message).where(and(eq(message.id, target.id), eq(message.chatId, chatId)));
-  }
+  await db.delete(message).where(and(eq(message.chatId, chatId), inArray(message.id, idsToDelete)));
 }
 
 export async function saveUserMessage(chatId: string, userMessage: UIMessage) {

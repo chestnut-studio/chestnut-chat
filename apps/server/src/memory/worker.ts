@@ -15,6 +15,7 @@ import type { ChatUIMessage } from "../ai/chat-types";
 import { loadOwnedChat } from "./context";
 import { extractAndPersistMemories } from "./extract";
 import { indexProjectFile } from "./index-file";
+import { enqueueMemoryJob } from "./queue";
 import { summarizeChatIfNeeded } from "./summarize";
 
 const POLL_INTERVAL_MS = 2_000;
@@ -70,8 +71,6 @@ async function loadMessage(messageId: string) {
 async function processChatReindex(job: typeof memoryJob.$inferSelect) {
   if (!job.chatId) throw new Error("chat_reindex missing chatId");
 
-  await db.delete(memoryItem).where(eq(memoryItem.sourceChatId, job.chatId));
-
   const owned = await loadOwnedChat(job.chatId, job.userId);
   if (!owned) return;
 
@@ -80,31 +79,42 @@ async function processChatReindex(job: typeof memoryJob.$inferSelect) {
     memoryMode: owned.project?.memoryMode ?? null,
   });
 
-  // Re-extract from existing turns in controlled batches via extract jobs.
   const rows = await db
     .select({ id: message.id, role: message.role })
     .from(message)
     .where(eq(message.chatId, job.chatId))
     .orderBy(asc(message.createdAt));
 
+  // Reset prior extraction jobs for this chat, then re-enqueue with the shared
+  // "extract" dedupe key so they dedupe against the normal extraction path.
+  await db
+    .delete(memoryJob)
+    .where(and(eq(memoryJob.chatId, job.chatId), eq(memoryJob.type, "extract")));
+
+  let enqueued = 0;
   for (let i = 0; i < rows.length - 1; i += 1) {
     const user = rows[i];
     const assistant = rows[i + 1];
     if (user?.role !== "user" || assistant?.role !== "assistant") continue;
 
-    await db.insert(memoryJob).values({
+    const result = await enqueueMemoryJob({
       userId: job.userId,
       type: "extract",
-      status: "pending",
       chatId: job.chatId,
       projectId: namespace.projectId,
-      dedupeKey: `reindex_extract:${job.chatId}:${assistant.id}`,
-      payload: JSON.stringify({
+      dedupeParts: ["extract", job.chatId, assistant.id],
+      payload: {
         userMessageId: user.id,
         assistantMessageId: assistant.id,
-      }),
+      },
     });
+    if (result.enqueued) enqueued += 1;
   }
+
+  // Delete memories only after the extraction jobs are queued, so a crash in
+  // between cannot leave the chat permanently unindexed.
+  await db.delete(memoryItem).where(eq(memoryItem.sourceChatId, job.chatId));
+  console.info("chat_reindex_jobs_enqueued", { chatId: job.chatId, enqueued });
 }
 
 async function processJob(job: typeof memoryJob.$inferSelect) {

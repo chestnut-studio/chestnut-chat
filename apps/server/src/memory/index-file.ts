@@ -18,10 +18,25 @@ export async function indexProjectFile(fileId: string) {
     return { indexed: false, skipped: "empty_text" as const };
   }
 
-  await db.delete(projectFileChunk).where(eq(projectFileChunk.fileId, fileId));
-
   const chunks = chunkDocument(text);
-  const embeddings = await embedTexts(chunks);
+
+  // Embed before touching the existing chunks: a persistent embedding failure
+  // must leave the previous index intact and surface as a failed file instead
+  // of silently dropping the chunks.
+  let embeddings: number[][] | null = null;
+  try {
+    embeddings = await embedTexts(chunks);
+  } catch (error) {
+    const message = error instanceof Error ? error.message.slice(0, 200) : String(error);
+    console.error("memory_file_index_embedding_failed", { fileId, error: message });
+    await db
+      .update(projectFile)
+      .set({ status: "failed", error: `Embedding failed: ${message}`, updatedAt: new Date() })
+      .where(eq(projectFile.id, fileId));
+    return { indexed: false, skipped: "embedding_failed" as const };
+  }
+
+  await db.delete(projectFileChunk).where(eq(projectFileChunk.fileId, fileId));
 
   if (chunks.length) {
     await db.insert(projectFileChunk).values(

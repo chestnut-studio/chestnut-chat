@@ -336,11 +336,16 @@
     "signOutFailed": "Sign out failed",
     "accountDeleted": "Account deleted",
     "deleteAccountVerificationSent": "Check your email to finish deleting your account",
-    "deleteAccountFailed": "Failed to delete account"
+    "deleteAccountFailed": "Failed to delete account",
+    "unexpectedError": "An unexpected error occurred.",
+    "copyFailed": "Copy failed"
   },
   "confirm": {
     "deleteTitle": "Delete chat",
     "deleteDescription": "This permanently deletes the chat and its messages.",
     "renameTitle": "Rename chat"
+  },
+  "nav": {
+    "home": "Home"
   }
 }

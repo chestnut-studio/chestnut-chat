@@ -1,6 +1,6 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createDeepSeek } from "@ai-sdk/deepseek";
-import { decryptApiKey } from "@chestnut-chat/api/providers/encryption";
+import { decryptApiKeyForRequest } from "@chestnut-chat/api/providers/encryption";
 import { modelSupportsVision } from "@chestnut-chat/api/providers/model-capabilities";
 import {
   getBuiltinProviderDef,
@@ -110,7 +110,7 @@ async function configuredProviderModel(
       `Spark model "${target.modelId}" is incompatible with ${normalizedBaseUrl}. Choose: ${availableModelIds}.`,
     );
   }
-  const apiKey = normalizeProviderApiKey(decryptApiKey(row.apiKeyEncrypted));
+  const apiKey = normalizeProviderApiKey(decryptApiKeyForRequest(row.apiKeyEncrypted));
   const declaredVision = row.models.find((model) => model.id === target.modelId)?.supportsVision;
   const supportsVision = modelSupportsVision(row.providerId, target.modelId, declaredVision);
 

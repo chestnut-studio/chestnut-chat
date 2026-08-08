@@ -27,6 +27,7 @@ function isUnauthorizedError(error: unknown) {
 
 export default defineNuxtPlugin((nuxt) => {
   const vueQueryState = useState<DehydratedState | null>("vue-query");
+  const { t } = useI18n();
 
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -40,8 +41,8 @@ export default defineNuxtPlugin((nuxt) => {
 
         console.error(error);
         if (import.meta.client) {
-          toast.error("Error", {
-            description: error?.message || "An unexpected error occurred.",
+          toast.error(t("toast.unexpectedError"), {
+            description: error?.message || t("toast.unexpectedError"),
           });
         }
       },

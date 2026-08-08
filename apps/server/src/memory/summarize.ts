@@ -21,13 +21,15 @@ export async function summarizeChatIfNeeded(input: { chatId: string; userId: str
   const model = getMemoryChatModel();
   if (!model) return { summarized: false, skipped: "memory_chat_unconfigured" as const };
 
-  const rows = await db
-    .select()
+  // Locate the unsummarized range with a cheap id-only query first; message
+  // bodies (potentially multi-MB JSONB) are loaded only for that range.
+  const allIds = await db
+    .select({ id: message.id })
     .from(message)
     .where(eq(message.chatId, input.chatId))
     .orderBy(asc(message.createdAt));
 
-  if (rows.length <= RECENT_TURN_KEEP) {
+  if (allIds.length <= RECENT_TURN_KEEP) {
     return { summarized: false, skipped: "too_short" as const };
   }
 
@@ -38,14 +40,25 @@ export async function summarizeChatIfNeeded(input: { chatId: string; userId: str
     .limit(1);
 
   const lastSummarizedIndex = existing?.lastMessageId
-    ? rows.findIndex((row) => row.id === existing.lastMessageId)
+    ? allIds.findIndex((row) => row.id === existing.lastMessageId)
     : -1;
 
-  const unsummarized = rows.slice(
-    lastSummarizedIndex + 1,
-    Math.max(0, rows.length - RECENT_TURN_KEEP),
-  );
-  const unsummarizedText = unsummarized
+  const unsummarizedStart = lastSummarizedIndex + 1;
+  const unsummarizedEnd = Math.max(0, allIds.length - RECENT_TURN_KEEP);
+  const unsummarizedCount = unsummarizedEnd - unsummarizedStart;
+  if (unsummarizedCount <= 0) {
+    return { summarized: false, skipped: "under_threshold" as const };
+  }
+
+  const rows = await db
+    .select()
+    .from(message)
+    .where(eq(message.chatId, input.chatId))
+    .orderBy(asc(message.createdAt))
+    .offset(unsummarizedStart)
+    .limit(unsummarizedCount);
+
+  const unsummarizedText = rows
     .map(
       (row) =>
         `${row.role}: ${messageText({ id: row.id, role: row.role, parts: partsToUi(row.parts) })}`,
@@ -69,7 +82,7 @@ export async function summarizeChatIfNeeded(input: { chatId: string; userId: str
     ].join("\n"),
   });
 
-  const lastMessageId = unsummarized.at(-1)?.id ?? existing?.lastMessageId ?? null;
+  const lastMessageId = rows.at(-1)?.id ?? existing?.lastMessageId ?? null;
   const summary = result.text.trim();
   if (!summary) return { summarized: false, skipped: "empty_summary" as const };
 

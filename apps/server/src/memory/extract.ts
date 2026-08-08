@@ -7,6 +7,7 @@ import { resolveMemoryNamespace } from "@chestnut-chat/api/memory/namespace";
 import { db } from "@chestnut-chat/db";
 import { memoryItem } from "@chestnut-chat/db/schema/memory";
 import { generateObject, type LanguageModel } from "ai";
+import { sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { messageText } from "../ai/utils";
@@ -188,7 +189,21 @@ export async function extractAndPersistMemories(input: {
     embedding: embeddings?.[index] ?? null,
   }));
 
-  await db.insert(memoryItem).values(values);
+  // Upsert per (chat, user message, memory key): re-extraction after
+  // backfill/reindex/regeneration converges instead of duplicating rows.
+  await db
+    .insert(memoryItem)
+    .values(values)
+    .onConflictDoUpdate({
+      target: [memoryItem.sourceChatId, memoryItem.sourceMessageId, memoryItem.memoryKey],
+      set: {
+        memoryType: sql`excluded.memory_type`,
+        content: sql`excluded.content`,
+        importance: sql`excluded.importance`,
+        embedding: sql`excluded.embedding`,
+        updatedAt: sql`now()`,
+      },
+    });
 
   console.info("memory_extract_saved", {
     chatId: input.chatId,

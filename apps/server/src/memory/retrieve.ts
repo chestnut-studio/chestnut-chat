@@ -139,10 +139,27 @@ export async function retrieveMemoriesAndChunks(input: {
     };
   }
 
-  const embedding = await embedText(query);
-  const memorySemantic = embedding
-    ? await semanticMemories(input.userId, namespace.projectId, embedding, memoryLimit * 2)
-    : [];
+  // Semantic paths degrade to empty results (like the lexical paths below) so
+  // an embedding provider outage or dimension mismatch cannot kill the chat.
+  let embedding: number[] | null = null;
+  try {
+    embedding = await embedText(query);
+  } catch (error) {
+    console.error("memory_embedding_failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  let memorySemantic: MemoryHit[] = [];
+  try {
+    memorySemantic = embedding
+      ? await semanticMemories(input.userId, namespace.projectId, embedding, memoryLimit * 2)
+      : [];
+  } catch (error) {
+    console.error("memory_semantic_retrieval_failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
   let memoryLexical: MemoryHit[] = [];
   try {
     memoryLexical = await lexicalMemories(
@@ -165,9 +182,16 @@ export async function retrieveMemoriesAndChunks(input: {
 
   let chunks: RetrievedChunk[] = [];
   if (input.projectId) {
-    const chunkSemantic = embedding
-      ? await semanticChunks(input.projectId, embedding, chunkLimit * 2)
-      : [];
+    let chunkSemantic: ChunkHit[] = [];
+    try {
+      chunkSemantic = embedding
+        ? await semanticChunks(input.projectId, embedding, chunkLimit * 2)
+        : [];
+    } catch (error) {
+      console.error("memory_chunk_semantic_retrieval_failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
     let chunkLexical: ChunkHit[] = [];
     try {
       chunkLexical = await lexicalChunks(input.projectId, query, chunkLimit * 2);

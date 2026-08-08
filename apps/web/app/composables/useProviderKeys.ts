@@ -103,8 +103,14 @@ function toStorage(items: readonly ProviderListItem[] | undefined): ProvidersSto
 
 export function useProviderKeys() {
   const { $orpc } = useNuxtApp();
+  const authSession = useAuthSession();
   const queryClient = useQueryClient();
-  const list = useQuery($orpc.providers.list.queryOptions());
+  const list = useQuery(
+    computed(() => ({
+      ...$orpc.providers.list.queryOptions(),
+      enabled: authSession.isAuthenticated,
+    })),
+  );
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: $orpc.providers.list.queryKey() });
 
@@ -196,7 +202,9 @@ export function useProviderKeys() {
 
   return {
     storage,
-    isLoading: list.isPending,
+    isLoading: computed(
+      () => !authSession.initialized || (authSession.isAuthenticated && list.isPending.value),
+    ),
     isSaving: computed(
       () => create.isPending.value || update.isPending.value || remove.isPending.value,
     ),
