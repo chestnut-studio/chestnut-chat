@@ -100,10 +100,18 @@ export function createAuth() {
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
     advanced: {
-      crossSubDomainCookies: {
-        enabled: true,
-        domain: "bobbylin.top",
-      },
+      // Cross-subdomain cookies only make sense when the app and API live on
+      // subdomains of bobbylin.top (production). On localhost the browser
+      // rejects Domain=bobbylin.top cookies, which breaks the OAuth state
+      // cookie and makes social login fail with a state mismatch.
+      ...(env.NODE_ENV === "production"
+        ? {
+            crossSubDomainCookies: {
+              enabled: true,
+              domain: "bobbylin.top",
+            },
+          }
+        : {}),
       defaultCookieAttributes: {
         sameSite: "lax",
         secure: true,
