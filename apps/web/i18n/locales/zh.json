@@ -307,6 +307,10 @@
     "usageReasoning": "推理",
     "send": "发送",
     "editMessage": "编辑消息",
+    "toc": {
+      "label": "对话目录",
+      "jumpTo": "跳转到：「{text}」"
+    },
     "emptyTitle": "给 Chestnut Chat 发送消息",
     "suggestions": {
       "label": "试试这些想法",

@@ -165,6 +165,7 @@ const chatUsage = useChatUsage(renderedMessages);
 const isHistoryLoading = computed(
   () => history.isPending.value && renderedMessages.value.length === 0,
 );
+const scrollContainer = useTemplateRef<HTMLElement>("scrollContainer");
 
 const lastOptions = ref(
   initialPromptOptions ?? {
@@ -438,19 +439,28 @@ function confirmEdit() {
     </template>
 
     <template #body>
-      <div
-        class="group relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6"
-      >
-        <ChatHistoryLoading v-if="isHistoryLoading" />
-        <ChatMessages
-          v-else
-          :key="chatId"
-          :abort-key="abortRenderKey"
+      <div class="relative flex min-h-0 flex-1 overflow-hidden">
+        <div
+          ref="scrollContainer"
+          class="group relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6 xl:pe-14"
+        >
+          <ChatHistoryLoading v-if="isHistoryLoading" />
+          <ChatMessages
+            v-else
+            :key="chatId"
+            :abort-key="abortRenderKey"
+            :messages="renderedMessages"
+            :status="status"
+            @rendering-change="isRenderingResponse = $event"
+            @regenerate="onRegenerate"
+            @edit="openEdit"
+          />
+        </div>
+
+        <ChatToc
+          v-if="!isHistoryLoading"
           :messages="renderedMessages"
-          :status="status"
-          @rendering-change="isRenderingResponse = $event"
-          @regenerate="onRegenerate"
-          @edit="openEdit"
+          :scroll-container="scrollContainer"
         />
       </div>
     </template>
