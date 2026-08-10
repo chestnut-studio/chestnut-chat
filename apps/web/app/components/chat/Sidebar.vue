@@ -94,8 +94,12 @@ const forceProjectsOpen = computed(() => {
   return forceOpenProjectIds.value.size > 0;
 });
 
-const chatsExpanded = computed(() => forceChatsOpen.value || state.value.chatsOpen);
-const projectsExpanded = computed(() => forceProjectsOpen.value || state.value.projectsOpen);
+const chatsExpanded = computed(
+  () => forceChatsOpen.value || (standaloneGroups.value.length > 0 && state.value.chatsOpen),
+);
+const projectsExpanded = computed(
+  () => forceProjectsOpen.value || (filteredProjects.value.length > 0 && state.value.projectsOpen),
+);
 const activeId = computed(
   () => (route.params.chatId as string | undefined) ?? (route.params.id as string | undefined),
 );
