@@ -479,7 +479,7 @@ function confirmEdit() {
     </template>
 
     <template #body>
-      <div class="relative flex min-h-0 flex-1 overflow-hidden">
+      <div class="group relative flex min-h-0 flex-1 overflow-hidden">
         <div
           ref="scrollContainer"
           class="group relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6 xl:pe-14"
@@ -491,9 +491,11 @@ function confirmEdit() {
             :abort-key="abortRenderKey"
             :messages="renderedMessages"
             :status="status"
+            :forking-message-id="forkingMessageId"
             @rendering-change="isRenderingResponse = $event"
             @regenerate="onRegenerate"
             @edit="openEdit"
+            @fork="onFork"
           />
         </div>
 
