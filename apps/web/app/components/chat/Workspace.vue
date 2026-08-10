@@ -503,6 +503,12 @@ function confirmEdit() {
           v-if="!isHistoryLoading"
           :messages="renderedMessages"
           :scroll-container="scrollContainer"
+          :status="status"
+          :forking-message-id="forkingMessageId"
+          @rendering-change="isRenderingResponse = $event"
+          @regenerate="onRegenerate"
+          @edit="openEdit"
+          @fork="onFork"
         />
       </div>
     </template>
