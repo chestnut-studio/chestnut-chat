@@ -1,5 +1,5 @@
 import { db } from "@chestnut-chat/db";
-import { chat, message } from "@chestnut-chat/db/schema/chat";
+import { chat, message, type ChatLastOptions } from "@chestnut-chat/db/schema/chat";
 import { memoryItem, memoryJob } from "@chestnut-chat/db/schema/memory";
 import { project } from "@chestnut-chat/db/schema/project";
 import { ORPCError } from "@orpc/server";
@@ -204,6 +204,76 @@ export const chatRouter = {
 
       assertOwnedRow(row);
       return { id: input.id };
+    }),
+
+  fork: protectedProcedure
+    .input(
+      z.object({
+        chatId: z.string().min(1),
+        messageId: z.string().min(1),
+        options: z
+          .object({
+            model: z.string().min(1),
+            reasoning: z.boolean(),
+            reasoningEffort: z.enum(["low", "high", "max"]),
+            webSearch: z.boolean(),
+          })
+          .optional(),
+      }),
+    )
+    .handler(async ({ input, context }) => {
+      const userId = context.session.user.id;
+
+      const [sourceChat] = await db
+        .select()
+        .from(chat)
+        .where(and(eq(chat.id, input.chatId), eq(chat.userId, userId)))
+        .limit(1);
+      const source = assertOwnedRow(sourceChat);
+
+      const rows = await db
+        .select()
+        .from(message)
+        .where(eq(message.chatId, input.chatId))
+        .orderBy(asc(message.createdAt));
+
+      const targetIndex = rows.findIndex((row) => row.id === input.messageId);
+      if (targetIndex === -1) {
+        throw new ORPCError("NOT_FOUND", { message: "Message not found" });
+      }
+
+      const forkRows = rows.slice(0, targetIndex + 1);
+      if (!forkRows.length) {
+        throw new ORPCError("BAD_REQUEST", { message: "No messages to fork" });
+      }
+
+      const lastOptions: ChatLastOptions | null = input.options ?? source.lastOptions ?? null;
+
+      const [newChat] = await db
+        .insert(chat)
+        .values({
+          userId,
+          projectId: source.projectId,
+          title: source.title,
+          lastOptions,
+        })
+        .returning();
+      const created = assertReturnedRow(newChat);
+
+      await db.insert(message).values(
+        forkRows.map((forkRow) => ({
+          id: crypto.randomUUID(),
+          chatId: created.id,
+          role: forkRow.role,
+          parts: forkRow.parts,
+          metadata: forkRow.metadata,
+          model: forkRow.model,
+          createdAt: forkRow.createdAt,
+        })),
+      );
+
+      await enqueueChatReindex(userId, created.id, source.projectId);
+      return created;
     }),
 
   messages: protectedProcedure

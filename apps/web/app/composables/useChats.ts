@@ -30,6 +30,10 @@ export function useChats() {
     ...$orpc.chat.create.mutationOptions(),
     onSuccess: invalidate,
   });
+  const fork = useMutation({
+    ...$orpc.chat.fork.mutationOptions(),
+    onSuccess: invalidate,
+  });
   const rename = useMutation({
     ...$orpc.chat.rename.mutationOptions(),
     onSuccess: invalidate,
@@ -47,5 +51,5 @@ export function useChats() {
     onSuccess: invalidate,
   });
 
-  return { list, create, rename, setPinned, setArchived, remove, invalidate, applyTitle };
+  return { list, create, fork, rename, setPinned, setArchived, remove, invalidate, applyTitle };
 }

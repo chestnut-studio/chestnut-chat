@@ -26,7 +26,7 @@ const { $orpc } = useNuxtApp();
 const queryClient = useQueryClient();
 const config = useRuntimeConfig();
 const { t } = useI18n();
-const { list: chats, invalidate: invalidateChats, applyTitle } = useChats();
+const { list: chats, invalidate: invalidateChats, applyTitle, fork } = useChats();
 const chatId = computed(() => props.chatId);
 const pendingChatPrompt = usePendingChatPrompt();
 const chatMeta = useQuery(
@@ -405,6 +405,46 @@ function openEdit(payload: { id: string; text: string }) {
   editOpen.value = true;
 }
 
+const forkingMessageId = ref<string | null>(null);
+
+async function ensureMessagePersisted(messageId: string) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const fresh = await queryClient.fetchQuery(
+      $orpc.chat.messages.queryOptions({ input: { chatId: chatId.value } }),
+    );
+    if (fresh.some((row) => row.id === messageId)) return;
+
+    // A just-finished stream persists its message asynchronously; give it a
+    // moment before retrying so a fork never races the DB write.
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+}
+
+async function onFork(messageId: string) {
+  if (forkingMessageId.value) return;
+  if (isRequestActive.value) return;
+
+  forkingMessageId.value = messageId;
+  try {
+    await ensureMessagePersisted(messageId);
+    const created = await fork.mutateAsync({
+      chatId: chatId.value,
+      messageId,
+      options: { ...lastOptions.value },
+    });
+    if (!created) return;
+    toast.success(t("toast.chatForked"));
+    await navigateTo(chatPath(created));
+  } catch (error) {
+    console.error(error);
+    toast.error(t("toast.chatForkFailed"), {
+      description: errorDescription(error),
+    });
+  } finally {
+    forkingMessageId.value = null;
+  }
+}
+
 function confirmEdit() {
   if (!editTarget.value || !editText.value.trim()) return;
 
@@ -448,9 +488,11 @@ function confirmEdit() {
           :abort-key="abortRenderKey"
           :messages="renderedMessages"
           :status="status"
+          :forking-message-id="forkingMessageId"
           @rendering-change="isRenderingResponse = $event"
           @regenerate="onRegenerate"
           @edit="openEdit"
+          @fork="onFork"
         />
       </div>
     </template>
