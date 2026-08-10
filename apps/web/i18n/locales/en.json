@@ -84,7 +84,8 @@
     "save": "Save",
     "copy": "Copy",
     "regenerate": "Regenerate",
-    "edit": "Edit"
+    "edit": "Edit",
+    "fork": "Fork chat"
   },
   "settings": {
     "title": "Settings",
@@ -343,7 +344,9 @@
     "deleteAccountVerificationSent": "Check your email to finish deleting your account",
     "deleteAccountFailed": "Failed to delete account",
     "unexpectedError": "An unexpected error occurred.",
-    "copyFailed": "Copy failed"
+    "copyFailed": "Copy failed",
+    "chatForked": "Fork created in a new chat",
+    "chatForkFailed": "Failed to fork chat"
   },
   "confirm": {
     "deleteTitle": "Delete chat",

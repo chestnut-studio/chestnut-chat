@@ -84,7 +84,8 @@
     "save": "保存",
     "copy": "复制",
     "regenerate": "重新生成",
-    "edit": "编辑"
+    "edit": "编辑",
+    "fork": "创建分支"
   },
   "settings": {
     "title": "设置",
@@ -343,7 +344,9 @@
     "deleteAccountVerificationSent": "请检查邮箱以完成账户删除",
     "deleteAccountFailed": "删除账户失败",
     "unexpectedError": "发生意外错误。",
-    "copyFailed": "复制失败"
+    "copyFailed": "复制失败",
+    "chatForked": "已在新聊天中创建分支对话",
+    "chatForkFailed": "创建分支对话失败"
   },
   "confirm": {
     "deleteTitle": "删除对话",
