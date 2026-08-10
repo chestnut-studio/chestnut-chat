@@ -640,7 +640,13 @@ onBeforeUnmount(() => {
                 :live="isLivePart(message, part, index)"
                 :sources="view.sources"
               />
-              <p v-else-if="message.role === 'user'" class="whitespace-pre-wrap">{{ part.text }}</p>
+              <p
+                v-else-if="message.role === 'user'"
+                class="whitespace-pre-wrap"
+                :data-chat-toc="message.id"
+              >
+                {{ part.text }}
+              </p>
             </template>
           </template>
         </template>

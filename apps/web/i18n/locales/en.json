@@ -308,6 +308,10 @@
     "usageReasoning": "Reasoning",
     "send": "Send",
     "editMessage": "Edit message",
+    "toc": {
+      "label": "Conversations",
+      "jumpTo": "Jump to: {text}"
+    },
     "emptyTitle": "Chat with Chestnut Chat",
     "suggestions": {
       "label": "Try a suggestion",
