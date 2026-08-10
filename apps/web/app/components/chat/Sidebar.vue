@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import type { CommandPaletteGroup } from "@nuxt/ui";
 
 import type { ProjectRow } from "~/composables/useProjects";
 import type { ChatRow } from "~/utils/group-chats";
@@ -9,16 +10,8 @@ import { chatPath, projectPath } from "~/utils/chat-path";
 const { t } = useI18n();
 const { list, rename, setPinned, setArchived, remove, create: createChat } = useChats();
 const { list: projects, remove: removeProject } = useProjects();
-const {
-  state,
-  toggleChats,
-  setChatsOpen,
-  toggleProjects,
-  setProjectsOpen,
-  isProjectOpen,
-  toggleProject,
-  setProjectOpen,
-} = useSidebarExpansion();
+const { state, toggleChats, toggleProjects, isProjectOpen, toggleProject, setProjectOpen } =
+  useSidebarExpansion();
 const authSession = useAuthSession();
 const { show: showLogin } = useLoginModal();
 const route = useRoute();
@@ -29,7 +22,7 @@ const { mutateAsync: moveChat, isPending: isMoving } = useMutation(
 );
 
 const collapsed = ref(false);
-const search = ref("");
+const searchOpen = ref(false);
 const renameOpen = ref(false);
 const renameTarget = ref<{ id: string; title: string } | null>(null);
 const renameValue = ref("");
@@ -43,59 +36,57 @@ const moveOpen = ref(false);
 const moveTarget = ref<ChatRow | null>(null);
 const moveProjectId = ref<string | null>(null);
 
-const query = computed(() => search.value.trim().toLowerCase());
+const chats = computed(() =>
+  ((list.data.value ?? []) as ChatRow[]).filter((chat) => !chat.archived),
+);
+const projectRows = computed(() => (projects.data.value ?? []) as ProjectRow[]);
 
-const filteredChats = computed(() => {
-  const all = (list.data.value ?? []) as ChatRow[];
-  const q = query.value;
-  if (!q) return all.filter((chat) => !chat.archived);
-  return all.filter((chat) => !chat.archived && chat.title.toLowerCase().includes(q));
-});
-
-const filteredProjects = computed(() => {
-  const all = (projects.data.value ?? []) as ProjectRow[];
-  const q = query.value;
-  if (!q) return all;
-
-  const matchingChatProjectIds = new Set(
-    filteredChats.value.map((chat) => chat.projectId).filter(Boolean),
-  );
-
-  return all.filter(
-    (project) => project.name.toLowerCase().includes(q) || matchingChatProjectIds.has(project.id),
-  );
-});
-
-const partitioned = computed(() => partitionChatsByProject(filteredChats.value));
+const partitioned = computed(() => partitionChatsByProject(chats.value));
 const standaloneGroups = computed(() => groupChats(partitioned.value.standalone));
 
-const forceOpenProjectIds = computed(() => {
-  const ids = new Set<string>();
-  if (!query.value) return ids;
-  for (const project of filteredProjects.value) {
-    const nameMatch = project.name.toLowerCase().includes(query.value);
-    const hasMatchingChat = (partitioned.value.byProject[project.id] ?? []).some((chat) =>
-      chat.title.toLowerCase().includes(query.value),
-    );
-    if (nameMatch || hasMatchingChat) ids.add(project.id);
-  }
-  return ids;
+const chatsExpanded = computed(() => state.value.chatsOpen);
+const projectsExpanded = computed(() => state.value.projectsOpen);
+const forceOpenProjectIds = new Set<string>();
+
+const projectNameById = computed(() => {
+  const map = new Map<string, string>();
+  for (const project of projectRows.value) map.set(project.id, project.name);
+  return map;
 });
 
-const forceChatsOpen = computed(() => {
-  if (!query.value) return false;
-  return partitioned.value.standalone.some((chat) =>
-    chat.title.toLowerCase().includes(query.value),
-  );
-});
+const paletteGroups = computed<CommandPaletteGroup[]>(() => [
+  {
+    id: "chats",
+    label: t("sidebar.chats"),
+    items: chats.value.map((chat) => ({
+      label: chat.title,
+      icon: "i-lucide-message-circle",
+      suffix: chat.projectId ? projectNameById.value.get(chat.projectId) : undefined,
+      onSelect: () => {
+        searchOpen.value = false;
+        void navigateTo(chatPath(chat));
+      },
+    })),
+  },
+  {
+    id: "projects",
+    label: t("project.section"),
+    items: projectRows.value.map((project) => ({
+      label: project.name,
+      icon: project.iconKind === "lucide" ? `i-lucide-${project.iconValue}` : "i-lucide-folder",
+      onSelect: () => {
+        searchOpen.value = false;
+        void navigateTo(projectPath(project.id));
+      },
+    })),
+  },
+]);
 
-const forceProjectsOpen = computed(() => {
-  if (!query.value) return false;
-  return forceOpenProjectIds.value.size > 0;
+defineShortcuts({
+  meta_k: () => {
+    searchOpen.value = true;
+  },
 });
-
-const chatsExpanded = computed(() => forceChatsOpen.value || state.value.chatsOpen);
-const projectsExpanded = computed(() => forceProjectsOpen.value || state.value.projectsOpen);
 const activeId = computed(
   () => (route.params.chatId as string | undefined) ?? (route.params.id as string | undefined),
 );
@@ -104,18 +95,6 @@ const activeProjectId = computed(() => {
   // Only highlight the project row on the project home page, not on nested chats.
   if (route.params.chatId) return undefined;
   return routeProjectId.value;
-});
-
-watch(forceChatsOpen, (open) => {
-  if (open) setChatsOpen(true);
-});
-
-watch(forceProjectsOpen, (open) => {
-  if (open) setProjectsOpen(true);
-});
-
-watch(forceOpenProjectIds, (ids) => {
-  for (const id of ids) setProjectOpen(id, true);
 });
 
 watch(
@@ -303,17 +282,21 @@ const moveItems = computed(() => [
           @click="onNewChat"
         />
 
-        <UInput
+        <UButton
           v-if="!isCollapsed"
-          v-model="search"
           icon="i-lucide-search"
-          :placeholder="$t('sidebar.search')"
+          :label="$t('sidebar.search')"
+          color="neutral"
+          variant="outline"
           size="sm"
+          block
+          class="justify-start"
+          @click="searchOpen = true"
         />
 
         <div v-if="!isCollapsed" class="-me-4 min-h-0 flex-1 space-y-4 overflow-y-auto pe-1">
           <ProjectSidebarSection
-            :projects="filteredProjects"
+            :projects="projectRows"
             :chats-by-project="partitioned.byProject"
             :active-chat-id="activeId"
             :active-project-id="activeProjectId"
@@ -381,6 +364,18 @@ const moveItems = computed(() => [
       <ChatSidebarFooter :collapsed="isCollapsed" />
     </template>
   </UDashboardSidebar>
+
+  <UModal v-model:open="searchOpen" :ui="{ content: 'sm:max-w-lg' }">
+    <template #content>
+      <UCommandPalette
+        close
+        :groups="paletteGroups"
+        :placeholder="$t('sidebar.search')"
+        :ui="{ input: 'h-12 text-base' }"
+        @update:open="searchOpen = $event"
+      />
+    </template>
+  </UModal>
 
   <ProjectFormModal
     v-model:open="projectFormOpen"
