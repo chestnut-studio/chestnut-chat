@@ -13,12 +13,7 @@ import {
   uploadAttachments,
   validateAttachmentSelection,
 } from "~/utils/attachments";
-import {
-  DEFAULT_MODEL,
-  buildProviderModelOptions,
-  decodeChatModelValue,
-  resolveContextWindow,
-} from "~/utils/models";
+import { DEFAULT_MODEL, resolveContextWindow } from "~/utils/models";
 import type { ChatMessageUsage } from "~/types/chat";
 
 type ChatBoxPayload = {
@@ -63,46 +58,13 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const isUploading = ref(false);
 const { t } = useI18n();
 const config = useRuntimeConfig();
-const { storage: providerStorage, isLoading: areProvidersLoading } = useProviderKeys();
+const { modelOptions, findModelOption, isLoading: areProvidersLoading } = useModelOptions();
 const isBusy = computed(
   () => props.status === "submitted" || props.status === "streaming" || isUploading.value,
 );
 const promptStatus = computed<ChatStatus | undefined>(() =>
   isUploading.value ? "submitted" : props.status,
 );
-
-const configuredProviderModelSources = computed(() => [
-  ...BUILTIN_PROVIDERS.map((def) => {
-    const entry = providerStorage.value.builtin[def.id];
-    return {
-      kind: "builtin" as const,
-      id: def.id,
-      name: entry?.name?.trim() || def.name,
-      iconProvider: def.id,
-      enabled: !!entry?.enabled,
-      models: entry?.models ?? [],
-    };
-  }),
-  ...providerStorage.value.custom.map((provider) => ({
-    kind: "custom" as const,
-    id: provider.id,
-    name: provider.name,
-    iconProvider: "custom" as const,
-    enabled: provider.enabled,
-    models: provider.models ?? [],
-  })),
-]);
-
-const modelOptions = computed(() =>
-  buildProviderModelOptions(configuredProviderModelSources.value),
-);
-
-function findModelOption(value: string) {
-  const exactOption = modelOptions.value.find((item) => item.value === value);
-  if (exactOption) return exactOption;
-
-  return modelOptions.value.find((item) => decodeChatModelValue(item.value)?.modelId === value);
-}
 
 const selectedModelSupportsReasoning = computed(
   () => findModelOption(model.value)?.reasoning ?? false,

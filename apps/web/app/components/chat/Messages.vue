@@ -17,11 +17,13 @@ const props = defineProps<{
   abortKey?: number;
   messages: ChatUIMessage[];
   status?: ChatStatus;
+  forkingMessageId?: string | null;
 }>();
 
 const emit = defineEmits<{
   regenerate: [string];
   edit: [{ id: string; text: string }];
+  fork: [string];
   renderingChange: [boolean];
 }>();
 
@@ -153,10 +155,17 @@ async function copy(message: ChatUIMessage) {
   }
 }
 
-function actionsFor(message: ChatUIMessage) {
+type MessageAction = {
+  label: string;
+  icon: string;
+  disabled?: boolean;
+  onClick: () => void;
+};
+
+function actionsFor(message: ChatUIMessage): MessageAction[] {
   if (message.role === "assistant" && isRenderingResponse.value) return [];
 
-  const actions = [
+  const actions: MessageAction[] = [
     {
       label: t("actions.copy"),
       icon: "i-lucide-copy",
@@ -168,6 +177,15 @@ function actionsFor(message: ChatUIMessage) {
       onClick: () => emit("regenerate", message.id),
     },
   ];
+
+  if (message.role === "assistant") {
+    actions.splice(1, 0, {
+      label: t("actions.fork"),
+      icon: "i-lucide-git-fork",
+      disabled: props.forkingMessageId === message.id,
+      onClick: () => emit("fork", message.id),
+    });
+  }
 
   if (message.role === "user") {
     actions.push({
@@ -622,7 +640,13 @@ onBeforeUnmount(() => {
                 :live="isLivePart(message, part, index)"
                 :sources="view.sources"
               />
-              <p v-else-if="message.role === 'user'" class="whitespace-pre-wrap">{{ part.text }}</p>
+              <p
+                v-else-if="message.role === 'user'"
+                class="whitespace-pre-wrap"
+                :data-chat-toc="message.id"
+              >
+                {{ part.text }}
+              </p>
             </template>
           </template>
         </template>
@@ -635,6 +659,8 @@ onBeforeUnmount(() => {
             variant="ghost"
             size="sm"
             :icon="action.icon"
+            :disabled="action.disabled"
+            :loading="action.disabled"
             :aria-label="action.label"
             @click="action.onClick"
           />

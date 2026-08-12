@@ -84,7 +84,8 @@
     "save": "Save",
     "copy": "Copy",
     "regenerate": "Regenerate",
-    "edit": "Edit"
+    "edit": "Edit",
+    "fork": "Fork chat"
   },
   "settings": {
     "title": "Settings",
@@ -263,6 +264,7 @@
     "selectedModel": "Selected model",
     "searchModels": "Search models...",
     "noMatchingModels": "No matching models",
+    "modelUsed": "Model used in this chat",
     "reasoning": "Reasoning",
     "reasoningSupported": "Supports reasoning",
     "visionSupported": "Supports vision",
@@ -306,6 +308,10 @@
     "usageReasoning": "Reasoning",
     "send": "Send",
     "editMessage": "Edit message",
+    "toc": {
+      "label": "Conversations",
+      "jumpTo": "Jump to: {text}"
+    },
     "emptyTitle": "Chat with Chestnut Chat",
     "suggestions": {
       "label": "Try a suggestion",
@@ -338,7 +344,9 @@
     "deleteAccountVerificationSent": "Check your email to finish deleting your account",
     "deleteAccountFailed": "Failed to delete account",
     "unexpectedError": "An unexpected error occurred.",
-    "copyFailed": "Copy failed"
+    "copyFailed": "Copy failed",
+    "chatForked": "Fork created in a new chat",
+    "chatForkFailed": "Failed to fork chat"
   },
   "confirm": {
     "deleteTitle": "Delete chat",

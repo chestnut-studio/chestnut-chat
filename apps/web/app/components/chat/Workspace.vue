@@ -26,7 +26,7 @@ const { $orpc } = useNuxtApp();
 const queryClient = useQueryClient();
 const config = useRuntimeConfig();
 const { t } = useI18n();
-const { list: chats, invalidate: invalidateChats, applyTitle } = useChats();
+const { list: chats, invalidate: invalidateChats, applyTitle, fork } = useChats();
 const chatId = computed(() => props.chatId);
 const pendingChatPrompt = usePendingChatPrompt();
 const chatMeta = useQuery(
@@ -66,6 +66,16 @@ watch(
 const history = useQuery(
   computed(() => $orpc.chat.messages.queryOptions({ input: { chatId: chatId.value } })),
 );
+
+// Model shown in the page header: the options of the last send, falling back
+// to the most recent assistant message, then to the default model.
+const headerModel = computed(() => {
+  if (chatMeta.data.value?.lastOptions?.model) return chatMeta.data.value.lastOptions.model;
+  const lastModelRow = [...(history.data.value ?? [])].reverse().find((row) => row.model);
+  return lastModelRow?.model ?? DEFAULT_MODEL;
+});
+const headerReasoning = computed(() => chatMeta.data.value?.lastOptions?.reasoning ?? false);
+const headerWebSearch = computed(() => chatMeta.data.value?.lastOptions?.webSearch ?? false);
 
 const initialPrompt = pendingChatPrompt.peek(chatId.value);
 const initialPromptOptions = initialPrompt
@@ -155,6 +165,7 @@ const chatUsage = useChatUsage(renderedMessages);
 const isHistoryLoading = computed(
   () => history.isPending.value && renderedMessages.value.length === 0,
 );
+const scrollContainer = useTemplateRef<HTMLElement>("scrollContainer");
 
 const lastOptions = ref(
   initialPromptOptions ?? {
@@ -395,6 +406,46 @@ function openEdit(payload: { id: string; text: string }) {
   editOpen.value = true;
 }
 
+const forkingMessageId = ref<string | null>(null);
+
+async function ensureMessagePersisted(messageId: string) {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const fresh = await queryClient.fetchQuery(
+      $orpc.chat.messages.queryOptions({ input: { chatId: chatId.value } }),
+    );
+    if (fresh.some((row) => row.id === messageId)) return;
+
+    // A just-finished stream persists its message asynchronously; give it a
+    // moment before retrying so a fork never races the DB write.
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+}
+
+async function onFork(messageId: string) {
+  if (forkingMessageId.value) return;
+  if (isRequestActive.value) return;
+
+  forkingMessageId.value = messageId;
+  try {
+    await ensureMessagePersisted(messageId);
+    const created = await fork.mutateAsync({
+      chatId: chatId.value,
+      messageId,
+      options: { ...lastOptions.value },
+    });
+    if (!created) return;
+    toast.success(t("toast.chatForked"));
+    await navigateTo(chatPath(created));
+  } catch (error) {
+    console.error(error);
+    toast.error(t("toast.chatForkFailed"), {
+      description: errorDescription(error),
+    });
+  } finally {
+    forkingMessageId.value = null;
+  }
+}
+
 function confirmEdit() {
   if (!editTarget.value || !editText.value.trim()) return;
 
@@ -417,20 +468,47 @@ function confirmEdit() {
     :id="`chat-${chatId}`"
     :ui="{ body: 'min-h-0 gap-0 overflow-hidden p-0 sm:gap-0 sm:p-0' }"
   >
+    <template #header>
+      <ChatHeader
+        :title="chatTitle"
+        :model="headerModel"
+        :reasoning="headerReasoning"
+        :web-search="headerWebSearch"
+        :project="chatProject"
+      />
+    </template>
+
     <template #body>
-      <div
-        class="group relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6"
-      >
-        <ChatHistoryLoading v-if="isHistoryLoading" />
-        <ChatMessages
-          v-else
-          :key="chatId"
-          :abort-key="abortRenderKey"
+      <div class="group relative flex min-h-0 flex-1 overflow-hidden">
+        <div
+          ref="scrollContainer"
+          class="group relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 sm:px-6 sm:py-6 xl:pe-14"
+        >
+          <ChatHistoryLoading v-if="isHistoryLoading" />
+          <ChatMessages
+            v-else
+            :key="chatId"
+            :abort-key="abortRenderKey"
+            :messages="renderedMessages"
+            :status="status"
+            :forking-message-id="forkingMessageId"
+            @rendering-change="isRenderingResponse = $event"
+            @regenerate="onRegenerate"
+            @edit="openEdit"
+            @fork="onFork"
+          />
+        </div>
+
+        <ChatToc
+          v-if="!isHistoryLoading"
           :messages="renderedMessages"
+          :scroll-container="scrollContainer"
           :status="status"
+          :forking-message-id="forkingMessageId"
           @rendering-change="isRenderingResponse = $event"
           @regenerate="onRegenerate"
           @edit="openEdit"
+          @fork="onFork"
         />
       </div>
     </template>
