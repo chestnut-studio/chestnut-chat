@@ -9,7 +9,7 @@ import { resolveMemoryNamespace } from "@chestnut-chat/api/memory/namespace";
 import { db } from "@chestnut-chat/db";
 import { message } from "@chestnut-chat/db/schema/chat";
 import { memoryItem, memoryJob } from "@chestnut-chat/db/schema/memory";
-import { and, asc, eq, isNull, lt, or, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, lt, or } from "drizzle-orm";
 
 import type { ChatUIMessage } from "../ai/chat-types";
 import { loadOwnedChat } from "./context";
@@ -18,9 +18,21 @@ import { indexProjectFile } from "./index-file";
 import { enqueueMemoryJob } from "./queue";
 import { summarizeChatIfNeeded } from "./summarize";
 
-const POLL_INTERVAL_MS = 2_000;
-let timer: ReturnType<typeof setInterval> | null = null;
+const ACTIVE_POLL_INTERVAL_MS = 2_000;
+const IDLE_RECONCILE_INTERVAL_MS = 60 * 60 * 1_000;
+let timer: ReturnType<typeof setTimeout> | null = null;
+let started = false;
 let running = false;
+let wakeRequested = false;
+
+function scheduleTick(delayMs: number) {
+  if (!started) return;
+  if (timer) clearTimeout(timer);
+  timer = setTimeout(() => {
+    timer = null;
+    void tick();
+  }, delayMs);
+}
 
 async function claimNextJob() {
   const now = new Date();
@@ -172,6 +184,7 @@ async function processJob(job: typeof memoryJob.$inferSelect) {
       latencyMs: Date.now() - started,
       attempts: job.attempts,
     });
+    return null;
   } catch (error) {
     const messageText = error instanceof Error ? error.message : String(error);
     const attempts = job.attempts;
@@ -196,43 +209,50 @@ async function processJob(job: typeof memoryJob.$inferSelect) {
       error: messageText,
       latencyMs: Date.now() - started,
     });
+    return retry ? delay : null;
   }
 }
 
 async function tick() {
-  if (running) return;
+  if (!started || running) return;
   running = true;
+  let nextDelayMs = IDLE_RECONCILE_INTERVAL_MS;
   try {
-    // Reclaim stale leases opportunistically.
-    await db
-      .update(memoryJob)
-      .set({ status: "pending", updatedAt: new Date() })
-      .where(
-        and(
-          eq(memoryJob.status, "running"),
-          lt(memoryJob.leaseUntil, new Date()),
-          sql`${memoryJob.attempts} < ${MAX_JOB_ATTEMPTS}`,
-        ),
-      );
-
     const job = await claimNextJob();
-    if (job) await processJob(job);
+    if (job) {
+      const retryDelayMs = await processJob(job);
+      nextDelayMs = retryDelayMs ?? ACTIVE_POLL_INTERVAL_MS;
+    }
   } finally {
     running = false;
+    const shouldWakeImmediately = wakeRequested;
+    wakeRequested = false;
+    scheduleTick(shouldWakeImmediately ? 0 : nextDelayMs);
   }
 }
 
 export function startMemoryWorker() {
-  if (timer) return;
-  timer = setInterval(() => {
-    void tick();
-  }, POLL_INTERVAL_MS);
-  void tick();
-  console.info("memory_worker_started", { pollIntervalMs: POLL_INTERVAL_MS });
+  if (started) return;
+  started = true;
+  scheduleTick(0);
+  console.info("memory_worker_started", {
+    activePollIntervalMs: ACTIVE_POLL_INTERVAL_MS,
+    idleReconcileIntervalMs: IDLE_RECONCILE_INTERVAL_MS,
+  });
+}
+
+export function wakeMemoryWorker() {
+  if (!started) return;
+  if (running) {
+    wakeRequested = true;
+    return;
+  }
+  scheduleTick(0);
 }
 
 export function stopMemoryWorker() {
-  if (!timer) return;
-  clearInterval(timer);
+  started = false;
+  wakeRequested = false;
+  if (timer) clearTimeout(timer);
   timer = null;
 }
