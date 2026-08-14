@@ -2,6 +2,8 @@ import { buildDedupeKey } from "@chestnut-chat/api/memory/jobs";
 import { db } from "@chestnut-chat/db";
 import { memoryJob } from "@chestnut-chat/db/schema/memory";
 
+import { wakeMemoryWorker } from "./worker";
+
 function isUniqueViolation(error: unknown) {
   return (
     typeof error === "object" && error !== null && (error as { code?: unknown }).code === "23505"
@@ -32,6 +34,7 @@ export async function enqueueMemoryJob(input: {
       dedupeKey,
       payload: input.payload ? JSON.stringify(input.payload) : null,
     });
+    wakeMemoryWorker();
     return { enqueued: true, dedupeKey };
   } catch (error) {
     // Only a unique-key collision is an idempotent dedupe hit; any other
