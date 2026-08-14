@@ -88,12 +88,6 @@ defineShortcuts({
   },
 });
 
-const chatsExpanded = computed(
-  () => forceChatsOpen.value || (standaloneGroups.value.length > 0 && state.value.chatsOpen),
-);
-const projectsExpanded = computed(
-  () => forceProjectsOpen.value || (filteredProjects.value.length > 0 && state.value.projectsOpen),
-);
 const activeId = computed(
   () => (route.params.chatId as string | undefined) ?? (route.params.id as string | undefined),
 );
@@ -298,7 +292,11 @@ const moveItems = computed(() => [
           size="sm"
           block
           class="justify-start"
-          @click="searchOpen = true"
+          @click="
+            () => {
+              searchOpen = true;
+            }
+          "
         />
 
         <div v-if="!isCollapsed" class="-me-4 min-h-0 flex-1 space-y-4 overflow-y-auto pe-1">
