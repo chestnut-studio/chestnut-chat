@@ -8,13 +8,6 @@ import { toast } from "vue-sonner";
 import type { DocumentAttachment } from "@chestnut-chat/api/chat/attachments";
 import type { FileUIPart } from "ai";
 
-import {
-  DEFAULT_MODEL,
-  builtinChatModelValue,
-  decodeChatModelValue,
-  isLegacyDeepSeekModel,
-} from "~/utils/models";
-import { chatPath } from "~/utils/chat-path";
 import type { ChatUIMessage } from "~/types/chat";
 
 const props = defineProps<{
@@ -439,7 +432,7 @@ async function onFork(messageId: string) {
   } catch (error) {
     console.error(error);
     toast.error(t("toast.chatForkFailed"), {
-      description: errorDescription(error),
+      description: errorDescription(error as Error),
     });
   } finally {
     forkingMessageId.value = null;

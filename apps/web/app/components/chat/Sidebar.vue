@@ -2,11 +2,6 @@
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import type { CommandPaletteGroup } from "@nuxt/ui";
 
-import type { ProjectRow } from "~/composables/useProjects";
-import type { ChatRow } from "~/utils/group-chats";
-import { groupChats, partitionChatsByProject } from "~/utils/group-chats";
-import { chatPath, projectPath } from "~/utils/chat-path";
-
 const { t } = useI18n();
 const { list, rename, setPinned, setArchived, remove, create: createChat } = useChats();
 const { list: projects, remove: removeProject } = useProjects();
@@ -250,24 +245,30 @@ const moveItems = computed(() => [
     :max-size="30"
     :ui="{ header: 'border-b border-default', footer: 'border-t border-default' }"
   >
-    <template #header="{ collapsed: isCollapsed }">
-      <NuxtImg
-        src="/favicon.svg"
-        alt="Chestnut Chat"
-        class="size-6"
-        :class="{
-          'cursor-pointer mx-auto': isCollapsed,
-        }"
-        @click="
-          () => {
-            if (isCollapsed) {
-              collapsed = false;
-            }
-          }
-        "
-      />
-      <span v-if="!isCollapsed" class="truncate font-semibold">{{ $t("app.name") }}</span>
-      <UDashboardSidebarCollapse v-if="!isCollapsed" class="ms-auto" />
+    <template #header="{ collapsed: isCollapsed, collapse }">
+      <div
+        v-if="isCollapsed"
+        role="button"
+        class="group relative flex w-full cursor-pointer items-center justify-center"
+        :aria-label="$t('sidebar.expand')"
+        @click="collapse(false)"
+      >
+        <NuxtImg
+          src="/favicon.svg"
+          alt="Chestnut Chat"
+          class="size-6 transition-opacity duration-150 group-hover:opacity-0"
+        />
+        <UIcon
+          name="i-lucide-panel-left-open"
+          aria-hidden="true"
+          class="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-muted opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+        />
+      </div>
+      <template v-else>
+        <NuxtImg src="/favicon.svg" alt="Chestnut Chat" class="size-6" />
+        <span class="truncate font-semibold">{{ $t("app.name") }}</span>
+        <UDashboardSidebarCollapse class="ms-auto" />
+      </template>
     </template>
 
     <template #default="{ collapsed: isCollapsed }">
