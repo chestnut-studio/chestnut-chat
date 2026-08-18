@@ -1,5 +1,6 @@
 <script lang="ts">
-import { setCustomComponents } from "markstream-vue";
+import { full as markdownItEmojiFull } from "markdown-it-emoji";
+import { registerMarkdownPlugin, setCustomComponents } from "markstream-vue";
 
 import ChatMarkdownLink from "~/components/chat/MarkdownLink.vue";
 
@@ -7,6 +8,7 @@ import ChatMarkdownLink from "~/components/chat/MarkdownLink.vue";
 setCustomComponents("chat", {
   link: ChatMarkdownLink,
 });
+registerMarkdownPlugin(markdownItEmojiFull);
 </script>
 
 <script setup lang="ts">
@@ -22,6 +24,9 @@ const props = defineProps<{
 }>();
 
 provide(chatWebSearchSourcesKey, () => props.sources);
+
+const colorMode = useColorMode();
+const isDark = computed(() => colorMode.value === "dark");
 </script>
 
 <template>
@@ -34,6 +39,13 @@ provide(chatWebSearchSourcesKey, () => props.sources);
     :typewriter="live"
     :fade="false"
     :max-live-nodes="0"
+    code-renderer="shiki"
+    :is-dark="isDark"
+    :themes="['vitesse-light', 'vitesse-dark']"
+    :code-block-props="{
+      darkTheme: 'vitesse-dark',
+      lightTheme: 'vitesse-light',
+    }"
     class="*:first:mt-0 *:last:mb-0"
   />
 </template>

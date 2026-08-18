@@ -61,14 +61,19 @@ const history = useQuery(
 );
 
 // Model shown in the page header: the options of the last send, falling back
-// to the most recent assistant message, then to the default model.
+// to the most recent assistant message, then to the model currently selected
+// in the composer so a fresh chat does not keep showing the default model.
 const headerModel = computed(() => {
   if (chatMeta.data.value?.lastOptions?.model) return chatMeta.data.value.lastOptions.model;
   const lastModelRow = [...(history.data.value ?? [])].reverse().find((row) => row.model);
-  return lastModelRow?.model ?? DEFAULT_MODEL;
+  return lastModelRow?.model ?? lastOptions.value.model ?? DEFAULT_MODEL;
 });
-const headerReasoning = computed(() => chatMeta.data.value?.lastOptions?.reasoning ?? false);
-const headerWebSearch = computed(() => chatMeta.data.value?.lastOptions?.webSearch ?? false);
+const headerReasoning = computed(
+  () => chatMeta.data.value?.lastOptions?.reasoning ?? lastOptions.value.reasoning,
+);
+const headerWebSearch = computed(
+  () => chatMeta.data.value?.lastOptions?.webSearch ?? lastOptions.value.webSearch,
+);
 
 const initialPrompt = pendingChatPrompt.peek(chatId.value);
 const initialPromptOptions = initialPrompt
