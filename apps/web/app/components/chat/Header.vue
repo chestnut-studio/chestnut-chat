@@ -43,7 +43,7 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
 
 <template>
   <header
-    class="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-default px-4 sm:px-6"
+    class="flex h-(--ui-header-height) shrink-0 items-center justify-between gap-3 border-b border-default px-4 sm:px-6"
   >
     <div class="flex min-w-0 flex-1 items-center gap-2">
       <UTooltip :text="title" :content="{ side: 'bottom', sideOffset: 6 }">
