@@ -7,7 +7,8 @@
     "search": "Search chats and projects",
     "chats": "Chats",
     "empty": "No chats yet.",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "expand": "Expand sidebar"
   },
   "project": {
     "section": "Projects",

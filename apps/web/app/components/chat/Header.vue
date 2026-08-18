@@ -3,8 +3,6 @@ import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
 
 import type { ChatBoxProject } from "./Box.vue";
 import ModelIcon from "./ModelIcon.vue";
-import { DEFAULT_MODEL, decodeChatModelValue } from "~/utils/models";
-import { projectPath } from "~/utils/chat-path";
 
 const props = withDefaults(
   defineProps<{
@@ -21,7 +19,7 @@ const props = withDefaults(
 );
 
 const { t } = useI18n();
-const { modelOptions, findModelOption, isLoading: areModelsLoading } = useModelOptions();
+const { findModelOption, isLoading: areModelsLoading } = useModelOptions();
 
 const modelOption = computed(() => (props.model ? findModelOption(props.model) : undefined));
 
@@ -45,7 +43,7 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
 
 <template>
   <header
-    class="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-default px-4 sm:px-6"
+    class="flex h-(--ui-header-height) shrink-0 items-center justify-between gap-3 border-b border-default px-4 sm:px-6"
   >
     <div class="flex min-w-0 flex-1 items-center gap-2">
       <UTooltip :text="title" :content="{ side: 'bottom', sideOffset: 6 }">
@@ -72,7 +70,14 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
 
     <USkeleton v-if="showModelSkeleton" class="h-7 w-28 shrink-0 rounded-full" />
 
-    <UTooltip v-else :content="{ align: 'end', side: 'bottom', sideOffset: 8 }">
+    <UTooltip
+      v-else
+      :content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
+      :ui="{
+        content:
+          'bg-default text-highlighted shadow-sm rounded-sm ring ring-default h-auto p-3 select-none data-[state=delayed-open]:animate-[scale-in_100ms_ease-out] data-[state=closed]:animate-[scale-out_100ms_ease-in] origin-(--reka-tooltip-content-transform-origin) pointer-events-auto',
+      }"
+    >
       <span
         class="flex min-w-0 items-center gap-1.5 rounded-full border border-default bg-elevated/60 py-1 pe-3 ps-2 text-xs"
         :aria-label="t('chat.modelUsed')"
