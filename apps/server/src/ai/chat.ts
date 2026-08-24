@@ -3,6 +3,7 @@ import {
   REASONING_EFFORTS,
   type ReasoningEffort,
 } from "@chestnut-chat/api/providers/model-capabilities";
+import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
 import {
   consumeStream,
   convertToModelMessages,
@@ -28,7 +29,8 @@ import {
 import { generateAiTitle } from "./chat-title";
 import type { ChatMessageUsage, ChatRequestBody, ChatUIMessage } from "./chat-types";
 import { chatMessageUsageFromLanguageModelUsage } from "./chat-types";
-import { deepSeekProviderOptions } from "./deepseek";
+import { DEEPSEEK_PROVIDER_ID, deepSeekProviderOptions } from "./deepseek";
+import { streamDeepSeekResponsesChat } from "./deepseek-responses";
 import { kimiProviderOptions } from "./kimi";
 import { miniMaxProviderOptions } from "./minimax";
 import { resolveChatModel } from "./models";
@@ -244,9 +246,16 @@ export async function handleAiChat(c: Context): Promise<Response> {
   const hasSearchRequest = bundle.historyMessages.some(
     (message) => message.role === "user" && messageText(message).trim(),
   );
-  const searchProgressId =
+  let searchProgressId =
     webSearch && hasSearchRequest ? `web-search-${crypto.randomUUID()}` : undefined;
   const responseMessageId = crypto.randomUUID();
+
+  // DeepSeek web search streams through the Responses API, which may not accept
+  // image content for every model; skip web search for image messages so image
+  // chats keep working through the plain chat stream.
+  if (searchProgressId && messagesContainImages(bundle.historyMessages as ChatUIMessage[])) {
+    searchProgressId = undefined;
+  }
 
   console.info("memory_retrieval", {
     chatId,
@@ -274,13 +283,122 @@ export async function handleAiChat(c: Context): Promise<Response> {
 
       let webSearchInstructions: string | undefined;
       if (searchProgressId) {
-        let activeSearchQuery = "";
         writer.write({
           type: "data-web-search",
           id: searchProgressId,
-          data: { query: activeSearchQuery, status: "planning" },
+          data: { query: "", status: "planning" },
         });
+      }
 
+      if (searchProgressId && resolvedModel.providerId === DEEPSEEK_PROVIDER_ID) {
+        // DeepSeek models search and answer in one Responses API stream. Stream
+        // it directly instead of injecting search results into the chat model.
+        let activeSearchQuery = "";
+        let reasoningItemId: string | undefined;
+        let textItemId: string | undefined;
+
+        const writeSearch = (
+          status: "searching" | "complete",
+          query: string,
+          sources?: WebSearchSource[],
+        ) => {
+          writer.write({
+            type: "data-web-search",
+            id: searchProgressId,
+            data: { query, status, ...(sources ? { sources } : {}) },
+          });
+        };
+
+        try {
+          const searchEvents = streamDeepSeekResponsesChat({
+            modelId: resolvedModel.modelId,
+            userId: session.user.id,
+            instructions: [bundle.instructions, webSearchInstructions].filter(Boolean).join("\n\n"),
+            messages: bundle.historyMessages as ChatUIMessage[],
+            abortSignal: c.req.raw.signal,
+          });
+
+          for await (const event of searchEvents) {
+            switch (event.type) {
+              case "search-progress": {
+                activeSearchQuery = event.query || activeSearchQuery;
+                writeSearch("searching", activeSearchQuery);
+                break;
+              }
+              case "search-complete": {
+                activeSearchQuery =
+                  activeSearchQuery || event.sources.map((source) => source.url).join(" · ");
+                writeSearch("complete", activeSearchQuery, event.sources);
+                for (const source of event.sources) {
+                  writer.write({ type: "source-url", ...source });
+                }
+                break;
+              }
+              case "reasoning-delta": {
+                // The DeepSeek Responses API always streams a reasoning trace,
+                // even when the user did not ask for it. Skip it unless the
+                // user enabled reasoning so the answer renders like the regular
+                // chat completions path.
+                if (!reasoning) break;
+                if (!event.delta) break;
+                if (!reasoningItemId) {
+                  reasoningItemId = `${responseMessageId}-reasoning`;
+                  writer.write({ type: "reasoning-start", id: reasoningItemId });
+                }
+                writer.write({ type: "reasoning-delta", id: reasoningItemId, delta: event.delta });
+                break;
+              }
+              case "text-delta": {
+                if (!event.delta) break;
+                if (!textItemId) {
+                  textItemId = responseMessageId;
+                  writer.write({ type: "text-start", id: textItemId });
+                }
+                writer.write({ type: "text-delta", id: textItemId, delta: event.delta });
+                break;
+              }
+              case "finish": {
+                if (textItemId) {
+                  writer.write({ type: "text-end", id: textItemId });
+                } else {
+                  // The search found nothing and the model gave no answer.
+                  throw new Error("Web search returned no results.");
+                }
+                if (reasoningItemId) {
+                  writer.write({ type: "reasoning-end", id: reasoningItemId });
+                }
+                if (event.usage) {
+                  capturedUsage = event.usage;
+                  writer.write({
+                    type: "message-metadata",
+                    messageMetadata: { usage: event.usage },
+                  });
+                }
+                writer.write({ type: "finish", finishReason: "stop" });
+                await titleTask;
+                return;
+              }
+            }
+          }
+          throw new Error("Web search stream ended before the response completed.");
+        } catch (error) {
+          writer.write({
+            type: "data-web-search",
+            id: searchProgressId,
+            data: {
+              query: activeSearchQuery,
+              status: "error",
+              error: streamErrorMessage(error),
+            },
+          });
+          throw error;
+        }
+      }
+
+      if (searchProgressId) {
+        // OpenRouter-backed search: run the search first, then let the chat
+        // model answer from the injected research.
+        let activeSearchQuery = "";
         try {
           const searchResult = await searchWeb({
             messages: bundle.historyMessages,

@@ -114,6 +114,7 @@ function selectModel(value: string) {
               :key="item.value"
               type="button"
               class="flex min-h-11 w-full items-start gap-3 rounded-md px-3 py-2 text-start text-sm transition hover:bg-elevated"
+              :class="item.value === model ? 'bg-primary/10 hover:bg-primary/15' : ''"
               role="option"
               :aria-selected="item.value === model"
               @click="selectModel(item.value)"
