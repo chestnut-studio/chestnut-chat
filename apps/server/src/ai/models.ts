@@ -114,7 +114,10 @@ async function configuredProviderModel(
   const declaredVision = row.models.find((model) => model.id === target.modelId)?.supportsVision;
   const supportsVision = modelSupportsVision(row.providerId, target.modelId, declaredVision);
 
-  if (row.providerId === DEEPSEEK_PROVIDER_ID) {
+  if (row.providerId === DEEPSEEK_PROVIDER_ID && !supportsVision) {
+    // @ai-sdk/deepseek strips image parts; keep it for text-only models and
+    // let vision variants (e.g. deepseek-v4-flash-vision-exp) fall through to
+    // the OpenAI-compatible path, which serializes them as image_url.
     const provider = createDeepSeek({ apiKey, baseURL: normalizedBaseUrl });
 
     return {

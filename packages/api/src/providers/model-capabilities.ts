@@ -59,6 +59,15 @@ function kimiModelSupportsVision(modelId: string) {
 }
 
 /**
+ * DeepSeek's experimental vision variants (e.g. deepseek-v4-flash-vision-exp)
+ * accept image input. The /models payload does not declare image support yet,
+ * so flag them by ID until API metadata catches up.
+ */
+function deepseekModelSupportsVision(modelId: string) {
+  return /(?:^|[/_.:-])vision(?:$|[/_.:-])/i.test(modelId);
+}
+
+/**
  * Resolves a model's reasoning capability from provider metadata first, then
  * falls back to conservative model-family rules for APIs that only return IDs.
  */
@@ -109,8 +118,9 @@ export function modelSupportsVision(
   const normalizedProviderId = providerId.toLowerCase();
   switch (normalizedProviderId) {
     case "deepseek":
-      // Hosted DeepSeek chat models are text-only; Janus vision is not on this API.
-      return false;
+      // Hosted DeepSeek chat models are text-only except experimental vision
+      // variants (e.g. deepseek-v4-flash-vision-exp).
+      return deepseekModelSupportsVision(modelId);
     case "kimi":
       return kimiModelSupportsVision(modelId);
     default:
