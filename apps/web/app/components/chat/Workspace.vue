@@ -482,7 +482,7 @@ function confirmEdit() {
           ref="scrollContainer"
           class="group relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden py-4 sm:py-6"
         >
-          <UContainer>
+          <UContainer :class="isHistoryLoading ? 'h-full' : ''">
             <ChatHistoryLoading v-if="isHistoryLoading" />
             <ChatMessages
               v-else
