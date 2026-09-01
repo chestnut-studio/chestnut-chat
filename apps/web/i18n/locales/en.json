@@ -2,6 +2,9 @@
   "app": {
     "name": "Chestnut Chat"
   },
+  "providerNames": {
+    "doubao": "Volcano Ark"
+  },
   "sidebar": {
     "newChat": "New chat",
     "search": "Search chats and projects",

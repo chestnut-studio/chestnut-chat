@@ -7,6 +7,7 @@ import { BUILTIN_PROVIDERS } from "~/utils/provider-defs";
  * selectable model options, shared by the composer and the chat header.
  */
 export function useModelOptions() {
+  const { t } = useI18n();
   const { storage: providerStorage, isLoading } = useProviderKeys();
 
   const configuredProviderModelSources = computed(() => [
@@ -15,7 +16,7 @@ export function useModelOptions() {
       return {
         kind: "builtin" as const,
         id: def.id,
-        name: entry?.name?.trim() || def.name,
+        name: resolveBuiltinProviderName(def, entry?.name, t),
         iconProvider: def.id,
         enabled: !!entry?.enabled,
         models: entry?.models ?? [],

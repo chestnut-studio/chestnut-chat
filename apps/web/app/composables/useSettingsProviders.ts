@@ -104,13 +104,16 @@ export function useSettingsProviders() {
 
   const availableToAdd = computed(() =>
     BUILTIN_PROVIDERS.filter((def) => !providerStorage.value.builtin[def.id]?.hasApiKey).sort(
-      (first, second) => first.name.localeCompare(second.name),
+      (first, second) =>
+        resolveBuiltinProviderName(first, undefined, t).localeCompare(
+          resolveBuiltinProviderName(second, undefined, t),
+        ),
     ),
   );
 
   const addProviderItems = computed<AddProviderMenuItem[][]>(() => [
     availableToAdd.value.map((def) => ({
-      label: def.name,
+      label: resolveBuiltinProviderName(def, undefined, t),
       iconProvider: def.id,
       onSelect: () => startBuiltinDraft(def),
     })),
@@ -129,7 +132,7 @@ export function useSettingsProviders() {
       return {
         kind: "builtin",
         id: def.id,
-        name: entry.name?.trim() || def.name,
+        name: resolveBuiltinProviderName(def, entry.name, t),
         iconProvider: def.id,
         enabled: entry.enabled,
         models: entry.models ?? [],
@@ -152,7 +155,10 @@ export function useSettingsProviders() {
   const manualModelProviderName = computed(() => {
     const target = manualModelTarget.value;
     if (!target) return "";
-    if (target.kind === "builtin") return getBuiltinProviderDef(target.id)?.name ?? "";
+    if (target.kind === "builtin") {
+      const def = getBuiltinProviderDef(target.id);
+      return def ? resolveBuiltinProviderName(def, getBuiltin(target.id).name, t) : "";
+    }
     return providerStorage.value.custom.find((provider) => provider.id === target.id)?.name ?? "";
   });
 
@@ -197,9 +203,9 @@ export function useSettingsProviders() {
     providerDraft.value = {
       kind: "builtin",
       builtinId: def.id,
-      title: t("settings.addProviderTitle", { name: def.name }),
+      title: t("settings.addProviderTitle", { name: resolveBuiltinProviderName(def, undefined, t) }),
       iconProvider: def.id,
-      displayName: def.name,
+      displayName: resolveBuiltinProviderName(def, undefined, t),
       apiKey: "",
       apiKeyRequired: true,
       baseUrl: def.defaultBaseUrl ?? def.urlPlaceholder ?? "",
@@ -251,7 +257,11 @@ export function useSettingsProviders() {
           baseUrl: draft.baseUrl.trim() || undefined,
           enabled: existing.hasApiKey ? existing.enabled : true,
         });
-        toast.success(t("settings.providerAdded", { name: draft.displayName.trim() || def?.name }));
+        toast.success(
+          t("settings.providerAdded", {
+            name: draft.displayName.trim() || resolveBuiltinProviderName(def, undefined, t),
+          }),
+        );
       } else {
         await addCustom({
           name: draft.displayName.trim(),
@@ -274,7 +284,11 @@ export function useSettingsProviders() {
   async function deleteBuiltinProvider(id: BuiltinProviderDef["id"]) {
     const def = getBuiltinProviderDef(id);
     await removeBuiltin(id);
-    toast.success(t("settings.providerRemoved", { name: def?.name ?? id }));
+    toast.success(
+      t("settings.providerRemoved", {
+        name: def ? resolveBuiltinProviderName(def, undefined, t) : id,
+      }),
+    );
   }
 
   async function deleteCustomProvider(id: string) {
@@ -317,7 +331,7 @@ export function useSettingsProviders() {
       const def = getBuiltinProviderDef(provider.id);
       const existing = getBuiltin(provider.id);
       editForm.value = {
-        displayName: existing.name?.trim() || def?.name || provider.name,
+        displayName: resolveBuiltinProviderName(def, existing.name, t),
         apiKey: "",
         apiKeyRequired: false,
         baseUrl: existing.baseUrl ?? def?.defaultBaseUrl ?? def?.urlPlaceholder ?? "",
