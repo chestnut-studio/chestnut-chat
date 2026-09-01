@@ -85,4 +85,5 @@ export type ResolvedChatModel = {
   modelId: string;
   providerId: string;
   supportsVision: boolean;
+  supportsMultimodal: boolean;
 };

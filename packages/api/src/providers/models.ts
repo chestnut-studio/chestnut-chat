@@ -1,6 +1,10 @@
 import type { ProviderModel } from "@chestnut-chat/db/schema/provider";
 
-import { modelSupportsReasoning, modelSupportsVision } from "./model-capabilities";
+import {
+  modelSupportsMultimodal,
+  modelSupportsReasoning,
+  modelSupportsVision,
+} from "./model-capabilities";
 
 export type { ProviderModel } from "@chestnut-chat/db/schema/provider";
 
@@ -257,6 +261,11 @@ function includesImageInput(modalities: readonly string[] | undefined) {
   return modalities?.some((modality) => /^image$/i.test(modality));
 }
 
+function includesMultimodalInput(modalities: readonly string[] | undefined) {
+  // Any non-text input modality (image, video, audio) counts as multimodal.
+  return modalities?.some((modality) => /^(?:image|video|audio)$/i.test(modality)) ?? false;
+}
+
 function reasoningSupportFrom(record: Record<string, unknown>) {
   const capabilities = recordFrom(record.capabilities);
   const reasoning = recordFrom(record.reasoning);
@@ -307,6 +316,22 @@ function visionSupportFrom(
   return declaredSupport ?? includesImageInput(inputModalities);
 }
 
+function multimodalSupportFrom(
+  record: Record<string, unknown>,
+  inputModalities: readonly string[] | undefined,
+) {
+  const capabilities = recordFrom(record.capabilities);
+  const declaredSupport =
+    booleanFrom(record.supports_multimodal) ??
+    booleanFrom(record.supportsMultimodal) ??
+    booleanFrom(record.multimodal) ??
+    booleanFrom(capabilities?.multimodal) ??
+    booleanFrom(capabilities?.video) ??
+    booleanFrom(capabilities?.audio);
+
+  return declaredSupport ?? (includesMultimodalInput(inputModalities) || undefined);
+}
+
 function normalizeModel(item: unknown): ProviderModel | null {
   const record = recordFrom(item);
   if (!record) return null;
@@ -337,6 +362,7 @@ function normalizeModel(item: unknown): ProviderModel | null {
     ownedBy: textFrom(record.owned_by) ?? textFrom(record.ownedBy),
     supportsReasoning: reasoningSupportFrom(record),
     supportsVision: visionSupportFrom(record, inputModalities),
+    supportsMultimodal: multimodalSupportFrom(record, inputModalities),
     contextWindow: contextWindowFrom(record),
     inputModalities,
     outputModalities,
@@ -375,6 +401,11 @@ function enrichModelCapabilities(
     ...model,
     supportsReasoning: modelSupportsReasoning(providerId, model.id, model.supportsReasoning),
     supportsVision: modelSupportsVision(providerId, model.id, model.supportsVision),
+    supportsMultimodal: modelSupportsMultimodal(
+      providerId,
+      model.id,
+      model.supportsMultimodal,
+    ),
   }));
 }
 

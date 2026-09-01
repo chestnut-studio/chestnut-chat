@@ -8,6 +8,8 @@ export type ProviderIconId = BuiltinProviderId | "custom";
 export interface BuiltinProviderDef {
   id: BuiltinProviderId;
   name: string;
+  /** i18n key for the localized display name; falls back to `name`. */
+  nameKey?: string;
   hasBaseUrl: boolean;
   defaultBaseUrl?: string;
   keyPlaceholder: string;

@@ -43,7 +43,8 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   },
   {
     id: "doubao",
-    name: "Doubao",
+    name: "Volcano Ark",
+    nameKey: "providerNames.doubao",
     hasBaseUrl: false,
     defaultBaseUrl: "https://ark.cn-beijing.volces.com/api/v3",
     keyPlaceholder: "...",
@@ -132,4 +133,38 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
 
 export function getBuiltinProviderDef(id: BuiltinProviderDef["id"]) {
   return BUILTIN_PROVIDERS.find((provider) => provider.id === id);
+}
+
+/**
+ * Every known default for a provider (localized or legacy). Stored names that
+ * match are treated as not customized, so the locale-appropriate default wins
+ * regardless of which locale the provider was configured in.
+ */
+const KNOWN_DEFAULT_NAMES: Partial<Record<BuiltinProviderDef["id"], readonly string[]>> = {
+  doubao: ["Doubao", "Volcano Ark", "火山方舟"],
+};
+
+/**
+ * Resolves a builtin provider's display name. A stored name wins unless it
+ * matches the builtin default (localized, English, or legacy), in which case
+ * the locale-appropriate default is used.
+ */
+export function resolveBuiltinProviderName(
+  def: BuiltinProviderDef,
+  storedName: string | undefined,
+  t: (key: string) => string,
+) {
+  const localized = def.nameKey ? t(def.nameKey) : def.name;
+  const trimmed = storedName?.trim();
+
+  if (
+    !trimmed ||
+    trimmed === def.name ||
+    trimmed === localized ||
+    KNOWN_DEFAULT_NAMES[def.id]?.includes(trimmed)
+  ) {
+    return localized;
+  }
+
+  return trimmed;
 }

@@ -59,6 +59,23 @@ function kimiModelSupportsVision(modelId: string) {
 }
 
 /**
+ * DeepSeek's experimental vision variants (e.g. deepseek-v4-flash-vision-exp)
+ * accept image input. The /models payload does not declare image support yet,
+ * so flag them by ID until API metadata catches up.
+ */
+function deepseekModelSupportsVision(modelId: string) {
+  return /(?:^|[/_.:-])vision(?:$|[/_.:-])/i.test(modelId);
+}
+
+/**
+ * MiniMax-M3 is MiniMax's only multimodal chat model: it accepts image and
+ * video input. The M2.x family and M2-her are text-only.
+ */
+function minimaxModelSupportsVision(modelId: string) {
+  return /^minimax-m3(?:$|[.-])/i.test(modelId);
+}
+
+/**
  * Resolves a model's reasoning capability from provider metadata first, then
  * falls back to conservative model-family rules for APIs that only return IDs.
  */
@@ -109,10 +126,35 @@ export function modelSupportsVision(
   const normalizedProviderId = providerId.toLowerCase();
   switch (normalizedProviderId) {
     case "deepseek":
-      // Hosted DeepSeek chat models are text-only; Janus vision is not on this API.
-      return false;
+      // Hosted DeepSeek chat models are text-only except experimental vision
+      // variants (e.g. deepseek-v4-flash-vision-exp).
+      return deepseekModelSupportsVision(modelId);
     case "kimi":
       return kimiModelSupportsVision(modelId);
+    case "minimax":
+      return minimaxModelSupportsVision(modelId);
+    default:
+      return false;
+  }
+}
+
+/**
+ * Resolves multimodal (image, video, or audio input beyond plain text) support
+ * from provider metadata, then family rules. Broader than vision: a model that
+ * reads video is multimodal even when its image support is not declared.
+ */
+export function modelSupportsMultimodal(
+  providerId: string,
+  modelId: string,
+  declaredSupport?: boolean,
+) {
+  if (NON_CHAT_MODEL_PATTERN.test(modelId)) return false;
+
+  if (declaredSupport !== undefined) return declaredSupport;
+
+  switch (providerId.toLowerCase()) {
+    case "minimax":
+      return minimaxModelSupportsVision(modelId);
     default:
       return false;
   }

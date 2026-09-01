@@ -2,6 +2,9 @@
   "app": {
     "name": "Chestnut Chat"
   },
+  "providerNames": {
+    "doubao": "Volcano Ark"
+  },
   "sidebar": {
     "newChat": "New chat",
     "search": "Search chats and projects",
@@ -210,8 +213,10 @@
     "fetchedModel": "Fetched",
     "supportsReasoning": "Supports reasoning",
     "supportsVision": "Supports vision",
+    "supportsMultimodal": "Supports multimodal (image, video, or audio input)",
     "reasoningTag": "Reasoning",
     "visionTag": "Vision",
+    "multimodalTag": "Multimodal",
     "removeModel": "Remove model",
     "modelsFetchFailed": "Failed to fetch models from {name}",
     "modelsSaveFailed": "Failed to save models",

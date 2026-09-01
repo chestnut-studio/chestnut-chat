@@ -140,10 +140,37 @@ async function fetchKimiCredits(apiKey: string, baseUrl?: string | null): Promis
   });
 }
 
-async function fetchMiniMaxCredits(apiKey: string): Promise<ProviderCredits> {
+const MINIMAX_BASE_URLS = [
+  "https://api.minimaxi.com/v1",
+  "https://api.minimax.io/v1",
+] as const;
+
+function alternateMiniMaxBaseUrl(baseUrl: string) {
+  const normalized = normalizeBaseUrl(baseUrl);
+  if (normalized === MINIMAX_BASE_URLS[0]) return MINIMAX_BASE_URLS[1];
+  if (normalized === MINIMAX_BASE_URLS[1]) return MINIMAX_BASE_URLS[0];
+
+  return null;
+}
+
+function isNoTokenPlanSubscription(message: string) {
+  const mentionsTokenPlan = /token[\s_-]*plan/i.test(message);
+  const isNegative =
+    /(?:no\s+active|not\s+found|without\s+an?\s+active|inactive|missing|no\s+token)/i.test(
+      message,
+    );
+  return mentionsTokenPlan && isNegative;
+}
+
+async function fetchMiniMaxCredits(apiKey: string, baseUrl?: string | null): Promise<ProviderCredits> {
+  const normalized = normalizeBaseUrl(baseUrl?.trim() || MINIMAX_BASE_URLS[0]);
+  const alternate = alternateMiniMaxBaseUrl(normalized);
+
   const endpoints = [
+    `${normalized}/token_plan/remains`,
+    ...(alternate ? [`${alternate}/token_plan/remains`] : []),
     "https://www.minimax.io/v1/token_plan/remains",
-    "https://api.minimax.io/v1/token_plan/remains",
+    "https://www.minimaxi.com/v1/token_plan/remains",
   ];
 
   let lastError: unknown;
@@ -153,10 +180,14 @@ async function fetchMiniMaxCredits(apiKey: string): Promise<ProviderCredits> {
       const baseResp = recordFrom(payload?.base_resp);
       const statusCode = numberFrom(baseResp?.status_code);
       if (statusCode != null && statusCode !== 0) {
-        throw new ProviderCreditsFetchError(
-          502,
-          textFrom(baseResp?.status_msg) ?? "MiniMax credits query failed",
-        );
+        const message = textFrom(baseResp?.status_msg) ?? "MiniMax credits query failed";
+        // MiniMax only exposes remaining quota for Token Plan subscriptions via
+        // this endpoint. A standard API key (pay-as-you-go wallet balance) has
+        // no Token Plan, so expect an error like "no active token plan" here.
+        // Treat that as unsupported rather than a broken balance query.
+        if (isNoTokenPlanSubscription(message)) return UNSUPPORTED;
+
+        throw new ProviderCreditsFetchError(502, message);
       }
 
       const remains = Array.isArray(payload?.model_remains) ? payload.model_remains : [];
@@ -271,7 +302,7 @@ export async function fetchProviderCredits(
     case "kimi":
       return fetchKimiCredits(apiKey, baseUrl);
     case "minimax":
-      return fetchMiniMaxCredits(apiKey);
+      return fetchMiniMaxCredits(apiKey, baseUrl);
     default:
       return UNSUPPORTED;
   }
