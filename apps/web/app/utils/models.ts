@@ -1,6 +1,7 @@
 import {
   modelReasoningEfforts,
   modelRequiresReasoning,
+  modelSupportsMultimodal,
   modelSupportsReasoning,
   modelSupportsVision,
   type ReasoningEffort,
@@ -26,6 +27,7 @@ export type ModelOption = {
   reasoningRequired: boolean;
   reasoningEfforts: readonly ReasoningEffort[];
   vision: boolean;
+  multimodal: boolean;
   contextWindow?: number;
 };
 
@@ -83,6 +85,7 @@ export const MODELS: ModelOption[] = [
     reasoningRequired: false,
     reasoningEfforts: [],
     vision: false,
+    multimodal: false,
   },
 ];
 
@@ -119,6 +122,11 @@ export function buildProviderModelOptions(
       reasoningRequired: modelRequiresReasoning(provider.id, model.id),
       reasoningEfforts: modelReasoningEfforts(provider.id, model.id),
       vision: modelSupportsVision(provider.id, model.id, model.supportsVision),
+      multimodal: modelSupportsMultimodal(
+        provider.id,
+        model.id,
+        model.supportsMultimodal,
+      ),
       contextWindow: model.contextWindow,
     }));
   });

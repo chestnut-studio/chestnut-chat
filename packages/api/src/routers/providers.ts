@@ -32,6 +32,7 @@ const providerModelSchema = z.object({
   ownedBy: z.string().trim().min(1).max(300).optional(),
   supportsReasoning: z.boolean().optional(),
   supportsVision: z.boolean().optional(),
+  supportsMultimodal: z.boolean().optional(),
   inputModalities: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
   outputModalities: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
   supportedParameters: z.array(z.string().trim().min(1).max(100)).max(100).optional(),

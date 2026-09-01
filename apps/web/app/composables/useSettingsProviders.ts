@@ -55,6 +55,7 @@ function mergeFetchedMetadata(
       ownedBy: fetchedModel.ownedBy ?? model.ownedBy,
       supportsReasoning: fetchedModel.supportsReasoning ?? model.supportsReasoning,
       supportsVision: fetchedModel.supportsVision ?? model.supportsVision,
+      supportsMultimodal: fetchedModel.supportsMultimodal ?? model.supportsMultimodal,
       inputModalities: fetchedModel.inputModalities ?? model.inputModalities,
       outputModalities: fetchedModel.outputModalities ?? model.outputModalities,
       supportedParameters: fetchedModel.supportedParameters ?? model.supportedParameters,

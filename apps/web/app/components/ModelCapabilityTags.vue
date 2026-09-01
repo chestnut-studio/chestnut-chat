@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  modelSupportsMultimodal,
   modelSupportsReasoning,
   modelSupportsVision,
 } from "@chestnut-chat/api/providers/model-capabilities";
@@ -16,10 +17,11 @@ const props = withDefaults(
      */
     reasoning?: boolean | null;
     vision?: boolean | null;
+    multimodal?: boolean | null;
     /** Icon-only chips for dense lists (e.g. chat model picker). */
     compact?: boolean;
   }>(),
-  { compact: false, reasoning: null, vision: null },
+  { compact: false, reasoning: null, vision: null, multimodal: null },
 );
 
 const supportsReasoning = computed(() => {
@@ -34,7 +36,19 @@ const supportsVision = computed(() => {
   return modelSupportsVision(props.providerId, props.model.id, props.model.supportsVision);
 });
 
-const hasCapabilities = computed(() => supportsReasoning.value || supportsVision.value);
+const supportsMultimodal = computed(() => {
+  if (props.multimodal !== null) return props.multimodal;
+  if (!props.providerId || !props.model) return props.model?.supportsMultimodal === true;
+  return modelSupportsMultimodal(
+    props.providerId,
+    props.model.id,
+    props.model.supportsMultimodal,
+  );
+});
+
+const hasCapabilities = computed(
+  () => supportsReasoning.value || supportsVision.value || supportsMultimodal.value,
+);
 
 const badgeUi = computed(() =>
   props.compact
@@ -68,6 +82,18 @@ const badgeUi = computed(() =>
         :label="compact ? undefined : $t('settings.visionTag')"
         :ui="badgeUi"
         :aria-label="$t('settings.supportsVision')"
+      />
+    </UTooltip>
+
+    <UTooltip v-if="supportsMultimodal" :text="$t('settings.supportsMultimodal')">
+      <UBadge
+        color="warning"
+        variant="subtle"
+        size="sm"
+        icon="i-lucide-sparkles"
+        :label="compact ? undefined : $t('settings.multimodalTag')"
+        :ui="badgeUi"
+        :aria-label="$t('settings.supportsMultimodal')"
       />
     </UTooltip>
   </div>

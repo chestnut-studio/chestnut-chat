@@ -79,6 +79,7 @@ function selectModel(value: string) {
                 class="mt-1.5"
                 :reasoning="selectedOption.reasoning"
                 :vision="selectedOption.vision"
+                :multimodal="selectedOption.multimodal"
               />
             </div>
           </div>
@@ -128,7 +129,12 @@ function selectModel(value: string) {
                 </span>
               </span>
 
-              <ModelCapabilityTags :reasoning="item.reasoning" :vision="item.vision" compact />
+              <ModelCapabilityTags
+                :reasoning="item.reasoning"
+                :vision="item.vision"
+                :multimodal="item.multimodal"
+                compact
+              />
 
               <UIcon
                 v-if="item.value === model"

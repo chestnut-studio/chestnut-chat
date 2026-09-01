@@ -22,6 +22,8 @@ export type ProviderModel = {
   ownedBy?: string;
   supportsReasoning?: boolean;
   supportsVision?: boolean;
+  /** Accepts image, video, or audio input beyond plain text. */
+  supportsMultimodal?: boolean;
   /** Max context window in tokens when known from the provider catalog. */
   contextWindow?: number;
   inputModalities?: string[];

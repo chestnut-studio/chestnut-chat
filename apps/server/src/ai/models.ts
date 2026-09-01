@@ -1,7 +1,10 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { decryptApiKeyForRequest } from "@chestnut-chat/api/providers/encryption";
-import { modelSupportsVision } from "@chestnut-chat/api/providers/model-capabilities";
+import {
+  modelSupportsMultimodal,
+  modelSupportsVision,
+} from "@chestnut-chat/api/providers/model-capabilities";
 import {
   getBuiltinProviderDef,
   getSparkModelCatalog,
@@ -111,8 +114,17 @@ async function configuredProviderModel(
     );
   }
   const apiKey = normalizeProviderApiKey(decryptApiKeyForRequest(row.apiKeyEncrypted));
-  const declaredVision = row.models.find((model) => model.id === target.modelId)?.supportsVision;
-  const supportsVision = modelSupportsVision(row.providerId, target.modelId, declaredVision);
+  const declaredModel = row.models.find((model) => model.id === target.modelId);
+  const supportsVision = modelSupportsVision(
+    row.providerId,
+    target.modelId,
+    declaredModel?.supportsVision,
+  );
+  const supportsMultimodal = modelSupportsMultimodal(
+    row.providerId,
+    target.modelId,
+    declaredModel?.supportsMultimodal,
+  );
 
   if (row.providerId === DEEPSEEK_PROVIDER_ID && !supportsVision) {
     // @ai-sdk/deepseek strips image parts; keep it for text-only models and
@@ -125,6 +137,7 @@ async function configuredProviderModel(
       modelId: target.modelId,
       providerId: row.providerId,
       supportsVision,
+      supportsMultimodal,
     };
   }
 
@@ -146,6 +159,7 @@ async function configuredProviderModel(
     modelId: target.modelId,
     providerId: row.providerId,
     supportsVision,
+    supportsMultimodal,
   };
 }
 
@@ -165,6 +179,10 @@ export function openRouterFreeModel(): ResolvedChatModel {
     modelId: OPENROUTER_FREE_MODEL_ID,
     providerId: OPENROUTER_PROVIDER_ID,
     supportsVision: modelSupportsVision(OPENROUTER_PROVIDER_ID, OPENROUTER_FREE_MODEL_ID),
+    supportsMultimodal: modelSupportsMultimodal(
+      OPENROUTER_PROVIDER_ID,
+      OPENROUTER_FREE_MODEL_ID,
+    ),
   };
 }
 
@@ -182,6 +200,7 @@ export function deepSeekTitleModel(): ResolvedChatModel {
     modelId: DEEPSEEK_TITLE_MODEL_ID,
     providerId: DEEPSEEK_PROVIDER_ID,
     supportsVision: modelSupportsVision(DEEPSEEK_PROVIDER_ID, DEEPSEEK_TITLE_MODEL_ID),
+    supportsMultimodal: modelSupportsMultimodal(DEEPSEEK_PROVIDER_ID, DEEPSEEK_TITLE_MODEL_ID),
   };
 }
 

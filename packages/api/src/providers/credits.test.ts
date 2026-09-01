@@ -60,4 +60,45 @@ describe("fetchProviderCredits", () => {
 
     expect(result).toEqual({ supported: false });
   });
+
+  it("degrades MiniMax to unsupported when there is no token plan", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          base_resp: {
+            status_code: 1004,
+            status_msg: "No active token plan subscription",
+          },
+        }),
+      })),
+    );
+
+    const result = await fetchProviderCredits({
+      apiKey: "sk-test",
+      providerId: "minimax",
+    });
+
+    expect(result).toEqual({ supported: false });
+  });
+
+  it("throws a credits fetch error for MiniMax auth failures", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({
+          base_resp: {
+            status_code: 1004,
+            status_msg: "login fail: Please carry the API secret key",
+          },
+        }),
+      })),
+    );
+
+    await expect(
+      fetchProviderCredits({ apiKey: "sk-test", providerId: "minimax" }),
+    ).rejects.toThrow("login fail: Please carry the API secret key");
+  });
 });
