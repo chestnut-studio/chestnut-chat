@@ -1,0 +1,16 @@
+services:
+  # API server. Portaled so `web` can resolve its origin for SSR fetches;
+  # browser traffic goes through the web dev proxy instead (portal
+  # authentication blocks direct cross-portal browser requests).
+  server:
+    command: pnpm --filter server dev
+    portal: true
+  web:
+    # Nuxt dev listens on $PORT natively. Do not pass `-- --port "$PORT"`:
+    # the extra `--` makes nuxt dev render its default starter page.
+    command: pnpm --filter web dev
+    portal:
+      title: Chestnut Chat
+      description: Nuxt web app; /api, /ai and /rpc are proxied to the `server` service.
+    env:
+      NUXT_SERVER_URL: ${services.server.publicURL}

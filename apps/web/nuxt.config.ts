@@ -60,7 +60,9 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    // server-side override for SSR fetches (NUXT_SERVER_URL); falls back to the public URL
+    // server-side override for SSR fetches (NUXT_SERVER_URL); falls back to the public URL.
+    // Browser API calls go through apps/web/server/middleware/api-proxy.ts
+    // when NUXT_SERVER_URL is set (orb portals require same-origin).
     serverUrl: "",
     public: {
       serverUrl: process.env.NUXT_PUBLIC_SERVER_URL ?? "",

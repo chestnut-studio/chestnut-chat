@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Amp orb resume: fast, idempotent wake-up checks only.
+# Never install dependencies or restart declared services here.
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "[resume] pnpm not on PATH; run .agents/setup" >&2
+elif [ ! -d node_modules ]; then
+  echo "[resume] node_modules missing; run .agents/setup" >&2
+fi

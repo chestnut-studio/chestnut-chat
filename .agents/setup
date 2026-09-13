@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# Amp orb setup: prepare a fresh orb so the chestnut-chat toolchain and
+# dependencies are ready before an agent starts. Must be non-interactive,
+# idempotent, and fast on a warm filesystem (target: well under 2 minutes).
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+step_start=$SECONDS
+step() { printf '\n[setup +%ss] %s\n' "$((SECONDS - step_start))" "$*" >&2; }
+
+SUDO=""
+if [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1; then
+  SUDO="sudo"
+fi
+
+# --- Node.js (>= 20 required by Nuxt 4) ------------------------------------
+step "checking Node.js"
+need_node=1
+if command -v node >/dev/null 2>&1; then
+  node_major="$(node -p 'process.versions.node.split(".")[0]')"
+  if [ "${node_major:-0}" -ge 20 ]; then
+    need_node=0
+    step "Node.js $(node --version) already installed"
+  fi
+fi
+if [ "$need_node" -eq 1 ]; then
+  step "installing Node.js 22 LTS (nodesource)"
+  $SUDO apt-get update -y
+  $SUDO apt-get install -y ca-certificates curl gnupg
+  curl -fsSL https://deb.nodesource.com/setup_22.x | $SUDO bash -
+  $SUDO apt-get install -y nodejs
+fi
+
+# --- pnpm (pinned via packageManager in package.json) ----------------------
+step "checking pnpm"
+pnpm_wanted="$(node -p "require('./package.json').packageManager.replace(/^pnpm@/, '')")"
+if [ "$(pnpm --version 2>/dev/null || true)" != "$pnpm_wanted" ]; then
+  step "activating pnpm@$pnpm_wanted"
+  export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+  if command -v corepack >/dev/null 2>&1; then
+    corepack enable >/dev/null 2>&1 || $SUDO corepack enable
+    corepack prepare "pnpm@$pnpm_wanted" --activate
+  else
+    npm install -g "pnpm@$pnpm_wanted"
+  fi
+fi
+step "pnpm $(pnpm --version)"
+
+# --- Placeholder env files (real secrets must come from project env) -------
+# Written before `pnpm install` because `nuxt prepare` (web postinstall)
+# loads packages/env. Deliberately no apps/web/.env: the web app runs
+# same-origin behind the Nuxt dev proxy in orbs (see .amp/services.yaml).
+# dotenv does not override variables already present in the environment, so
+# project secrets / service env always win over these placeholders.
+if [ ! -f apps/server/.env ]; then
+  step "writing placeholder apps/server/.env"
+  cat > apps/server/.env <<'EOF'
+# Placeholder written by .agents/setup so tooling runs without committed secrets.
+# Real values come from the environment (Amp project secrets) or your own copy;
+# dotenv never overrides variables already set in the environment.
+DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
+BETTER_AUTH_SECRET=orb-placeholder-secret-change-me-0123456789abcdef
+BETTER_AUTH_URL=http://localhost:3010
+CORS_ORIGIN=http://localhost:3011
+EOF
+fi
+
+# --- Workspace dependencies ------------------------------------------------
+step "pnpm install --frozen-lockfile"
+COREPACK_ENABLE_DOWNLOAD_PROMPT=0 pnpm install --frozen-lockfile
+
+# --- Orb-specific agent notes ----------------------------------------------
+amp_notes="$HOME/.config/amp/AGENTS.md"
+notes_marker="<!-- chestnut-chat orb setup notes -->"
+if ! grep -Fq "$notes_marker" "$amp_notes" 2>/dev/null; then
+  step "appending orb notes to ~/.config/amp/AGENTS.md"
+  mkdir -p "$(dirname "$amp_notes")"
+  cat >> "$amp_notes" <<EOF
+
+$notes_marker
+- apps/server/.env may contain placeholder values created by .agents/setup; dotenv does not override real environment variables, so project secrets/env win.
+- The web app runs same-origin in orbs: /api, /ai and /rpc are proxied by the Nuxt dev server to the \`server\` service (see .amp/services.yaml); NUXT_SERVER_URL is for SSR fetches.
+- The database is remote Neon Postgres (@neondatabase/serverless); there is no local database in this orb. Run \`pnpm run db:push\` only against a database you intend to modify.
+EOF
+fi
+
+step "setup complete in $((SECONDS - step_start))s"

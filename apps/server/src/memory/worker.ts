@@ -223,6 +223,11 @@ async function tick() {
       const retryDelayMs = await processJob(job);
       nextDelayMs = retryDelayMs ?? ACTIVE_POLL_INTERVAL_MS;
     }
+  } catch (error) {
+    // A failed poll (e.g. the database is briefly unreachable) must not take
+    // the whole server down; retry on the active poll interval.
+    console.error("memory_worker_tick_failed", error);
+    nextDelayMs = ACTIVE_POLL_INTERVAL_MS;
   } finally {
     running = false;
     const shouldWakeImmediately = wakeRequested;
