@@ -135,7 +135,7 @@ export async function handleAiChat(c: Context): Promise<Response> {
 
   let resolvedModel;
   try {
-    resolvedModel = await resolveChatModel(body.model, session.user.id);
+    resolvedModel = await resolveChatModel(body.model, session.user.id, chatId);
   } catch (error) {
     return c.json({ error: error instanceof Error ? error.message : "Unsupported model" }, 400);
   }

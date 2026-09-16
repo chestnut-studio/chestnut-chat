@@ -1,5 +1,7 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createDeepSeek } from "@ai-sdk/deepseek";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createOpenAI } from "@ai-sdk/openai";
 import { decryptApiKeyForRequest } from "@chestnut-chat/api/providers/encryption";
 import {
   modelSupportsMultimodal,
@@ -7,9 +9,11 @@ import {
 } from "@chestnut-chat/api/providers/model-capabilities";
 import {
   getBuiltinProviderDef,
+  getOpenCodeGoProtocol,
   getSparkModelCatalog,
   normalizeBaseUrl,
   normalizeProviderApiKey,
+  OPENCODE_GO_PROVIDER_ID,
   type BuiltinProviderId,
 } from "@chestnut-chat/api/providers/models";
 import { db } from "@chestnut-chat/db";
@@ -32,6 +36,7 @@ const SPARK_PROVIDER_ID = "spark";
 const OPENROUTER_FREE_MODEL_ID = "openrouter/free";
 const DEEPSEEK_TITLE_MODEL_ID = "deepseek-v4-flash";
 const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
+const OPENCODE_GO_USER_AGENT = "chestnut-chat/1.0";
 
 type RequestBodyTransform = (body: RequestBody) => RequestBody;
 
@@ -89,6 +94,7 @@ function hasModel(row: typeof providerSetting.$inferSelect, modelId: string) {
 async function configuredProviderModel(
   target: ChatModelTarget,
   userId: string,
+  chatId?: string,
 ): Promise<ResolvedChatModel> {
   const [row] = await db.select().from(providerSetting).where(providerWhere(userId, target));
   if (!row) throw new Error("Provider is not configured.");
@@ -125,6 +131,44 @@ async function configuredProviderModel(
     target.modelId,
     declaredModel?.supportsMultimodal,
   );
+
+  if (row.providerId === OPENCODE_GO_PROVIDER_ID) {
+    const headers = {
+      "User-Agent": OPENCODE_GO_USER_AGENT,
+      ...(chatId ? { "x-opencode-session": chatId } : {}),
+    };
+    const protocol = getOpenCodeGoProtocol(target.modelId);
+    const model =
+      protocol === "openai-responses"
+        ? createOpenAI({
+            name: OPENCODE_GO_PROVIDER_ID,
+            apiKey,
+            baseURL: normalizedBaseUrl,
+            headers,
+          }).responses(target.modelId)
+        : protocol === "anthropic"
+          ? createAnthropic({
+              name: OPENCODE_GO_PROVIDER_ID,
+              apiKey,
+              baseURL: normalizedBaseUrl,
+              headers,
+            }).messages(target.modelId)
+          : createOpenAICompatible({
+              name: OPENCODE_GO_PROVIDER_ID,
+              apiKey,
+              baseURL: normalizedBaseUrl,
+              headers,
+              includeUsage: true,
+            }).chatModel(target.modelId);
+
+    return {
+      model,
+      modelId: target.modelId,
+      providerId: row.providerId,
+      supportsVision,
+      supportsMultimodal,
+    };
+  }
 
   if (row.providerId === DEEPSEEK_PROVIDER_ID && !supportsVision) {
     // @ai-sdk/deepseek strips image parts; keep it for text-only models and
@@ -179,10 +223,7 @@ export function openRouterFreeModel(): ResolvedChatModel {
     modelId: OPENROUTER_FREE_MODEL_ID,
     providerId: OPENROUTER_PROVIDER_ID,
     supportsVision: modelSupportsVision(OPENROUTER_PROVIDER_ID, OPENROUTER_FREE_MODEL_ID),
-    supportsMultimodal: modelSupportsMultimodal(
-      OPENROUTER_PROVIDER_ID,
-      OPENROUTER_FREE_MODEL_ID,
-    ),
+    supportsMultimodal: modelSupportsMultimodal(OPENROUTER_PROVIDER_ID, OPENROUTER_FREE_MODEL_ID),
   };
 }
 
@@ -235,6 +276,7 @@ export async function resolveTitleModel(userId: string): Promise<ResolvedChatMod
 export async function resolveChatModel(
   modelValue: string | undefined,
   userId: string,
+  chatId?: string,
 ): Promise<ResolvedChatModel> {
   const selectedModel = modelValue ?? DEFAULT_MODEL;
   const target = decodeChatModelValue(selectedModel);
@@ -252,5 +294,5 @@ export async function resolveChatModel(
     if (!configuredProvider) return openRouterFreeModel();
   }
 
-  return configuredProviderModel(target, userId);
+  return configuredProviderModel(target, userId, chatId);
 }

@@ -22,11 +22,25 @@ export const BUILTIN_PROVIDER_IDS = [
   "kimi",
   "deepseek",
   "openrouter",
+  "opencode-go",
 ] as const;
 
 export type BuiltinProviderId = (typeof BUILTIN_PROVIDER_IDS)[number];
 export type ProviderFetchMode = "openai" | "catalog";
 export type ProviderAuthMode = "bearer" | "raw";
+export type OpenCodeGoProtocol = "openai-compatible" | "openai-responses" | "anthropic";
+
+export const OPENCODE_GO_PROVIDER_ID = "opencode-go";
+
+const OPENCODE_GO_ANTHROPIC_MODEL_IDS = new Set(["qwen3.8-flash", "union-alpha"]);
+
+export function getOpenCodeGoProtocol(modelId: string): OpenCodeGoProtocol {
+  if (/^(?:grok-|gpt-.*-luna$|muse-spark-)/.test(modelId)) return "openai-responses";
+  if (modelId.startsWith("minimax-") || OPENCODE_GO_ANTHROPIC_MODEL_IDS.has(modelId)) {
+    return "anthropic";
+  }
+  return "openai-compatible";
+}
 
 export interface BuiltinProviderDef {
   id: BuiltinProviderId;
@@ -139,6 +153,11 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
   {
     id: "openrouter",
     defaultBaseUrl: "https://openrouter.ai/api/v1",
+    fetchMode: "openai",
+  },
+  {
+    id: OPENCODE_GO_PROVIDER_ID,
+    defaultBaseUrl: "https://opencode.ai/zen/go/v1",
     fetchMode: "openai",
   },
 ];
@@ -401,11 +420,7 @@ function enrichModelCapabilities(
     ...model,
     supportsReasoning: modelSupportsReasoning(providerId, model.id, model.supportsReasoning),
     supportsVision: modelSupportsVision(providerId, model.id, model.supportsVision),
-    supportsMultimodal: modelSupportsMultimodal(
-      providerId,
-      model.id,
-      model.supportsMultimodal,
-    ),
+    supportsMultimodal: modelSupportsMultimodal(providerId, model.id, model.supportsMultimodal),
   }));
 }
 

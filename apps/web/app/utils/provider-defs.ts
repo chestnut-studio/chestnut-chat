@@ -129,6 +129,15 @@ export const BUILTIN_PROVIDERS: readonly BuiltinProviderDef[] = [
     apiKeyUrl: "https://openrouter.ai/settings/keys",
     fetchMode: "openai",
   },
+  {
+    id: "opencode-go",
+    name: "OpenCode Go",
+    hasBaseUrl: false,
+    defaultBaseUrl: "https://opencode.ai/zen/go/v1",
+    keyPlaceholder: "...",
+    apiKeyUrl: "https://opencode.ai/auth",
+    fetchMode: "openai",
+  },
 ];
 
 export function getBuiltinProviderDef(id: BuiltinProviderDef["id"]) {

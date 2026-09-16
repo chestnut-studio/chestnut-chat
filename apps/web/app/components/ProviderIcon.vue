@@ -63,6 +63,7 @@ const CONFIGS: Record<ProviderIconId, ProviderConfig> = {
   kimi: { icon: "i-simple-icons-moonshotai", background: "#16191E", color: "#fff" },
   deepseek: { icon: "i-simple-icons-deepseek", background: "#4D6BFE", color: "#fff" },
   openrouter: { icon: "i-simple-icons-openrouter", background: "#6566F1", color: "#fff" },
+  "opencode-go": { icon: "i-simple-icons-opencode", background: "#18181B", color: "#fff" },
   custom: { icon: "i-lucide-cpu", background: "#6B7280", color: "#fff" },
 };
 
