@@ -203,7 +203,9 @@ export function useSettingsProviders() {
     providerDraft.value = {
       kind: "builtin",
       builtinId: def.id,
-      title: t("settings.addProviderTitle", { name: resolveBuiltinProviderName(def, undefined, t) }),
+      title: t("settings.addProviderTitle", {
+        name: resolveBuiltinProviderName(def, undefined, t),
+      }),
       iconProvider: def.id,
       displayName: resolveBuiltinProviderName(def, undefined, t),
       apiKey: "",

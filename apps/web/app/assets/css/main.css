@@ -3,6 +3,11 @@
 @import "markstream-vue/index.css" layer(components);
 @import "katex/dist/katex.min.css";
 
+/* BoardUI design system (packages/ui) */
+@import "@chestnut-chat/ui/styles/theme.css";
+@import "@chestnut-chat/ui/styles/typography.css";
+@import "@chestnut-chat/ui/styles/base.css";
+
 :root {
   --ui-radius: 0.25rem;
 }

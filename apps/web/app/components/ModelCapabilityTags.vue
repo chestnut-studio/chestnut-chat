@@ -39,11 +39,7 @@ const supportsVision = computed(() => {
 const supportsMultimodal = computed(() => {
   if (props.multimodal !== null) return props.multimodal;
   if (!props.providerId || !props.model) return props.model?.supportsMultimodal === true;
-  return modelSupportsMultimodal(
-    props.providerId,
-    props.model.id,
-    props.model.supportsMultimodal,
-  );
+  return modelSupportsMultimodal(props.providerId, props.model.id, props.model.supportsMultimodal);
 });
 
 const hasCapabilities = computed(

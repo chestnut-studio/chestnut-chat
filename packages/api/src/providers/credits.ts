@@ -140,10 +140,7 @@ async function fetchKimiCredits(apiKey: string, baseUrl?: string | null): Promis
   });
 }
 
-const MINIMAX_BASE_URLS = [
-  "https://api.minimaxi.com/v1",
-  "https://api.minimax.io/v1",
-] as const;
+const MINIMAX_BASE_URLS = ["https://api.minimaxi.com/v1", "https://api.minimax.io/v1"] as const;
 
 function alternateMiniMaxBaseUrl(baseUrl: string) {
   const normalized = normalizeBaseUrl(baseUrl);
@@ -156,13 +153,14 @@ function alternateMiniMaxBaseUrl(baseUrl: string) {
 function isNoTokenPlanSubscription(message: string) {
   const mentionsTokenPlan = /token[\s_-]*plan/i.test(message);
   const isNegative =
-    /(?:no\s+active|not\s+found|without\s+an?\s+active|inactive|missing|no\s+token)/i.test(
-      message,
-    );
+    /(?:no\s+active|not\s+found|without\s+an?\s+active|inactive|missing|no\s+token)/i.test(message);
   return mentionsTokenPlan && isNegative;
 }
 
-async function fetchMiniMaxCredits(apiKey: string, baseUrl?: string | null): Promise<ProviderCredits> {
+async function fetchMiniMaxCredits(
+  apiKey: string,
+  baseUrl?: string | null,
+): Promise<ProviderCredits> {
   const normalized = normalizeBaseUrl(baseUrl?.trim() || MINIMAX_BASE_URLS[0]);
   const alternate = alternateMiniMaxBaseUrl(normalized);
 

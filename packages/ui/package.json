@@ -1,0 +1,28 @@
+{
+  "name": "@chestnut-chat/ui",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./styles/*": {
+      "default": "./src/styles/*"
+    }
+  },
+  "scripts": {
+    "check-types": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@chestnut-chat/config": "workspace:*",
+    "typescript": "catalog:",
+    "vue": "^3.5.38",
+    "vue-tsc": "^3.1.8"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.38"
+  }
+}

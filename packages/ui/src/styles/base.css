@@ -1,0 +1,114 @@
+/* ---------------------------------------------------------------------------
+ * BoardUI base styles for the chestnut-chat design system.
+ *
+ * Adapted from BoardUI's styles/globals.css (MIT) — keeps only what the Vue
+ * component library needs. Import order in the consuming app:
+ *
+ *   @import "tailwindcss";
+ *   @import "@chestnut-chat/ui/styles/theme.css";
+ *   @import "@chestnut-chat/ui/styles/typography.css";
+ *   @import "@chestnut-chat/ui/styles/base.css";
+ * --------------------------------------------------------------------------- */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Reset + base */
+html,
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-ligatures: contextual;
+  font-kerning: normal;
+}
+
+html {
+  color-scheme: light;
+  background-color: var(--color-background-full);
+}
+html.dark {
+  color-scheme: dark;
+}
+body {
+  background-color: var(--color-background-full);
+  color: var(--color-text-primary);
+}
+
+/* Tailwind expands shadow utilities into `--tw-shadow` at build time. Point
+ * those generated utilities back to the live dark elevation tokens so the
+ * class-based theme can adjust opacity without component-level overrides. */
+.dark .shadow-2xs {
+  --tw-shadow: var(--shadow-2xs);
+}
+.dark .shadow-xs {
+  --tw-shadow: var(--shadow-xs);
+}
+.dark .shadow-sm {
+  --tw-shadow: var(--shadow-sm);
+}
+.dark .shadow-md {
+  --tw-shadow: var(--shadow-md);
+}
+.dark .shadow-lg {
+  --tw-shadow: var(--shadow-lg);
+}
+.dark .shadow-xl {
+  --tw-shadow: var(--shadow-xl);
+}
+.dark .shadow-card {
+  --tw-shadow: var(--shadow-card);
+}
+.dark .shadow-dropdown {
+  --tw-shadow: var(--shadow-dropdown);
+}
+.dark .shadow-sidebar {
+  --tw-shadow: var(--shadow-sidebar);
+}
+
+/* Hide default number-input spinners */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Hide default search clear button */
+input[type="search"]::-webkit-search-clear-button {
+  -webkit-appearance: none;
+}
+
+/* iOS Safari auto-zooms the page when a focused form field's font-size is
+ * under 16px — our text-body-regular/medium tokens are 14px by design, so
+ * bump just the font-size (not the whole token) on small screens instead of
+ * changing the design system's type scale. */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Checkbox tick: draws the stroke on like it's being ticked by hand.
+ * The path sets pathLength=1 so the dash math is resolution-independent. */
+@keyframes check-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.animate-check-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: check-draw 200ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-check-draw {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

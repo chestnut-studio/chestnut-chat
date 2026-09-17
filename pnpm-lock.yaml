@@ -175,6 +175,9 @@ importers:
       '@chestnut-chat/env':
         specifier: workspace:*
         version: link:../../packages/env
+      '@chestnut-chat/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@nuxt/image':
         specifier: 2.0.0
         version: 2.0.0(db0@0.3.4(drizzle-orm@0.45.2(@neondatabase/serverless@1.1.0)(kysely@0.28.17)))(ioredis@5.11.1)(magicast@0.5.3)(srvx@0.11.17)
@@ -208,6 +211,9 @@ importers:
       katex:
         specifier: ^0.16.47
         version: 0.16.47
+      lucide-vue-next:
+        specifier: ^1.0.0
+        version: 1.0.0(vue@3.5.38(typescript@6.0.3))
       markdown-it-emoji:
         specifier: ^3.1.0
         version: 3.1.0
@@ -392,6 +398,25 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
+
+  packages/ui:
+    dependencies:
+      tailwind-merge:
+        specifier: ^3.6.0
+        version: 3.6.0
+    devDependencies:
+      '@chestnut-chat/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vue:
+        specifier: ^3.5.38
+        version: 3.5.38(typescript@6.0.3)
+      vue-tsc:
+        specifier: ^3.1.8
+        version: 3.3.5(typescript@6.0.3)
 
 packages:
 
@@ -5971,6 +5996,12 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  lucide-vue-next@1.0.0:
+    resolution: {integrity: sha512-V6SPvx1IHTj/UY+FrIYWV5faISsPSb8BnWSFDxAtezWKvWc9ZZ40PDrdu1/Qb5vg4lHWr1hs1BAMGVGm6V1Xdg==}
+    deprecated: Package deprecated. Please use @lucide/vue instead.
+    peerDependencies:
+      vue: '>=3.0.1'
 
   magic-regexp@0.10.0:
     resolution: {integrity: sha512-Uly1Bu4lO1hwHUW0CQeSWuRtzCMNO00CmXtS8N6fyvB3B979GOEEeAkiTUDsmbYLAbvpUS/Kt5c4ibosAzVyVg==}
@@ -13208,6 +13239,10 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-vue-next@1.0.0(vue@3.5.38(typescript@6.0.3)):
+    dependencies:
+      vue: 3.5.38(typescript@6.0.3)
 
   magic-regexp@0.10.0:
     dependencies:
