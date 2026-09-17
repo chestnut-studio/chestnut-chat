@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { ArrowLeft } from "lucide-vue-next";
 import { toast } from "vue-sonner";
+import { BButton, BLinkButton } from "@chestnut-chat/ui";
 
 definePageMeta({
   layout: false,
@@ -176,36 +178,24 @@ function goBack() {
           {{ error }}
         </p>
 
-        <UButton
-          block
-          :label="t('login.verify')"
-          :loading="verifying"
-          :disabled="getOtp().length !== 6 || verifying"
-          @click="verify"
-        />
+        <BButton class="w-full" :disabled="getOtp().length !== 6 || verifying" @click="verify">
+          {{ t("login.verify") }}
+        </BButton>
 
         <div class="text-center">
-          <UButton
-            v-if="cooldown > 0"
-            variant="link"
-            color="neutral"
-            size="xs"
-            disabled
-            :label="t('verifyOtp.resendIn', { seconds: cooldown })"
-          />
-          <UButton v-else variant="link" size="xs" :label="t('verifyOtp.resend')" @click="resend" />
+          <BLinkButton v-if="cooldown > 0" variant="secondary" size="xs" disabled>
+            {{ t("verifyOtp.resendIn", { seconds: cooldown }) }}
+          </BLinkButton>
+          <BLinkButton v-else variant="secondary" size="xs" @click="resend">
+            {{ t("verifyOtp.resend") }}
+          </BLinkButton>
         </div>
       </div>
 
       <template #footer>
-        <UButton
-          variant="ghost"
-          color="neutral"
-          icon="i-lucide-arrow-left"
-          :label="$t('verifyOtp.back')"
-          size="sm"
-          @click="goBack"
-        />
+        <BButton variant="ghost" size="small" :leading-icon="ArrowLeft" @click="goBack">
+          {{ $t("verifyOtp.back") }}
+        </BButton>
       </template>
     </UCard>
   </div>

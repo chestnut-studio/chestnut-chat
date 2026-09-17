@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { LogIn, LogOut } from "lucide-vue-next";
+import { BButton } from "@chestnut-chat/ui";
+
 const authSession = useAuthSession();
 const signOut = useSignOut();
 const { show: showLogin } = useLoginModal();
@@ -14,20 +17,17 @@ onMounted(() => {
   <div>
     <USkeleton v-if="!hydrated || authSession.isPending" class="h-9 w-24" />
 
-    <UButton
+    <BButton
       v-else-if="!authSession.data"
-      variant="outline"
-      icon="i-lucide-log-in"
-      :label="$t('sidebar.signIn')"
+      variant="secondary"
+      :leading-icon="LogIn"
       @click="showLogin"
-    />
+    >
+      {{ $t("sidebar.signIn") }}
+    </BButton>
 
-    <UButton
-      v-else
-      variant="solid"
-      icon="i-lucide-log-out"
-      :label="$t('settings.signOut')"
-      @click="signOut()"
-    />
+    <BButton v-else :leading-icon="LogOut" @click="signOut()">
+      {{ $t("settings.signOut") }}
+    </BButton>
   </div>
 </template>

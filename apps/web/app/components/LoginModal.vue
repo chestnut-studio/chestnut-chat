@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AuthProviderOptions } from "@chestnut-chat/auth";
 import { toast } from "vue-sonner";
+import { BButton, BDivider, BInput } from "@chestnut-chat/ui";
 
 const open = defineModel<boolean>("open", { default: false });
 
@@ -74,39 +75,37 @@ async function sendOtp() {
   <UModal v-model:open="open" :title="$t('login.title')" :ui="{ content: 'max-w-md' }">
     <template #body>
       <div class="space-y-3">
-        <UButton
-          block
-          color="neutral"
-          variant="outline"
-          icon="i-simple-icons-github"
-          size="md"
-          :label="$t('login.github')"
-          :loading="authOptionsPending"
-          :disabled="!authOptions.socialProviders.github"
+        <BButton
+          class="w-full"
+          variant="secondary"
+          :disabled="!authOptions.socialProviders.github || authOptionsPending"
           @click="social('github')"
-        />
-        <UButton
-          block
-          color="neutral"
-          variant="outline"
-          icon="i-simple-icons-google"
-          size="md"
-          :label="$t('login.google')"
-          :loading="authOptionsPending"
-          :disabled="!authOptions.socialProviders.google"
+        >
+          <UIcon name="i-simple-icons-github" class="size-5 shrink-0" />
+          {{ $t("login.github") }}
+        </BButton>
+        <BButton
+          class="w-full"
+          variant="secondary"
+          :disabled="!authOptions.socialProviders.google || authOptionsPending"
           @click="social('google')"
-        />
+        >
+          <UIcon name="i-simple-icons-google" class="size-5 shrink-0" />
+          {{ $t("login.google") }}
+        </BButton>
 
-        <USeparator :label="$t('login.or')" />
+        <BDivider>{{ $t("login.or") }}</BDivider>
 
-        <UInput
+        <BInput
           v-model="email"
           type="email"
           :placeholder="$t('login.email')"
           class="w-full"
           @keydown.enter="sendOtp"
         />
-        <UButton block :label="$t('login.sendCode')" :loading="loading" @click="sendOtp" />
+        <BButton class="w-full" :disabled="!email || loading" @click="sendOtp">
+          {{ $t("login.sendCode") }}
+        </BButton>
       </div>
     </template>
   </UModal>

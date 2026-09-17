@@ -1,5 +1,16 @@
 <script setup lang="ts">
+import { ArrowLeft } from "lucide-vue-next";
 import { toast } from "vue-sonner";
+import {
+  BAvatar,
+  BButton,
+  BButtonLink,
+  BDivider,
+  BTab,
+  BTabList,
+  BTabPanel,
+  BTabs,
+} from "@chestnut-chat/ui";
 
 definePageMeta({
   layout: false,
@@ -21,6 +32,8 @@ const tabs = computed(() => [
   { label: t("settings.providers"), slot: "providers" as const },
   { label: t("settings.about"), slot: "about" as const },
 ]);
+
+const activeTab = ref("account");
 
 const deleteConfirmOpen = shallowRef(false);
 const isDeletingAccount = shallowRef(false);
@@ -67,21 +80,17 @@ async function deleteAccount() {
   <div class="bg-muted/30 min-h-screen">
     <div class="border-default border-b bg-background">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-        <UButton
-          to="/"
-          variant="ghost"
-          color="neutral"
-          icon="i-lucide-arrow-left"
-          :label="$t('settings.backToChat')"
-        />
+        <NuxtLink v-slot="{ href, navigate }" custom to="/">
+          <BButtonLink :href="href ?? undefined" variant="ghost" @click="navigate">
+            <ArrowLeft :size="18" class="shrink-0" />
+            {{ $t("settings.backToChat") }}
+          </BButtonLink>
+        </NuxtLink>
         <div class="flex items-center gap-2">
           <UColorModeButton />
-          <UButton
-            variant="ghost"
-            color="neutral"
-            :label="$t('settings.signOut')"
-            @click="signOut"
-          />
+          <BButton variant="ghost" @click="signOut">
+            {{ $t("settings.signOut") }}
+          </BButton>
         </div>
       </div>
     </div>
@@ -90,10 +99,11 @@ async function deleteAccount() {
       <div class="flex flex-col gap-8 lg:flex-row lg:gap-10">
         <aside class="shrink-0 lg:w-56">
           <div class="flex items-center gap-3 lg:flex-col lg:text-center">
-            <UAvatar
+            <BAvatar
               :src="authSession.data?.user?.image ?? undefined"
               :alt="authSession.data?.user?.name"
-              size="3xl"
+              :initials="authSession.data?.user?.name?.charAt(0)"
+              size="lg"
             />
             <div>
               <p class="text-lg font-semibold">{{ authSession.data?.user?.name }}</p>
@@ -103,8 +113,14 @@ async function deleteAccount() {
         </aside>
 
         <main class="min-w-0 flex-1">
-          <UTabs :items="tabs" class="w-full">
-            <template #account>
+          <BTabs v-model="activeTab" class="w-full">
+            <BTabList>
+              <BTab v-for="tab in tabs" :key="tab.slot" :value="tab.slot">
+                {{ tab.label }}
+              </BTab>
+            </BTabList>
+
+            <BTabPanel value="account">
               <div class="mt-6 space-y-8">
                 <section>
                   <h2 class="mb-4 text-xl font-semibold">{{ $t("settings.securityOptions") }}</h2>
@@ -113,46 +129,47 @@ async function deleteAccount() {
                     <p class="text-muted mt-1 text-sm">
                       {{ $t("settings.deleteAccountDescription") }}
                     </p>
-                    <UButton
+                    <BButton
                       class="mt-3"
-                      color="error"
-                      variant="soft"
-                      :label="$t('settings.deleteAccount')"
+                      variant="danger"
+                      :disabled="isDeletingAccount"
                       @click="
                         () => {
                           deleteConfirmOpen = true;
                         }
                       "
-                    />
+                    >
+                      {{ $t("settings.deleteAccount") }}
+                    </BButton>
                   </div>
                 </section>
               </div>
-            </template>
+            </BTabPanel>
 
-            <template #customization>
+            <BTabPanel value="customization">
               <SettingsCustomizationPanel />
-            </template>
+            </BTabPanel>
 
-            <template #providers>
+            <BTabPanel value="providers">
               <SettingsProvidersPanel />
-            </template>
+            </BTabPanel>
 
-            <template #about>
+            <BTabPanel value="about">
               <div class="mt-6 space-y-4">
                 <div class="border-default space-y-2 rounded-lg border p-4">
                   <div class="flex items-center justify-between">
                     <span class="text-muted text-sm">{{ $t("settings.appName") }}</span>
                     <span class="text-sm font-medium">{{ $t("app.name") }}</span>
                   </div>
-                  <USeparator />
+                  <BDivider />
                   <div class="flex items-center justify-between">
                     <span class="text-muted text-sm">{{ $t("settings.version") }}</span>
                     <span class="text-sm font-medium">v0.1.0</span>
                   </div>
                 </div>
               </div>
-            </template>
-          </UTabs>
+            </BTabPanel>
+          </BTabs>
         </main>
       </div>
     </div>
@@ -164,19 +181,12 @@ async function deleteAccount() {
       :ui="{ footer: 'justify-end' }"
     >
       <template #footer="{ close }">
-        <UButton
-          color="neutral"
-          variant="outline"
-          :label="$t('actions.cancel')"
-          :disabled="isDeletingAccount"
-          @click="close"
-        />
-        <UButton
-          color="error"
-          :label="$t('settings.deleteAccount')"
-          :loading="isDeletingAccount"
-          @click="deleteAccount"
-        />
+        <BButton variant="secondary" :disabled="isDeletingAccount" @click="close">
+          {{ $t("actions.cancel") }}
+        </BButton>
+        <BButton variant="danger" :disabled="isDeletingAccount" @click="deleteAccount">
+          {{ $t("settings.deleteAccount") }}
+        </BButton>
       </template>
     </UModal>
   </div>

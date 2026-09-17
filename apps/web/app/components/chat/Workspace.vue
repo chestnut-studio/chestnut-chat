@@ -537,8 +537,12 @@ function confirmEdit() {
     </template>
 
     <template #footer="{ close }">
-      <UButton color="neutral" variant="outline" :label="$t('actions.cancel')" @click="close" />
-      <UButton :label="$t('actions.save')" @click="confirmEdit" />
+      <BButton variant="secondary" @click="close">
+        {{ $t("actions.cancel") }}
+      </BButton>
+      <BButton @click="confirmEdit">
+        {{ $t("actions.save") }}
+      </BButton>
     </template>
   </UModal>
 </template>

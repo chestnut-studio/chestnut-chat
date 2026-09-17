@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { CircleCheck, CircleHelp, CircleX, Pencil, Plus, Trash2 } from "lucide-vue-next";
+import { BButton, BChip } from "@chestnut-chat/ui";
 import type { ProviderModel } from "~/composables/useProviderKeys";
 import type {
   ConnectionTestStatus,
@@ -42,18 +44,6 @@ const modelHeading = computed(() =>
 
 const configuredModelIds = computed(() => props.provider.models.map((model) => model.id));
 
-const connectionIcon = computed(() => {
-  if (props.connectionStatus === "success") return "i-lucide-circle-check";
-  if (props.connectionStatus === "error") return "i-lucide-circle-x";
-  return "i-lucide-circle-help";
-});
-
-const connectionColor = computed(() => {
-  if (props.connectionStatus === "success") return "success";
-  if (props.connectionStatus === "error") return "error";
-  return "neutral";
-});
-
 const connectionLabel = computed(() => {
   if (props.connectionStatus === "testing") return t("settings.connectionTesting");
   if (props.connectionStatus === "success") {
@@ -91,9 +81,15 @@ const creditsLabel = computed(() => {
 const showCredits = computed(() => props.credits.state !== "idle");
 
 const creditsColor = computed(() => {
-  if (props.credits.state === "error") return "error";
+  if (props.credits.state === "error") return "rose";
   if (props.credits.state === "unsupported") return "neutral";
-  return "primary";
+  return "blue";
+});
+
+const connectionIconComponent = computed(() => {
+  if (props.connectionStatus === "success") return CircleCheck;
+  if (props.connectionStatus === "error") return CircleX;
+  return CircleHelp;
 });
 </script>
 
@@ -109,15 +105,9 @@ const creditsColor = computed(() => {
             name="i-lucide-loader-circle"
             class="text-muted size-3.5 animate-spin"
           />
-          <UBadge
-            v-else
-            :color="creditsColor"
-            variant="subtle"
-            size="sm"
-            class="max-w-full truncate font-normal"
-          >
+          <BChip v-else variant="caption" :color="creditsColor" class="max-w-full truncate">
             {{ creditsLabel }}
-          </UBadge>
+          </BChip>
         </div>
       </div>
       <div class="flex items-center gap-1">
@@ -126,36 +116,33 @@ const creditsColor = computed(() => {
           class="invisible flex items-center gap-1 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
         >
           <UTooltip :text="$t('settings.editProvider')">
-            <UButton
-              icon="i-lucide-pencil"
-              size="sm"
-              color="neutral"
+            <BButton
               variant="ghost"
-              square
+              size="small"
+              icon-only
+              :leading-icon="Pencil"
               :aria-label="$t('settings.editProvider')"
               @click="emit('edit')"
             />
           </UTooltip>
           <UTooltip :text="$t('actions.delete')">
-            <UButton
-              icon="i-lucide-trash-2"
-              size="sm"
-              color="neutral"
+            <BButton
               variant="ghost"
-              square
+              size="small"
+              icon-only
+              :leading-icon="Trash2"
               :aria-label="$t('actions.delete')"
               @click="emit('delete')"
             />
           </UTooltip>
         </div>
         <UTooltip v-if="!editing" :text="connectionLabel">
-          <UButton
-            :icon="connectionIcon"
-            size="sm"
-            :color="connectionColor"
+          <BButton
             variant="ghost"
-            square
-            :loading="connectionStatus === 'testing'"
+            size="small"
+            icon-only
+            :leading-icon="connectionIconComponent"
+            :disabled="connectionStatus === 'testing'"
             :aria-label="connectionLabel"
             @click="emit('testConnection')"
           />
@@ -192,12 +179,11 @@ const creditsColor = computed(() => {
             @add="emit('addFetchedModel', $event)"
           />
           <UTooltip :text="$t('settings.addModelManually')">
-            <UButton
-              icon="i-lucide-plus"
-              size="sm"
-              color="neutral"
+            <BButton
               variant="ghost"
-              square
+              size="small"
+              icon-only
+              :leading-icon="Plus"
               :aria-label="$t('settings.addModelManually')"
               @click="emit('addModel')"
             />
@@ -225,12 +211,11 @@ const creditsColor = computed(() => {
             </p>
           </div>
           <SettingsModelCapabilityIcons :provider-id="provider.id" :model="model" compact />
-          <UButton
-            icon="i-lucide-trash-2"
-            size="xs"
-            color="neutral"
+          <BButton
             variant="ghost"
-            square
+            size="xs"
+            icon-only
+            :leading-icon="Trash2"
             :aria-label="$t('settings.removeModel')"
             @click="emit('removeModel', model.id)"
           />

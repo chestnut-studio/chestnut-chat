@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { FileSearch, Search } from "lucide-vue-next";
+import { BButton, BInput } from "@chestnut-chat/ui";
 import type { ProviderModel } from "~/composables/useProviderKeys";
 
 const props = defineProps<{
@@ -55,13 +57,12 @@ function isConfigured(modelId: string) {
     @update:open="updateOpen"
   >
     <UTooltip :text="$t('settings.fetchModels')">
-      <UButton
-        icon="i-lucide-file-search"
-        size="sm"
-        color="neutral"
-        :variant="open ? 'soft' : 'ghost'"
-        square
-        :loading="loading"
+      <BButton
+        variant="ghost"
+        size="small"
+        icon-only
+        :leading-icon="FileSearch"
+        :disabled="loading"
         :aria-label="$t('settings.fetchModels')"
       />
     </UTooltip>
@@ -69,14 +70,11 @@ function isConfigured(modelId: string) {
     <template #content>
       <div class="bg-default">
         <div class="border-default border-b p-2">
-          <UInput
+          <BInput
             v-model="query"
-            icon="i-lucide-search"
-            variant="none"
-            autofocus
+            :leading-icon="Search"
             :placeholder="$t('settings.searchModels')"
             class="w-full"
-            :ui="{ base: 'text-base' }"
           />
         </div>
 
@@ -126,14 +124,10 @@ function isConfigured(modelId: string) {
         </div>
 
         <div v-if="!loading" class="border-default border-t p-2">
-          <UButton
-            icon="i-lucide-refresh-cw"
-            color="neutral"
-            variant="ghost"
-            block
-            :label="$t('settings.refreshCatalog')"
-            @click="emit('refresh')"
-          />
+          <BButton variant="ghost" class="w-full" @click="emit('refresh')">
+            <UIcon name="i-lucide-refresh-cw" class="size-5 shrink-0" />
+            {{ $t("settings.refreshCatalog") }}
+          </BButton>
         </div>
       </div>
     </template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BAvatar } from "@chestnut-chat/ui";
 import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
 
 import { sourceFaviconUrl, sourceSiteLabel, sourceTitle } from "~/utils/chat-sources";
@@ -25,12 +26,11 @@ defineProps<{
 
         <div class="min-w-0 flex-1">
           <div class="flex min-w-0 items-center gap-2">
-            <UAvatar
+            <BAvatar
               :src="sourceFaviconUrl(source.url)"
               :alt="sourceSiteLabel(source)"
-              :text="sourceSiteLabel(source)"
-              referrerpolicy="no-referrer"
-              size="3xs"
+              :initials="sourceSiteLabel(source)"
+              size="xs"
               class="ring-1 ring-accented"
             />
             <span class="truncate text-xs text-muted">{{ sourceSiteLabel(source) }}</span>

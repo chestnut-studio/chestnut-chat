@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Brain, ChevronDown } from "lucide-vue-next";
+import { BButton } from "@chestnut-chat/ui";
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
@@ -69,27 +71,26 @@ function toggleReasoning() {
         :items="effortItems"
         :content="{ align: 'start', side: 'bottom', sideOffset: 8 }"
       >
-        <UButton
+        <BButton
           type="button"
-          :color="isActive ? 'primary' : 'neutral'"
-          :variant="isActive ? 'soft' : 'ghost'"
-          icon="i-lucide-brain"
-          trailing-icon="i-lucide-chevron-down"
-          size="sm"
-          :label="buttonLabel"
+          :variant="isActive ? 'primary' : 'ghost'"
+          size="small"
+          :leading-icon="Brain"
+          :trailing-icon="ChevronDown"
           :aria-label="statusLabel"
           :aria-pressed="isActive"
-        />
+        >
+          {{ buttonLabel }}
+        </BButton>
       </UDropdownMenu>
 
-      <UButton
+      <BButton
         v-else
         type="button"
-        :color="isActive ? 'primary' : 'neutral'"
-        :variant="isActive ? 'soft' : 'ghost'"
-        icon="i-lucide-brain"
-        size="sm"
-        square
+        :variant="isActive ? 'primary' : 'ghost'"
+        size="small"
+        icon-only
+        :leading-icon="Brain"
         :disabled="!supported"
         :class="required ? 'cursor-default' : 'disabled:text-dimmed disabled:opacity-40'"
         :aria-label="statusLabel"

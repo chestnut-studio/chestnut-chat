@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BChip } from "@chestnut-chat/ui";
 import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
 
 import type { ChatBoxProject } from "./Box.vue";
@@ -112,22 +113,14 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
               :reasoning="modelOption.reasoning"
               :vision="modelOption.vision"
             />
-            <UBadge
-              v-if="reasoningActive"
-              color="primary"
-              variant="subtle"
-              size="sm"
-              icon="i-lucide-brain"
-              :label="t('chat.reasoningActive')"
-            />
-            <UBadge
-              v-if="webSearch"
-              color="neutral"
-              variant="subtle"
-              size="sm"
-              icon="i-lucide-globe"
-              :label="t('chat.webSearch')"
-            />
+            <BChip v-if="reasoningActive" variant="caption" color="blue">
+              <UIcon name="i-lucide-brain" class="size-3.5 shrink-0" />
+              {{ t("chat.reasoningActive") }}
+            </BChip>
+            <BChip v-if="webSearch" variant="caption" color="neutral">
+              <UIcon name="i-lucide-globe" class="size-3.5 shrink-0" />
+              {{ t("chat.webSearch") }}
+            </BChip>
           </div>
         </div>
       </template>

@@ -4,6 +4,7 @@ import {
   modelSupportsReasoning,
   modelSupportsVision,
 } from "@chestnut-chat/api/providers/model-capabilities";
+import { BChip } from "@chestnut-chat/ui";
 
 import type { ProviderModel } from "~/composables/useProviderKeys";
 
@@ -45,52 +46,29 @@ const supportsMultimodal = computed(() => {
 const hasCapabilities = computed(
   () => supportsReasoning.value || supportsVision.value || supportsMultimodal.value,
 );
-
-const badgeUi = computed(() =>
-  props.compact
-    ? { base: "gap-0 px-1.5" }
-    : {
-        base: "gap-1 px-1.5 text-[10px] leading-none font-medium tracking-wide uppercase",
-      },
-);
 </script>
 
 <template>
   <div v-if="hasCapabilities" class="flex shrink-0 flex-wrap items-center gap-1">
     <UTooltip v-if="supportsReasoning" :text="$t('settings.supportsReasoning')">
-      <UBadge
-        color="primary"
-        variant="subtle"
-        size="sm"
-        icon="i-lucide-brain"
-        :label="compact ? undefined : $t('settings.reasoningTag')"
-        :ui="badgeUi"
-        :aria-label="$t('settings.supportsReasoning')"
-      />
+      <BChip variant="caption" color="blue" :aria-label="$t('settings.supportsReasoning')">
+        <UIcon name="i-lucide-brain" class="size-3.5 shrink-0" />
+        <span v-if="!compact">{{ $t("settings.reasoningTag") }}</span>
+      </BChip>
     </UTooltip>
 
     <UTooltip v-if="supportsVision" :text="$t('settings.supportsVision')">
-      <UBadge
-        color="info"
-        variant="subtle"
-        size="sm"
-        icon="i-lucide-image"
-        :label="compact ? undefined : $t('settings.visionTag')"
-        :ui="badgeUi"
-        :aria-label="$t('settings.supportsVision')"
-      />
+      <BChip variant="caption" color="cyan" :aria-label="$t('settings.supportsVision')">
+        <UIcon name="i-lucide-image" class="size-3.5 shrink-0" />
+        <span v-if="!compact">{{ $t("settings.visionTag") }}</span>
+      </BChip>
     </UTooltip>
 
     <UTooltip v-if="supportsMultimodal" :text="$t('settings.supportsMultimodal')">
-      <UBadge
-        color="warning"
-        variant="subtle"
-        size="sm"
-        icon="i-lucide-sparkles"
-        :label="compact ? undefined : $t('settings.multimodalTag')"
-        :ui="badgeUi"
-        :aria-label="$t('settings.supportsMultimodal')"
-      />
+      <BChip variant="caption" color="yellow" :aria-label="$t('settings.supportsMultimodal')">
+        <UIcon name="i-lucide-sparkles" class="size-3.5 shrink-0" />
+        <span v-if="!compact">{{ $t("settings.multimodalTag") }}</span>
+      </BChip>
     </UTooltip>
   </div>
 </template>

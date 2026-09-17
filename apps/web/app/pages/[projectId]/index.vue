@@ -6,6 +6,9 @@ import { useQuery } from "@tanstack/vue-query";
 import type { FileUIPart } from "ai";
 import { toast } from "vue-sonner";
 
+import { Settings2 } from "lucide-vue-next";
+import { BButton, BInput } from "@chestnut-chat/ui";
+
 import type { ProjectRow } from "~/composables/useProjects";
 import type { ChatRow } from "~/utils/group-chats";
 import { chatPath } from "~/utils/chat-path";
@@ -160,12 +163,11 @@ function openChat(chat: ChatRow) {
             />
           </div>
           <h1 class="min-w-0 flex-1 truncate text-2xl font-semibold">{{ project.name }}</h1>
-          <UButton
-            icon="i-lucide-settings-2"
-            color="neutral"
+          <BButton
             variant="ghost"
-            size="sm"
-            square
+            size="small"
+            icon-only
+            :leading-icon="Settings2"
             :aria-label="$t('project.edit')"
             @click="
               () => {
@@ -209,15 +211,15 @@ function openChat(chat: ChatRow) {
     :ui="{ footer: 'justify-end' }"
   >
     <template #body>
-      <UInput v-model="renameValue" class="w-full" @keydown.enter="confirmRename" />
+      <BInput v-model="renameValue" class="w-full" @keydown.enter="confirmRename" />
     </template>
     <template #footer="{ close }">
-      <UButton color="neutral" variant="outline" :label="$t('actions.cancel')" @click="close" />
-      <UButton
-        :label="$t('actions.save')"
-        :loading="rename.isPending.value"
-        @click="confirmRename"
-      />
+      <BButton variant="secondary" @click="close">
+        {{ $t("actions.cancel") }}
+      </BButton>
+      <BButton :disabled="rename.isPending.value" @click="confirmRename">
+        {{ $t("actions.save") }}
+      </BButton>
     </template>
   </UModal>
 
@@ -228,13 +230,12 @@ function openChat(chat: ChatRow) {
     :ui="{ footer: 'justify-end' }"
   >
     <template #footer="{ close }">
-      <UButton color="neutral" variant="outline" :label="$t('actions.cancel')" @click="close" />
-      <UButton
-        color="error"
-        :label="$t('actions.delete')"
-        :loading="remove.isPending.value"
-        @click="confirmDelete"
-      />
+      <BButton variant="secondary" @click="close">
+        {{ $t("actions.cancel") }}
+      </BButton>
+      <BButton variant="danger" :disabled="remove.isPending.value" @click="confirmDelete">
+        {{ $t("actions.delete") }}
+      </BButton>
     </template>
   </UModal>
 </template>

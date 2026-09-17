@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Plus } from "lucide-vue-next";
+import { BButton, BInput } from "@chestnut-chat/ui";
+
 const {
   addProviderItems,
   providers,
@@ -56,13 +59,13 @@ onMounted(() => {
           <ProviderIcon :provider="item.iconProvider" size="xs" />
         </template>
 
-        <UButton
-          icon="i-lucide-plus"
-          variant="outline"
-          color="neutral"
-          :label="$t('settings.addProvider')"
+        <BButton
+          variant="secondary"
+          :leading-icon="Plus"
           :disabled="isLoadingProviders || isSavingProvider"
-        />
+        >
+          {{ $t("settings.addProvider") }}
+        </BButton>
       </UDropdownMenu>
     </div>
 
@@ -118,18 +121,12 @@ onMounted(() => {
       :ui="{ footer: 'justify-end' }"
     >
       <template #footer>
-        <UButton
-          color="neutral"
-          variant="outline"
-          :label="$t('actions.cancel')"
-          @click="cancelDeleteProvider"
-        />
-        <UButton
-          color="error"
-          :label="$t('actions.delete')"
-          :loading="isSavingProvider"
-          @click="confirmDeleteProvider"
-        />
+        <BButton variant="secondary" :disabled="isSavingProvider" @click="cancelDeleteProvider">
+          {{ $t("actions.cancel") }}
+        </BButton>
+        <BButton variant="danger" :disabled="isSavingProvider" @click="confirmDeleteProvider">
+          {{ $t("actions.delete") }}
+        </BButton>
       </template>
     </UModal>
 
@@ -141,14 +138,14 @@ onMounted(() => {
       <template #body>
         <div class="space-y-4">
           <UFormField :label="$t('settings.modelId')" required>
-            <UInput
+            <BInput
               v-model="manualModelForm.id"
               placeholder="gpt-4o-mini"
               class="w-full font-mono"
             />
           </UFormField>
           <UFormField :label="$t('settings.modelName')" :hint="$t('settings.optional')">
-            <UInput
+            <BInput
               v-model="manualModelForm.name"
               :placeholder="$t('settings.modelNamePlaceholder')"
               class="w-full"
@@ -157,12 +154,12 @@ onMounted(() => {
         </div>
       </template>
       <template #footer="{ close }">
-        <UButton color="neutral" variant="outline" :label="$t('actions.cancel')" @click="close" />
-        <UButton
-          :label="$t('actions.save')"
-          :disabled="!manualModelForm.id.trim()"
-          @click="submitManualModel"
-        />
+        <BButton variant="secondary" @click="close">
+          {{ $t("actions.cancel") }}
+        </BButton>
+        <BButton :disabled="!manualModelForm.id.trim()" @click="submitManualModel">
+          {{ $t("actions.save") }}
+        </BButton>
       </template>
     </UModal>
   </div>

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Plus } from "lucide-vue-next";
+import { BButton } from "@chestnut-chat/ui";
+
 import type { ProjectRow } from "~/composables/useProjects";
 import type { ChatRow } from "~/utils/group-chats";
 
@@ -42,12 +45,11 @@ const emit = defineEmits<{
         />
         <span class="truncate">{{ $t("project.section") }}</span>
       </button>
-      <UButton
-        icon="i-lucide-plus"
-        color="neutral"
+      <BButton
         variant="ghost"
         size="xs"
-        square
+        icon-only
+        :leading-icon="Plus"
         :aria-label="$t('project.create')"
         @click="emit('create')"
       />

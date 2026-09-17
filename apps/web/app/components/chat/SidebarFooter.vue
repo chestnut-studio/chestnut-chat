@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { LogIn } from "lucide-vue-next";
+import { BAvatar, BButton } from "@chestnut-chat/ui";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
 defineProps<{
@@ -46,28 +48,27 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
       class="w-full"
       :ui="{ content: 'min-w-52' }"
     >
-      <UButton
-        :avatar="{
-          src: authSession.data.user.image ?? undefined,
-          alt: authSession.data.user.name,
-        }"
-        :label="collapsed ? undefined : authSession.data.user.name"
-        color="neutral"
-        variant="ghost"
-        class="w-full"
-        :block="collapsed"
-      />
+      <BButton variant="ghost" class="w-full justify-start">
+        <BAvatar
+          :src="authSession.data.user.image ?? undefined"
+          :alt="authSession.data.user.name"
+          :initials="authSession.data.user.name?.charAt(0)"
+          size="sm"
+        />
+        <span v-if="!collapsed" class="min-w-0 truncate">{{ authSession.data.user.name }}</span>
+      </BButton>
     </UDropdownMenu>
 
-    <UButton
+    <BButton
       v-else
-      :label="collapsed ? undefined : $t('sidebar.signIn')"
-      icon="i-lucide-log-in"
-      color="neutral"
-      variant="outline"
-      block
-      :square="collapsed"
+      variant="secondary"
+      class="w-full"
+      :icon-only="collapsed"
+      :leading-icon="LogIn"
+      :aria-label="collapsed ? $t('sidebar.signIn') : undefined"
       @click="showLogin"
-    />
+    >
+      <span v-if="!collapsed">{{ $t("sidebar.signIn") }}</span>
+    </BButton>
   </div>
 </template>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Plus, Search } from "lucide-vue-next";
+import { BButton, BInput } from "@chestnut-chat/ui";
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import type { CommandPaletteGroup } from "@nuxt/ui";
 
@@ -273,32 +275,32 @@ const moveItems = computed(() => [
 
     <template #default="{ collapsed: isCollapsed }">
       <div class="flex h-full min-h-0 flex-col gap-3">
-        <UButton
-          :label="isCollapsed ? undefined : $t('sidebar.newChat')"
-          icon="i-lucide-plus"
-          color="neutral"
-          variant="outline"
-          block
-          :square="isCollapsed"
-          :loading="authSession.isPending"
+        <BButton
+          variant="secondary"
+          class="w-full"
+          :icon-only="isCollapsed"
+          :leading-icon="Plus"
+          :aria-label="isCollapsed ? $t('sidebar.newChat') : undefined"
+          :disabled="authSession.isPending"
           @click="onNewChat"
-        />
+        >
+          <span v-if="!isCollapsed">{{ $t("sidebar.newChat") }}</span>
+        </BButton>
 
-        <UButton
+        <BButton
           v-if="!isCollapsed"
-          icon="i-lucide-search"
-          :label="$t('sidebar.search')"
-          color="neutral"
-          variant="outline"
-          size="sm"
-          block
-          class="justify-start"
+          variant="secondary"
+          size="small"
+          class="w-full justify-start"
           @click="
             () => {
               searchOpen = true;
             }
           "
-        />
+        >
+          <UIcon name="i-lucide-search" class="size-[18px] shrink-0" />
+          {{ $t("sidebar.search") }}
+        </BButton>
 
         <div v-if="!isCollapsed" class="-me-4 min-h-0 flex-1 space-y-4 overflow-y-auto pe-1">
           <ProjectSidebarSection
@@ -395,16 +397,16 @@ const moveItems = computed(() => [
     :ui="{ footer: 'justify-end' }"
   >
     <template #body>
-      <UInput v-model="renameValue" class="w-full" @keydown.enter="confirmRename" />
+      <BInput v-model="renameValue" class="w-full" @keydown.enter="confirmRename" />
     </template>
 
     <template #footer="{ close }">
-      <UButton color="neutral" variant="outline" :label="$t('actions.cancel')" @click="close" />
-      <UButton
-        :label="$t('actions.save')"
-        :loading="rename.isPending.value"
-        @click="confirmRename"
-      />
+      <BButton variant="secondary" :disabled="rename.isPending.value" @click="close">
+        {{ $t("actions.cancel") }}
+      </BButton>
+      <BButton :disabled="rename.isPending.value" @click="confirmRename">
+        {{ $t("actions.save") }}
+      </BButton>
     </template>
   </UModal>
 
@@ -415,13 +417,12 @@ const moveItems = computed(() => [
     :ui="{ footer: 'justify-end' }"
   >
     <template #footer="{ close }">
-      <UButton color="neutral" variant="outline" :label="$t('actions.cancel')" @click="close" />
-      <UButton
-        color="error"
-        :label="$t('actions.delete')"
-        :loading="remove.isPending.value"
-        @click="confirmDelete"
-      />
+      <BButton variant="secondary" :disabled="remove.isPending.value" @click="close">
+        {{ $t("actions.cancel") }}
+      </BButton>
+      <BButton variant="danger" :disabled="remove.isPending.value" @click="confirmDelete">
+        {{ $t("actions.delete") }}
+      </BButton>
     </template>
   </UModal>
 
@@ -432,13 +433,16 @@ const moveItems = computed(() => [
     :ui="{ footer: 'justify-end' }"
   >
     <template #footer="{ close }">
-      <UButton color="neutral" variant="outline" :label="$t('actions.cancel')" @click="close" />
-      <UButton
-        color="error"
-        :label="$t('actions.delete')"
-        :loading="removeProject.isPending.value"
+      <BButton variant="secondary" :disabled="removeProject.isPending.value" @click="close">
+        {{ $t("actions.cancel") }}
+      </BButton>
+      <BButton
+        variant="danger"
+        :disabled="removeProject.isPending.value"
         @click="confirmDeleteProject"
-      />
+      >
+        {{ $t("actions.delete") }}
+      </BButton>
     </template>
   </UModal>
 
@@ -451,8 +455,12 @@ const moveItems = computed(() => [
       <USelect v-model="moveProjectId" :items="moveItems" value-key="value" class="w-full" />
     </template>
     <template #footer="{ close }">
-      <UButton color="neutral" variant="outline" :label="$t('actions.cancel')" @click="close" />
-      <UButton :label="$t('actions.save')" :loading="isMoving" @click="confirmMove" />
+      <BButton variant="secondary" :disabled="isMoving" @click="close">
+        {{ $t("actions.cancel") }}
+      </BButton>
+      <BButton :disabled="isMoving" @click="confirmMove">
+        {{ $t("actions.save") }}
+      </BButton>
     </template>
   </UModal>
 </template>

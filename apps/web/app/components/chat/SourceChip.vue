@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BAvatar, BButtonLink } from "@chestnut-chat/ui";
 import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
 
 import { sourceFaviconUrl, sourceSiteLabel, sourceTitle } from "~/utils/chat-sources";
@@ -23,32 +24,24 @@ const previewTitle = computed(() => sourceTitle(props.source));
     :content="{ side: 'bottom', align: 'start', sideOffset: 8, collisionPadding: 16 }"
     :ui="{ content: 'w-80 max-w-[calc(100vw-2rem)] rounded-xl p-0' }"
   >
-    <UButton
-      :to="source.url"
-      external
+    <BButtonLink
+      :href="source.url"
       target="_blank"
       rel="noopener noreferrer"
-      color="neutral"
-      variant="soft"
+      variant="secondary"
       size="xs"
-      :avatar="{
-        src: faviconUrl,
-        alt: displayLabel,
-        text: displayLabel,
-        referrerpolicy: 'no-referrer',
-      }"
+      class="max-w-52 rounded-full font-normal"
       :aria-label="previewTitle"
-      :ui="{
-        base: 'max-w-52 rounded-full align-middle font-normal no-underline',
-        leadingAvatar: 'ring-1 ring-accented',
-        label: 'max-w-40',
-      }"
-      :label="displayLabel"
     >
-      <template v-if="additionalCount" #trailing>
-        <span class="shrink-0 text-dimmed">+{{ additionalCount }}</span>
-      </template>
-    </UButton>
+      <img
+        :src="faviconUrl"
+        :alt="displayLabel"
+        referrerpolicy="no-referrer"
+        class="size-4 shrink-0 rounded-full object-cover ring-1 ring-accented"
+      />
+      <span class="max-w-40 truncate">{{ displayLabel }}</span>
+      <span v-if="additionalCount" class="shrink-0 text-text-tertiary">+{{ additionalCount }}</span>
+    </BButtonLink>
 
     <template #content>
       <a
@@ -58,11 +51,10 @@ const previewTitle = computed(() => sourceTitle(props.source));
         class="block rounded-xl p-3.5 no-underline outline-none transition-colors hover:bg-elevated/70 focus-visible:bg-elevated/70"
       >
         <div class="flex items-center gap-2.5">
-          <UAvatar
+          <BAvatar
             :src="faviconUrl"
             :alt="displayLabel"
-            :text="displayLabel"
-            referrerpolicy="no-referrer"
+            :initials="displayLabel"
             size="xs"
             class="ring-1 ring-accented"
           />

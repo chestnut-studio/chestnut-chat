@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { ChevronDown, Paperclip, Trash2, X } from "lucide-vue-next";
+import { BButton, BChip, BInput } from "@chestnut-chat/ui";
+
 import {
   PROJECT_FILE_ACCEPT,
   MAX_PROJECT_FILES,
@@ -179,7 +182,7 @@ async function onSubmit() {
             v-model:value="iconValue"
             v-model:color="iconColor"
           />
-          <UInput
+          <BInput
             v-model="name"
             maxlength="80"
             class="min-w-0 flex-1"
@@ -190,121 +193,113 @@ async function onSubmit() {
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <UButton
+          <BButton
             v-for="suggestion in PROJECT_QUICK_SUGGESTIONS"
             :key="suggestion.key"
-            color="neutral"
-            variant="soft"
+            variant="secondary"
             size="xs"
-            :label="`${suggestion.emoji} ${$t(`project.suggestions.${suggestion.key}`)}`"
             @click="applySuggestion(suggestion.key)"
-          />
+          >
+            {{ suggestion.emoji }} {{ $t(`project.suggestions.${suggestion.key}`) }}
+          </BButton>
         </div>
 
-        <UCollapsible v-model:open="advancedOpen">
-          <UButton
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            trailing-icon="i-lucide-chevron-down"
-            :label="$t('project.advanced')"
-            class="w-full justify-between"
-          />
-          <template #content>
-            <div class="mt-3 space-y-4">
-              <UFormField
-                :label="$t('project.memoryMode')"
-                :description="$t('project.memoryModeHint')"
+        <BButton
+          variant="ghost"
+          size="small"
+          class="w-full justify-between"
+          :trailing-icon="ChevronDown"
+          @click="advancedOpen = !advancedOpen"
+        >
+          {{ $t("project.advanced") }}
+        </BButton>
+        <div v-show="advancedOpen" class="mt-3 space-y-4">
+          <UFormField :label="$t('project.memoryMode')" :description="$t('project.memoryModeHint')">
+            <USelect
+              v-model="memoryMode"
+              :items="[
+                { label: $t('project.memoryDefault'), value: 'default' },
+                { label: $t('project.memoryProject'), value: 'project' },
+              ]"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField
+            :label="$t('project.instructions')"
+            :description="$t('project.instructionsHint')"
+          >
+            <UTextarea v-model="instructions" :rows="4" maxlength="8000" class="w-full" />
+          </UFormField>
+
+          <UFormField
+            :label="$t('project.files')"
+            :description="$t('project.filesHint', { count: MAX_PROJECT_FILES })"
+          >
+            <div class="space-y-2">
+              <div
+                v-for="file in existingFiles.data.value ?? []"
+                :key="file.id"
+                class="flex items-center gap-2 rounded-md bg-elevated px-2 py-1.5 text-sm"
               >
-                <USelect
-                  v-model="memoryMode"
-                  :items="[
-                    { label: $t('project.memoryDefault'), value: 'default' },
-                    { label: $t('project.memoryProject'), value: 'project' },
-                  ]"
-                  class="w-full"
+                <UIcon name="i-lucide-file-text" class="size-4 shrink-0 text-muted" />
+                <span class="min-w-0 flex-1 truncate">{{ file.filename }}</span>
+                <BChip variant="caption" color="soft">{{ file.status }}</BChip>
+                <BButton
+                  variant="ghost"
+                  size="xs"
+                  icon-only
+                  :leading-icon="Trash2"
+                  :aria-label="$t('actions.delete')"
+                  @click="removeExisting(file.id)"
                 />
-              </UFormField>
+              </div>
 
-              <UFormField
-                :label="$t('project.instructions')"
-                :description="$t('project.instructionsHint')"
+              <div
+                v-for="(file, index) in pendingFiles"
+                :key="`${file.name}-${index}`"
+                class="flex items-center gap-2 rounded-md bg-elevated px-2 py-1.5 text-sm"
               >
-                <UTextarea v-model="instructions" :rows="4" maxlength="8000" class="w-full" />
-              </UFormField>
+                <UIcon name="i-lucide-upload" class="size-4 shrink-0 text-muted" />
+                <span class="min-w-0 flex-1 truncate">{{ file.name }}</span>
+                <BButton
+                  variant="ghost"
+                  size="xs"
+                  icon-only
+                  :leading-icon="X"
+                  @click="removePending(index)"
+                />
+              </div>
 
-              <UFormField
-                :label="$t('project.files')"
-                :description="$t('project.filesHint', { count: MAX_PROJECT_FILES })"
+              <BButton
+                variant="secondary"
+                size="small"
+                :leading-icon="Paperclip"
+                @click="fileInput?.click()"
               >
-                <div class="space-y-2">
-                  <div
-                    v-for="file in existingFiles.data.value ?? []"
-                    :key="file.id"
-                    class="flex items-center gap-2 rounded-md bg-elevated px-2 py-1.5 text-sm"
-                  >
-                    <UIcon name="i-lucide-file-text" class="size-4 shrink-0 text-muted" />
-                    <span class="min-w-0 flex-1 truncate">{{ file.filename }}</span>
-                    <UBadge color="neutral" variant="subtle" size="sm">{{ file.status }}</UBadge>
-                    <UButton
-                      icon="i-lucide-trash-2"
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      square
-                      :aria-label="$t('actions.delete')"
-                      @click="removeExisting(file.id)"
-                    />
-                  </div>
-
-                  <div
-                    v-for="(file, index) in pendingFiles"
-                    :key="`${file.name}-${index}`"
-                    class="flex items-center gap-2 rounded-md bg-elevated px-2 py-1.5 text-sm"
-                  >
-                    <UIcon name="i-lucide-upload" class="size-4 shrink-0 text-muted" />
-                    <span class="min-w-0 flex-1 truncate">{{ file.name }}</span>
-                    <UButton
-                      icon="i-lucide-x"
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      square
-                      @click="removePending(index)"
-                    />
-                  </div>
-
-                  <UButton
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-lucide-paperclip"
-                    :label="$t('project.addFiles')"
-                    @click="fileInput?.click()"
-                  />
-                  <input
-                    ref="fileInput"
-                    type="file"
-                    multiple
-                    :accept="PROJECT_FILE_ACCEPT"
-                    class="hidden"
-                    @change="onPickFiles"
-                  />
-                </div>
-              </UFormField>
+                {{ $t("project.addFiles") }}
+              </BButton>
+              <input
+                ref="fileInput"
+                type="file"
+                multiple
+                :accept="PROJECT_FILE_ACCEPT"
+                class="hidden"
+                @change="onPickFiles"
+              />
             </div>
-          </template>
-        </UCollapsible>
+          </UFormField>
+        </div>
       </div>
     </template>
 
     <template #footer="{ close }">
-      <UButton color="neutral" variant="outline" :label="$t('actions.cancel')" @click="close" />
-      <UButton
-        :label="isEdit ? $t('actions.save') : $t('project.create')"
-        :loading="submitting"
-        @click="onSubmit"
-      />
+      <BButton variant="secondary" :disabled="submitting" @click="close">
+        {{ $t("actions.cancel") }}
+      </BButton>
+      <BButton :disabled="submitting" @click="onSubmit">
+        {{ isEdit ? $t("actions.save") : $t("project.create") }}
+      </BButton>
     </template>
   </UModal>
 </template>

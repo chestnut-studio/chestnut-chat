@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Ellipsis } from "lucide-vue-next";
+import { BButton } from "@chestnut-chat/ui";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
 import type { ChatRow } from "~/utils/group-chats";
@@ -62,11 +64,11 @@ const items = computed<DropdownMenuItem[][]>(() => [
     <UIcon v-if="chat.pinned" name="i-lucide-pin" class="size-3 shrink-0 text-muted" />
     <span class="min-w-0 flex-1 truncate text-sm">{{ chat.title }}</span>
     <UDropdownMenu :items="items" @click.stop>
-      <UButton
-        icon="i-lucide-ellipsis"
-        color="neutral"
+      <BButton
         variant="ghost"
         size="xs"
+        icon-only
+        :leading-icon="Ellipsis"
         class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
         @click.stop
       />

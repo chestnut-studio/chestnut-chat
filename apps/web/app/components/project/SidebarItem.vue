@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Ellipsis } from "lucide-vue-next";
+import { BButton } from "@chestnut-chat/ui";
 import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
@@ -85,11 +87,11 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
       />
       <span class="min-w-0 flex-1 truncate text-sm font-medium">{{ project.name }}</span>
       <UDropdownMenu :items="items" @click.stop>
-        <UButton
-          icon="i-lucide-ellipsis"
-          color="neutral"
+        <BButton
           variant="ghost"
           size="xs"
+          icon-only
+          :leading-icon="Ellipsis"
           class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
           @click.stop
         />

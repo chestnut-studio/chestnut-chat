@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Copy, GitFork, Pencil, RefreshCw } from "lucide-vue-next";
+import type { Component } from "vue";
+import { BButton } from "@chestnut-chat/ui";
 import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
 import { isPartStreaming, isToolStreaming } from "@nuxt/ui/utils/ai";
 import {
@@ -157,7 +160,7 @@ async function copy(message: ChatUIMessage) {
 
 type MessageAction = {
   label: string;
-  icon: string;
+  icon: Component;
   disabled?: boolean;
   onClick: () => void;
 };
@@ -168,12 +171,12 @@ function actionsFor(message: ChatUIMessage): MessageAction[] {
   const actions: MessageAction[] = [
     {
       label: t("actions.copy"),
-      icon: "i-lucide-copy",
+      icon: Copy,
       onClick: () => copy(message),
     },
     {
       label: t("actions.regenerate"),
-      icon: "i-lucide-refresh-cw",
+      icon: RefreshCw,
       onClick: () => emit("regenerate", message.id),
     },
   ];
@@ -181,7 +184,7 @@ function actionsFor(message: ChatUIMessage): MessageAction[] {
   if (message.role === "assistant") {
     actions.splice(1, 0, {
       label: t("actions.fork"),
-      icon: "i-lucide-git-fork",
+      icon: GitFork,
       disabled: props.forkingMessageId === message.id,
       onClick: () => emit("fork", message.id),
     });
@@ -190,7 +193,7 @@ function actionsFor(message: ChatUIMessage): MessageAction[] {
   if (message.role === "user") {
     actions.push({
       label: t("actions.edit"),
-      icon: "i-lucide-pencil",
+      icon: Pencil,
       onClick: () => emit("edit", { id: message.id, text: messageText(message) }),
     });
   }
@@ -654,13 +657,12 @@ onBeforeUnmount(() => {
 
       <template #actions="{ message }">
         <UTooltip v-for="action in actionsFor(message)" :key="action.label" :text="action.label">
-          <UButton
-            color="neutral"
+          <BButton
             variant="ghost"
-            size="sm"
-            :icon="action.icon"
+            size="small"
+            icon-only
+            :leading-icon="action.icon"
             :disabled="action.disabled"
-            :loading="action.disabled"
             :aria-label="action.label"
             @click="action.onClick"
           />

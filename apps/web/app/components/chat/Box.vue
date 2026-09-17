@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Globe, Paperclip } from "lucide-vue-next";
+import { BButton, BChip } from "@chestnut-chat/ui";
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
 import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
 import type { ChatStatus, FileUIPart } from "ai";
@@ -246,26 +248,23 @@ async function submitSuggestion(text: string) {
 <template>
   <div class="w-full">
     <div v-if="files.length" class="mb-2 flex flex-wrap gap-2">
-      <UBadge
+      <BChip
         v-for="(file, index) in files"
         :key="`${file.name}-${file.size}-${index}`"
+        variant="caption"
         color="neutral"
-        variant="subtle"
-        :label="file.name"
-        icon="i-lucide-paperclip"
       >
-        <template #trailing>
-          <UButton
-            color="neutral"
-            variant="link"
-            size="xs"
-            icon="i-lucide-x"
-            class="ms-1"
-            :aria-label="$t('chat.attachRemove')"
-            @click="removeFile(index)"
-          />
-        </template>
-      </UBadge>
+        <UIcon name="i-lucide-paperclip" class="size-3.5 shrink-0" />
+        {{ file.name }}
+        <button
+          type="button"
+          class="ml-0.5 inline-flex cursor-pointer items-center rounded-sm p-0.5 hover:text-text-primary"
+          :aria-label="$t('chat.attachRemove')"
+          @click="removeFile(index)"
+        >
+          <UIcon name="i-lucide-x" class="size-3.5 shrink-0" />
+        </button>
+      </BChip>
     </div>
 
     <UChatPrompt
@@ -310,12 +309,11 @@ async function submitSuggestion(text: string) {
           />
 
           <UTooltip :text="$t('chat.webSearch')">
-            <UButton
-              :color="webSearch ? 'primary' : 'neutral'"
-              :variant="webSearch ? 'soft' : 'ghost'"
-              icon="i-lucide-globe"
-              size="sm"
-              square
+            <BButton
+              :variant="webSearch ? 'primary' : 'ghost'"
+              size="small"
+              icon-only
+              :leading-icon="Globe"
               :aria-label="$t('chat.webSearch')"
               :aria-pressed="webSearch"
               @click="
@@ -329,12 +327,11 @@ async function submitSuggestion(text: string) {
           <UTooltip
             :text="selectedModelSupportsVision ? $t('chat.attach') : $t('chat.attachDocumentsOnly')"
           >
-            <UButton
-              color="neutral"
+            <BButton
               variant="ghost"
-              icon="i-lucide-paperclip"
-              size="sm"
-              square
+              size="small"
+              icon-only
+              :leading-icon="Paperclip"
               :disabled="isUploading"
               :aria-label="$t('chat.attach')"
               @click="fileInput?.click()"

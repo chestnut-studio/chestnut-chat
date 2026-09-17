@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ExternalLink } from "lucide-vue-next";
+import { BButton, BButtonLink, BInput } from "@chestnut-chat/ui";
 import type { ProviderFormFields } from "~/types/providers";
 
 const props = defineProps<{
@@ -26,7 +28,7 @@ function updateText(key: "displayName" | "baseUrl" | "apiKey", value: string | n
 <template>
   <div class="space-y-4">
     <UFormField :label="$t('settings.displayName')" required>
-      <UInput
+      <BInput
         :model-value="form.displayName"
         class="w-full"
         @update:model-value="updateText('displayName', $event)"
@@ -39,7 +41,7 @@ function updateText(key: "displayName" | "baseUrl" | "apiKey", value: string | n
       :description="$t('settings.baseUrlDescription')"
       required
     >
-      <UInput
+      <BInput
         :model-value="form.baseUrl"
         :placeholder="form.baseUrlPlaceholder"
         class="w-full"
@@ -58,7 +60,7 @@ function updateText(key: "displayName" | "baseUrl" | "apiKey", value: string | n
       :required="form.apiKeyRequired"
     >
       <div class="flex items-stretch gap-2">
-        <UInput
+        <BInput
           :model-value="form.apiKey"
           type="password"
           :placeholder="form.keyPlaceholder"
@@ -66,28 +68,27 @@ function updateText(key: "displayName" | "baseUrl" | "apiKey", value: string | n
           autocomplete="off"
           @update:model-value="updateText('apiKey', $event)"
         />
-        <UButton
+        <BButtonLink
           v-if="form.apiKeyUrl"
           :href="form.apiKeyUrl"
           target="_blank"
           rel="noopener noreferrer"
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-external-link"
-          :label="$t('settings.getApiKey')"
+          variant="secondary"
+          :leading-icon="ExternalLink"
           class="shrink-0"
-        />
+        >
+          {{ $t("settings.getApiKey") }}
+        </BButtonLink>
       </div>
     </UFormField>
 
     <div class="flex justify-end gap-2">
-      <UButton
-        color="neutral"
-        variant="outline"
-        :label="$t('actions.cancel')"
-        @click="emit('cancel')"
-      />
-      <UButton :label="saveLabel" :disabled="!canSave" @click="emit('save')" />
+      <BButton variant="secondary" @click="emit('cancel')">
+        {{ $t("actions.cancel") }}
+      </BButton>
+      <BButton :disabled="!canSave" @click="emit('save')">
+        {{ saveLabel }}
+      </BButton>
     </div>
   </div>
 </template>

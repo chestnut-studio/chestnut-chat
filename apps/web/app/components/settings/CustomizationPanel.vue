@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ArrowUp, RotateCcw } from "lucide-vue-next";
+import { BButton, BDivider } from "@chestnut-chat/ui";
 import { NEUTRAL_THEME_COLORS, PRIMARY_THEME_COLORS, THEME_RADIUS_OPTIONS } from "~/utils/theme";
 
 const colorMode = useColorMode();
@@ -69,14 +71,9 @@ function resetTheme() {
         <h2 class="text-xl font-semibold text-highlighted">{{ $t("settings.appearance") }}</h2>
         <p class="mt-1 text-sm text-muted">{{ $t("settings.appearanceDescription") }}</p>
       </div>
-      <UButton
-        icon="i-lucide-rotate-ccw"
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        :label="$t('settings.resetTheme')"
-        @click="resetTheme"
-      />
+      <BButton variant="ghost" size="small" :leading-icon="RotateCcw" @click="resetTheme">
+        {{ $t("settings.resetTheme") }}
+      </BButton>
     </div>
 
     <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
@@ -137,7 +134,7 @@ function resetTheme() {
               :options="primaryOptions"
             />
 
-            <USeparator />
+            <BDivider />
 
             <SettingsThemeColorSelector
               v-model="neutral"
@@ -147,7 +144,7 @@ function resetTheme() {
               :options="neutralOptions"
             />
 
-            <USeparator />
+            <BDivider />
 
             <fieldset>
               <legend class="font-medium text-highlighted">{{ $t("settings.radius") }}</legend>
@@ -208,7 +205,7 @@ function resetTheme() {
               <span class="min-w-0 flex-1 truncate pl-1 text-xs text-dimmed">
                 {{ $t("settings.previewPlaceholder") }}
               </span>
-              <UButton icon="i-lucide-arrow-up" size="xs" square :aria-label="$t('chat.send')" />
+              <BButton size="xs" icon-only :leading-icon="ArrowUp" :aria-label="$t('chat.send')" />
             </div>
           </div>
         </div>
