@@ -8,6 +8,11 @@ export default defineNuxtConfig({
     payloadExtraction: "client",
   },
   modules: ["@nuxt/ui", "vue-sonner/nuxt", "@nuxtjs/i18n", "@nuxt/image"],
+  icon: {
+    clientBundle: {
+      icons: ["simple-icons:github", "simple-icons:google"],
+    },
+  },
   app: {
     head: {
       link: [

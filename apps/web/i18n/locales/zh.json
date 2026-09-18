@@ -233,6 +233,7 @@
   },
   "login": {
     "title": "登录",
+    "close": "关闭登录窗口",
     "github": "使用 GitHub 登录",
     "google": "使用 Google 登录",
     "or": "或",

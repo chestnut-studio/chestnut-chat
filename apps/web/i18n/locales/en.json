@@ -233,6 +233,7 @@
   },
   "login": {
     "title": "Sign in",
+    "close": "Close sign in",
     "github": "Continue with GitHub",
     "google": "Continue with Google",
     "or": "or",
