@@ -4,7 +4,7 @@ import {
   modelSupportsReasoning,
   modelSupportsVision,
 } from "@chestnut-chat/api/providers/model-capabilities";
-import { BChip } from "@chestnut-chat/ui";
+import { BChip, BTooltip } from "@chestnut-chat/ui";
 
 import type { ProviderModel } from "~/composables/useProviderKeys";
 
@@ -50,25 +50,25 @@ const hasCapabilities = computed(
 
 <template>
   <div v-if="hasCapabilities" class="flex shrink-0 flex-wrap items-center gap-1">
-    <UTooltip v-if="supportsReasoning" :text="$t('settings.supportsReasoning')">
+    <BTooltip v-if="supportsReasoning" :text="$t('settings.supportsReasoning')">
       <BChip variant="caption" color="blue" :aria-label="$t('settings.supportsReasoning')">
-        <UIcon name="i-lucide-brain" class="size-3.5 shrink-0" />
+        <BIcon name="i-lucide-brain" class="size-3.5 shrink-0" />
         <span v-if="!compact">{{ $t("settings.reasoningTag") }}</span>
       </BChip>
-    </UTooltip>
+    </BTooltip>
 
-    <UTooltip v-if="supportsVision" :text="$t('settings.supportsVision')">
+    <BTooltip v-if="supportsVision" :text="$t('settings.supportsVision')">
       <BChip variant="caption" color="cyan" :aria-label="$t('settings.supportsVision')">
-        <UIcon name="i-lucide-image" class="size-3.5 shrink-0" />
+        <BIcon name="i-lucide-image" class="size-3.5 shrink-0" />
         <span v-if="!compact">{{ $t("settings.visionTag") }}</span>
       </BChip>
-    </UTooltip>
+    </BTooltip>
 
-    <UTooltip v-if="supportsMultimodal" :text="$t('settings.supportsMultimodal')">
+    <BTooltip v-if="supportsMultimodal" :text="$t('settings.supportsMultimodal')">
       <BChip variant="caption" color="yellow" :aria-label="$t('settings.supportsMultimodal')">
-        <UIcon name="i-lucide-sparkles" class="size-3.5 shrink-0" />
+        <BIcon name="i-lucide-sparkles" class="size-3.5 shrink-0" />
         <span v-if="!compact">{{ $t("settings.multimodalTag") }}</span>
       </BChip>
-    </UTooltip>
+    </BTooltip>
   </div>
 </template>

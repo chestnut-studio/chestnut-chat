@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { Copy, GitFork, Pencil, RefreshCw } from "lucide-vue-next";
 import type { Component } from "vue";
-import { BButton } from "@chestnut-chat/ui";
+import { BButton, BTooltip } from "@chestnut-chat/ui";
 import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
-import { isPartStreaming, isToolStreaming } from "@nuxt/ui/utils/ai";
 import {
   getToolName,
   isFileUIPart,
@@ -45,6 +44,14 @@ type TypingState = {
   timer?: ReturnType<typeof setTimeout>;
 };
 type MessagePart = ChatUIMessage["parts"][number];
+
+function isPartStreaming(part: { state?: string }) {
+  return part.state === "streaming";
+}
+
+function isToolStreaming(part: { state: string }) {
+  return !["output-available", "output-error", "output-denied"].includes(part.state);
+}
 
 const typingStates = reactive<Record<string, TypingState>>({});
 const abortedTexts = reactive<Record<string, string>>({});
@@ -568,106 +575,120 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="root" class="min-h-full">
-    <UChatMessages
-      :messages="props.messages"
-      :status="props.status"
-      :assistant="{ ui: { body: 'w-full' } }"
-      :ui="{
-        viewport:
-          'pointer-events-none sticky bottom-4 z-10 mx-auto flex h-0 w-full justify-center overflow-visible data-[state=open]:animate-[fade-in_200ms_ease-out] data-[state=closed]:animate-[fade-out_200ms_ease-in]',
-        autoScroll:
-          'pointer-events-none -translate-y-full rounded-full opacity-0 shadow-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100',
-      }"
-      class="min-h-full"
-    >
-      <template #content="{ message }">
-        <template v-for="view in [messageView(message)]" :key="message.id">
-          <template
-            v-for="{ part, index, renderable } in view.views"
-            :key="`${message.id}-${part.type}-${index}`"
-          >
-            <ChatWebSearch
-              v-if="part.type === 'data-web-search'"
-              :progress="part.data"
-              :sources="view.sources"
-            />
-
-            <div
-              v-else-if="part.type === 'data-document'"
-              class="mb-2 inline-flex max-w-full items-center gap-2 rounded-md bg-elevated px-2.5 py-1.5 text-sm text-muted"
+    <div class="flex min-h-full flex-col gap-6">
+      <article
+        v-for="message in props.messages"
+        :key="message.id"
+        class="group/message flex flex-col gap-2"
+        :class="message.role === 'user' ? 'items-end' : 'items-start'"
+      >
+        <div
+          class="min-w-0 text-body-regular text-text-primary"
+          :class="
+            message.role === 'user'
+              ? 'max-w-[85%] rounded-3xl bg-background-secondary-default px-4 py-3'
+              : 'w-full'
+          "
+        >
+          <template v-for="view in [messageView(message)]" :key="message.id">
+            <template
+              v-for="{ part, index, renderable } in view.views"
+              :key="`${message.id}-${part.type}-${index}`"
             >
-              <UIcon name="i-lucide-file-text" class="size-4 shrink-0" />
-              <span class="truncate" :title="part.data.filename">{{ part.data.filename }}</span>
-              <span class="sr-only">{{ $t("chat.attachedDocument") }}</span>
-            </div>
-
-            <div v-else-if="isFileUIPart(part)" class="mb-2">
-              <img
-                v-if="part.mediaType.startsWith('image/')"
-                :src="part.url"
-                :alt="part.filename || 'attachment'"
-                class="max-h-64 max-w-full rounded-md border border-default object-contain"
+              <ChatWebSearch
+                v-if="part.type === 'data-web-search'"
+                :progress="part.data"
+                :sources="view.sources"
               />
+
               <div
-                v-else
-                class="inline-flex max-w-full items-center gap-2 rounded-md bg-elevated px-2.5 py-1.5 text-sm text-muted"
+                v-else-if="part.type === 'data-document'"
+                class="mb-2 inline-flex max-w-full items-center gap-2 rounded-md bg-elevated px-2.5 py-1.5 text-sm text-muted"
               >
-                <UIcon name="i-lucide-paperclip" class="size-4 shrink-0" />
-                <span class="truncate">{{ part.filename || part.mediaType }}</span>
+                <BIcon name="i-lucide-file-text" class="size-4 shrink-0" />
+                <span class="truncate" :title="part.data.filename">{{ part.data.filename }}</span>
+                <span class="sr-only">{{ $t("chat.attachedDocument") }}</span>
               </div>
-            </div>
 
-            <UChatReasoning
-              v-else-if="isReasoningUIPart(part) && renderable"
-              :text="typedText(message, part, index)"
-              :streaming="isLivePart(message, part, index)"
-              :ui="{ body: 'max-h-none overflow-visible' }"
-            >
-              <ChatMarkdown
-                :content="typedText(message, part, index)"
-                :live="isLivePart(message, part, index)"
-                :sources="view.sources"
-              />
-            </UChatReasoning>
+              <div v-else-if="isFileUIPart(part)" class="mb-2">
+                <img
+                  v-if="part.mediaType.startsWith('image/')"
+                  :src="part.url"
+                  :alt="part.filename || 'attachment'"
+                  class="max-h-64 max-w-full rounded-md border border-default object-contain"
+                />
+                <div
+                  v-else
+                  class="inline-flex max-w-full items-center gap-2 rounded-md bg-elevated px-2.5 py-1.5 text-sm text-muted"
+                >
+                  <BIcon name="i-lucide-paperclip" class="size-4 shrink-0" />
+                  <span class="truncate">{{ part.filename || part.mediaType }}</span>
+                </div>
+              </div>
 
-            <UChatTool
-              v-else-if="isToolUIPart(part)"
-              :text="getToolName(part)"
-              :streaming="isToolStreaming(part)"
-            />
-
-            <template v-else-if="isTextUIPart(part)">
-              <ChatMarkdown
-                v-if="message.role === 'assistant' && renderable"
-                :content="typedText(message, part, index)"
-                :live="isLivePart(message, part, index)"
-                :sources="view.sources"
-              />
-              <p
-                v-else-if="message.role === 'user'"
-                class="whitespace-pre-wrap"
-                :data-chat-toc="message.id"
+              <details
+                v-else-if="isReasoningUIPart(part) && renderable"
+                class="mb-3 rounded-xl border border-border-button-default bg-background-secondary-default p-3"
+                :open="isLivePart(message, part, index)"
               >
-                {{ part.text }}
-              </p>
+                <summary class="cursor-pointer text-body-medium text-text-secondary">
+                  {{ $t("chat.reasoningActive") }}
+                </summary>
+                <ChatMarkdown
+                  class="mt-2"
+                  :content="typedText(message, part, index)"
+                  :live="isLivePart(message, part, index)"
+                  :sources="view.sources"
+                />
+              </details>
+
+              <div
+                v-else-if="isToolUIPart(part)"
+                class="mb-3 inline-flex items-center gap-2 rounded-xl border border-border-button-default bg-background-secondary-default px-3 py-2 text-body-2-medium text-text-secondary"
+              >
+                <BIcon
+                  :name="isToolStreaming(part) ? 'i-lucide-loader-circle' : 'i-lucide-wrench'"
+                  class="size-4"
+                  :class="isToolStreaming(part) ? 'animate-spin' : undefined"
+                />
+                {{ getToolName(part) }}
+              </div>
+
+              <template v-else-if="isTextUIPart(part)">
+                <ChatMarkdown
+                  v-if="message.role === 'assistant' && renderable"
+                  :content="typedText(message, part, index)"
+                  :live="isLivePart(message, part, index)"
+                  :sources="view.sources"
+                />
+                <p
+                  v-else-if="message.role === 'user'"
+                  class="whitespace-pre-wrap"
+                  :data-chat-toc="message.id"
+                >
+                  {{ part.text }}
+                </p>
+              </template>
             </template>
           </template>
-        </template>
-      </template>
+        </div>
 
-      <template #actions="{ message }">
-        <UTooltip v-for="action in actionsFor(message)" :key="action.label" :text="action.label">
-          <BButton
-            variant="ghost"
-            size="small"
-            icon-only
-            :leading-icon="action.icon"
-            :disabled="action.disabled"
-            :aria-label="action.label"
-            @click="action.onClick"
-          />
-        </UTooltip>
-      </template>
-    </UChatMessages>
+        <div
+          class="flex items-center gap-1 opacity-0 transition-opacity group-hover/message:opacity-100 group-focus-within/message:opacity-100"
+        >
+          <BTooltip v-for="action in actionsFor(message)" :key="action.label" :text="action.label">
+            <BButton
+              variant="ghost"
+              size="small"
+              icon-only
+              :leading-icon="action.icon"
+              :disabled="action.disabled"
+              :aria-label="action.label"
+              @click="action.onClick"
+            />
+          </BTooltip>
+        </div>
+      </article>
+    </div>
   </div>
 </template>

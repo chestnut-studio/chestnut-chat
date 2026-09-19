@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import { en, zh_cn } from "@nuxt/ui/locale";
-
-const { locale } = useI18n();
 const colorMode = useColorMode();
 const { radius } = useThemePreferences();
-const uiLocale = computed(() => (locale.value === "zh" ? zh_cn : en));
 const sonnerTheme = computed(() => (colorMode.value === "dark" ? "dark" : "light"));
 
 useHead(() => ({
@@ -27,11 +23,9 @@ const VueQueryDevtools = import.meta.dev
   <NuxtAnnouncer />
   <NuxtRouteAnnouncer />
   <NuxtLoadingIndicator />
-  <UApp :locale="uiLocale" :toaster="null">
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
-    <Toaster :theme="sonnerTheme" />
-  </UApp>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
+  <Toaster :theme="sonnerTheme" />
   <component :is="VueQueryDevtools" v-if="VueQueryDevtools" />
 </template>

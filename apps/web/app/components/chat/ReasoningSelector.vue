@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Brain, ChevronDown } from "lucide-vue-next";
-import { BButton } from "@chestnut-chat/ui";
+import { BButton, BDropdown, BTooltip, type DropdownItem } from "@chestnut-chat/ui";
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
-import type { DropdownMenuItem } from "@nuxt/ui";
 
 const props = defineProps<{
   supported: boolean;
@@ -44,7 +43,7 @@ function selectEffort(value: ReasoningEffort) {
   reasoning.value = true;
 }
 
-const effortItems = computed<DropdownMenuItem[]>(() => [
+const effortItems = computed<DropdownItem[]>(() => [
   {
     label: t("chat.reasoningOff"),
     icon: isActive.value ? undefined : "i-lucide-check",
@@ -64,9 +63,9 @@ function toggleReasoning() {
 </script>
 
 <template>
-  <UTooltip :text="statusLabel">
+  <BTooltip :text="statusLabel">
     <span class="inline-flex">
-      <UDropdownMenu
+      <BDropdown
         v-if="supported && supportsEffortSelection"
         :items="effortItems"
         :content="{ align: 'start', side: 'bottom', sideOffset: 8 }"
@@ -82,7 +81,7 @@ function toggleReasoning() {
         >
           {{ buttonLabel }}
         </BButton>
-      </UDropdownMenu>
+      </BDropdown>
 
       <BButton
         v-else
@@ -99,5 +98,5 @@ function toggleReasoning() {
         @click="toggleReasoning"
       />
     </span>
-  </UTooltip>
+  </BTooltip>
 </template>

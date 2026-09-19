@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BChip } from "@chestnut-chat/ui";
+import { BChip, BSkeleton, BTooltip } from "@chestnut-chat/ui";
 import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
 
 import type { ChatBoxProject } from "./Box.vue";
@@ -47,11 +47,11 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
     class="flex h-(--ui-header-height) shrink-0 items-center justify-between gap-3 border-b border-default px-4 sm:px-6"
   >
     <div class="flex min-w-0 flex-1 items-center gap-2">
-      <UTooltip :text="title" :content="{ side: 'bottom', sideOffset: 6 }">
+      <BTooltip :text="title">
         <h1 class="min-w-0 truncate text-sm font-semibold text-highlighted sm:text-base">
           {{ title }}
         </h1>
-      </UTooltip>
+      </BTooltip>
 
       <NuxtLink
         v-if="project"
@@ -59,7 +59,7 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
         class="hidden shrink-0 items-center gap-1.5 rounded-full border border-default px-2.5 py-1 text-xs text-muted transition hover:border-primary/40 hover:text-highlighted sm:flex"
       >
         <span v-if="project.iconKind === 'emoji'" aria-hidden="true">{{ project.iconValue }}</span>
-        <UIcon
+        <BIcon
           v-else
           :name="`i-lucide-${project.iconValue}`"
           class="size-3.5"
@@ -69,9 +69,9 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
       </NuxtLink>
     </div>
 
-    <USkeleton v-if="showModelSkeleton" class="h-7 w-28 shrink-0 rounded-full" />
+    <BSkeleton v-if="showModelSkeleton" class="h-7 w-28 shrink-0 rounded-full" />
 
-    <UTooltip
+    <BTooltip
       v-else
       :content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
       :ui="{
@@ -85,12 +85,12 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
       >
         <ModelIcon :icon="modelIcon" />
         <span class="max-w-44 truncate font-medium sm:max-w-64">{{ modelLabel }}</span>
-        <UIcon
+        <BIcon
           v-if="reasoningActive"
           name="i-lucide-brain"
           class="size-3.5 shrink-0 text-primary"
         />
-        <UIcon v-if="webSearch" name="i-lucide-globe" class="size-3.5 shrink-0 text-muted" />
+        <BIcon v-if="webSearch" name="i-lucide-globe" class="size-3.5 shrink-0 text-muted" />
       </span>
 
       <template #content>
@@ -114,16 +114,16 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
               :vision="modelOption.vision"
             />
             <BChip v-if="reasoningActive" variant="caption" color="blue">
-              <UIcon name="i-lucide-brain" class="size-3.5 shrink-0" />
+              <BIcon name="i-lucide-brain" class="size-3.5 shrink-0" />
               {{ t("chat.reasoningActive") }}
             </BChip>
             <BChip v-if="webSearch" variant="caption" color="neutral">
-              <UIcon name="i-lucide-globe" class="size-3.5 shrink-0" />
+              <BIcon name="i-lucide-globe" class="size-3.5 shrink-0" />
               {{ t("chat.webSearch") }}
             </BChip>
           </div>
         </div>
       </template>
-    </UTooltip>
+    </BTooltip>
   </header>
 </template>

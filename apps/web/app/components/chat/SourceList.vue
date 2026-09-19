@@ -34,7 +34,7 @@ defineProps<{
               class="ring-1 ring-accented"
             />
             <span class="truncate text-xs text-muted">{{ sourceSiteLabel(source) }}</span>
-            <UIcon
+            <BIcon
               name="i-lucide-arrow-up-right"
               class="ml-auto size-3.5 shrink-0 text-dimmed opacity-0 transition-opacity group-hover:opacity-100"
             />

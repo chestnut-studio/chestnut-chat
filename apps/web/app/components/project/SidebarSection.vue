@@ -39,7 +39,7 @@ const emit = defineEmits<{
         class="flex min-w-0 flex-1 items-center gap-1 rounded-md px-2 py-1 text-base font-medium text-muted hover:bg-elevated"
         @click="emit('toggleSection')"
       >
-        <UIcon
+        <BIcon
           :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
           class="size-5 shrink-0"
         />

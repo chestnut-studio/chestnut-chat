@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "@nuxt/ui";
 @import "markstream-vue/index.css" layer(components);
 @import "katex/dist/katex.min.css";
 
@@ -10,6 +9,7 @@
 
 :root {
   --ui-radius: 0.25rem;
+  --ui-header-height: 4rem;
 }
 
 @layer base {

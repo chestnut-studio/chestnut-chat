@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Ellipsis } from "lucide-vue-next";
-import { BButton } from "@chestnut-chat/ui";
+import { BButton, BDropdown, type DropdownItem } from "@chestnut-chat/ui";
 import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
-import type { DropdownMenuItem } from "@nuxt/ui";
 
 import type { ProjectRow } from "~/composables/useProjects";
 import type { ChatRow } from "~/utils/group-chats";
@@ -34,7 +33,7 @@ const { t } = useI18n();
 const expanded = computed(() => props.forceOpen || props.open);
 const isActive = computed(() => props.activeProjectId === props.project.id);
 
-const items = computed<DropdownMenuItem[][]>(() => [
+const items = computed<DropdownItem[][]>(() => [
   [
     {
       label: t("project.newChat"),
@@ -51,7 +50,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
     {
       label: t("actions.delete"),
       icon: "i-lucide-trash-2",
-      color: "error",
+      color: "danger",
       onSelect: () => emit("delete", props.project),
     },
   ],
@@ -73,20 +72,20 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
         :aria-label="expanded ? $t('project.collapse') : $t('project.expand')"
         @click.stop="emit('toggle')"
       >
-        <UIcon
+        <BIcon
           :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
           class="size-4"
         />
       </button>
       <span v-if="project.iconKind === 'emoji'" class="text-sm">{{ project.iconValue }}</span>
-      <UIcon
+      <BIcon
         v-else
         :name="`i-lucide-${project.iconValue}`"
         class="size-3.5 shrink-0"
         :class="iconColorClass"
       />
       <span class="min-w-0 flex-1 truncate text-sm font-medium">{{ project.name }}</span>
-      <UDropdownMenu :items="items" @click.stop>
+      <BDropdown :items="items" @click.stop>
         <BButton
           variant="ghost"
           size="xs"
@@ -95,7 +94,7 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
           class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
           @click.stop
         />
-      </UDropdownMenu>
+      </BDropdown>
     </div>
 
     <div v-if="expanded" class="ms-3 space-y-0.5 border-s border-default ps-2">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Plus } from "lucide-vue-next";
-import { BButton, BInput } from "@chestnut-chat/ui";
+import { BButton, BDropdown, BFormField, BInput, BModal, BSkeleton } from "@chestnut-chat/ui";
 
 const {
   addProviderItems,
@@ -54,9 +54,9 @@ onMounted(() => {
           {{ $t("settings.apiProvidersDescription") }}
         </p>
       </div>
-      <UDropdownMenu :items="addProviderItems">
+      <BDropdown :items="addProviderItems">
         <template #item-leading="{ item }">
-          <ProviderIcon :provider="item.iconProvider" size="xs" />
+          <ProviderIcon :provider="item.iconProvider ?? 'custom'" size="xs" />
         </template>
 
         <BButton
@@ -66,19 +66,19 @@ onMounted(() => {
         >
           {{ $t("settings.addProvider") }}
         </BButton>
-      </UDropdownMenu>
+      </BDropdown>
     </div>
 
     <div v-if="isLoadingProviders" class="space-y-3">
-      <USkeleton class="h-28 w-full rounded-xl" />
-      <USkeleton class="h-28 w-full rounded-xl" />
+      <BSkeleton class="h-28 w-full rounded-xl" />
+      <BSkeleton class="h-28 w-full rounded-xl" />
     </div>
 
     <div
       v-else-if="!hasAnyProvider && !providerDraft"
       class="border-default rounded-xl border border-dashed py-14 text-center"
     >
-      <UIcon name="i-lucide-key-round" class="text-muted mx-auto mb-3 size-10" />
+      <BIcon name="i-lucide-key-round" class="text-muted mx-auto mb-3 size-10" />
       <p class="font-medium">{{ $t("settings.noProvidersYet") }}</p>
       <p class="text-muted mt-1 text-sm">{{ $t("settings.noProvidersYetHint") }}</p>
     </div>
@@ -114,7 +114,7 @@ onMounted(() => {
       @remove-model="removeModel(provider, $event)"
     />
 
-    <UModal
+    <BModal
       v-model:open="deleteConfirmOpen"
       :title="$t('settings.deleteProviderTitle')"
       :description="$t('settings.deleteProviderDescription', { name: deleteProviderName })"
@@ -128,29 +128,29 @@ onMounted(() => {
           {{ $t("actions.delete") }}
         </BButton>
       </template>
-    </UModal>
+    </BModal>
 
-    <UModal
+    <BModal
       v-model:open="manualModelOpen"
       :title="$t('settings.addModelForProvider', { name: manualModelProviderName })"
       :ui="{ footer: 'justify-end' }"
     >
       <template #body>
         <div class="space-y-4">
-          <UFormField :label="$t('settings.modelId')" required>
+          <BFormField :label="$t('settings.modelId')" required>
             <BInput
               v-model="manualModelForm.id"
               placeholder="gpt-4o-mini"
               class="w-full font-mono"
             />
-          </UFormField>
-          <UFormField :label="$t('settings.modelName')" :hint="$t('settings.optional')">
+          </BFormField>
+          <BFormField :label="$t('settings.modelName')" :hint="$t('settings.optional')">
             <BInput
               v-model="manualModelForm.name"
               :placeholder="$t('settings.modelNamePlaceholder')"
               class="w-full"
             />
-          </UFormField>
+          </BFormField>
         </div>
       </template>
       <template #footer="{ close }">
@@ -161,6 +161,6 @@ onMounted(() => {
           {{ $t("actions.save") }}
         </BButton>
       </template>
-    </UModal>
+    </BModal>
   </div>
 </template>

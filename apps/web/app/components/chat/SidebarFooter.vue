@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { LogIn } from "lucide-vue-next";
-import { BAvatar, BButton } from "@chestnut-chat/ui";
-import type { DropdownMenuItem } from "@nuxt/ui";
+import { BAvatar, BButton, BDropdown, BSkeleton, type DropdownItem } from "@chestnut-chat/ui";
 
 defineProps<{
   collapsed?: boolean;
@@ -19,7 +18,7 @@ onMounted(() => {
   authSession.ensure();
 });
 
-const menuItems = computed<DropdownMenuItem[][]>(() => [
+const menuItems = computed<DropdownItem[][]>(() => [
   [
     {
       label: t("settings.title"),
@@ -31,7 +30,7 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     {
       label: t("settings.signOut"),
       icon: "i-lucide-log-out",
-      color: "error",
+      color: "danger",
       onSelect: signOut,
     },
   ],
@@ -40,9 +39,9 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
 
 <template>
   <div class="w-full">
-    <USkeleton v-if="!hydrated || authSession.isPending" class="h-9 w-full" />
+    <BSkeleton v-if="!hydrated || authSession.isPending" class="h-9 w-full" />
 
-    <UDropdownMenu
+    <BDropdown
       v-else-if="authSession.data"
       :items="menuItems"
       class="w-full"
@@ -57,7 +56,7 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
         />
         <span v-if="!collapsed" class="min-w-0 truncate">{{ authSession.data.user.name }}</span>
       </BButton>
-    </UDropdownMenu>
+    </BDropdown>
 
     <BButton
       v-else

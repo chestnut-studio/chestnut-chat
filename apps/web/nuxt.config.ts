@@ -1,4 +1,5 @@
 import "@chestnut-chat/env/web";
+import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -7,8 +8,9 @@ export default defineNuxtConfig({
   experimental: {
     payloadExtraction: "client",
   },
-  modules: ["@nuxt/ui", "vue-sonner/nuxt", "@nuxtjs/i18n", "@nuxt/image"],
+  modules: ["@nuxt/icon", "@nuxtjs/color-mode", "vue-sonner/nuxt", "@nuxtjs/i18n", "@nuxt/image"],
   icon: {
+    localApiEndpoint: "/_nuxt_icon",
     clientBundle: {
       icons: ["simple-icons:github", "simple-icons:google"],
     },
@@ -25,6 +27,9 @@ export default defineNuxtConfig({
     },
   },
   css: ["~/assets/css/main.css"],
+  colorMode: {
+    classSuffix: "",
+  },
   devServer: {
     port: 3011,
   },
@@ -43,6 +48,7 @@ export default defineNuxtConfig({
     },
   },
   vite: {
+    plugins: [tailwindcss()],
     optimizeDeps: {
       include: [
         "@tanstack/vue-query",

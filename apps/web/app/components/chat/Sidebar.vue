@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Plus, Search } from "lucide-vue-next";
-import { BButton, BInput } from "@chestnut-chat/ui";
+import { PanelLeftClose, PanelLeftOpen, Plus, Search } from "lucide-vue-next";
+import { BButton, BInput, BModal, BSelect } from "@chestnut-chat/ui";
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
-import type { CommandPaletteGroup } from "@nuxt/ui";
 
+const mobileOpen = defineModel<boolean>("mobileOpen", { default: false });
 const { t } = useI18n();
 const { list, rename, setPinned, setArchived, remove, create: createChat } = useChats();
 const { list: projects, remove: removeProject } = useProjects();
@@ -20,6 +20,7 @@ const { mutateAsync: moveChat, isPending: isMoving } = useMutation(
 
 const collapsed = ref(false);
 const searchOpen = ref(false);
+const searchQuery = shallowRef("");
 const renameOpen = ref(false);
 const renameTarget = ref<{ id: string; title: string } | null>(null);
 const renameValue = ref("");
@@ -51,7 +52,7 @@ const projectNameById = computed(() => {
   return map;
 });
 
-const paletteGroups = computed<CommandPaletteGroup[]>(() => [
+const paletteGroups = computed(() => [
   {
     id: "chats",
     label: t("sidebar.chats"),
@@ -79,11 +80,30 @@ const paletteGroups = computed<CommandPaletteGroup[]>(() => [
   },
 ]);
 
-defineShortcuts({
-  meta_k: () => {
-    searchOpen.value = true;
-  },
+const filteredPaletteGroups = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase();
+  if (!query) return paletteGroups.value;
+  return paletteGroups.value
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) =>
+        [item.label, "suffix" in item ? item.suffix : undefined]
+          .filter((value): value is string => typeof value === "string")
+          .some((value) => value.toLowerCase().includes(query)),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
 });
+
+function onShortcut(event: KeyboardEvent) {
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+    event.preventDefault();
+    searchOpen.value = true;
+  }
+}
+
+onMounted(() => window.addEventListener("keydown", onShortcut));
+onBeforeUnmount(() => window.removeEventListener("keydown", onShortcut));
 
 const activeId = computed(
   () => (route.params.chatId as string | undefined) ?? (route.params.id as string | undefined),
@@ -102,6 +122,22 @@ watch(
   },
   { immediate: true },
 );
+
+watch(
+  () => route.fullPath,
+  () => {
+    mobileOpen.value = false;
+  },
+);
+
+function closeSidebar() {
+  if (window.matchMedia("(max-width: 639px)").matches) {
+    mobileOpen.value = false;
+    return;
+  }
+
+  collapsed.value = true;
+}
 
 async function onNewChat() {
   const session = await authSession.ensure();
@@ -238,29 +274,31 @@ const moveItems = computed(() => [
 </script>
 
 <template>
-  <UDashboardSidebar
-    v-model:collapsed="collapsed"
-    collapsible
-    resizable
-    :min-size="16"
-    :default-size="20"
-    :max-size="30"
-    :ui="{ header: 'border-b border-default', footer: 'border-t border-default' }"
+  <button
+    v-if="mobileOpen"
+    type="button"
+    class="fixed inset-0 z-40 bg-black/60 sm:hidden"
+    aria-label="Close navigation"
+    @click="mobileOpen = false"
+  />
+  <aside
+    class="fixed inset-y-0 left-0 z-50 flex h-full w-72 shrink-0 flex-col border-r border-separator-border bg-background-primary-default transition-transform duration-200 sm:static sm:z-auto sm:translate-x-0 sm:transition-[width]"
+    :class="[mobileOpen ? 'translate-x-0' : '-translate-x-full', collapsed ? 'sm:w-16' : 'sm:w-72']"
   >
-    <template #header="{ collapsed: isCollapsed, collapse }">
+    <header class="flex h-16 items-center gap-2 border-b border-separator-border px-4">
       <div
-        v-if="isCollapsed"
+        v-if="collapsed"
         role="button"
         class="group relative flex w-full cursor-pointer items-center justify-center"
         :aria-label="$t('sidebar.expand')"
-        @click="collapse(false)"
+        @click="collapsed = false"
       >
         <NuxtImg
           src="/favicon.svg"
           alt="Chestnut Chat"
           class="size-6 transition-opacity duration-150 group-hover:opacity-0"
         />
-        <UIcon
+        <PanelLeftOpen
           name="i-lucide-panel-left-open"
           aria-hidden="true"
           class="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-muted opacity-0 transition-opacity duration-150 group-hover:opacity-100"
@@ -269,121 +307,141 @@ const moveItems = computed(() => [
       <template v-else>
         <NuxtImg src="/favicon.svg" alt="Chestnut Chat" class="size-6" />
         <span class="truncate font-semibold">{{ $t("app.name") }}</span>
-        <UDashboardSidebarCollapse class="ms-auto" />
-      </template>
-    </template>
-
-    <template #default="{ collapsed: isCollapsed }">
-      <div class="flex h-full min-h-0 flex-col gap-3">
         <BButton
-          variant="secondary"
-          class="w-full"
-          :icon-only="isCollapsed"
-          :leading-icon="Plus"
-          :aria-label="isCollapsed ? $t('sidebar.newChat') : undefined"
-          :disabled="authSession.isPending"
-          @click="onNewChat"
-        >
-          <span v-if="!isCollapsed">{{ $t("sidebar.newChat") }}</span>
-        </BButton>
-
-        <BButton
-          v-if="!isCollapsed"
-          variant="secondary"
+          class="ms-auto"
+          variant="ghost"
           size="small"
-          class="w-full justify-start"
-          @click="
-            () => {
-              searchOpen = true;
-            }
-          "
-        >
-          <UIcon name="i-lucide-search" class="size-[18px] shrink-0" />
-          {{ $t("sidebar.search") }}
-        </BButton>
+          icon-only
+          :leading-icon="PanelLeftClose"
+          :aria-label="$t('sidebar.collapse')"
+          @click="closeSidebar"
+        />
+      </template>
+    </header>
 
-        <div v-if="!isCollapsed" class="-me-4 min-h-0 flex-1 space-y-4 overflow-y-auto pe-1">
-          <ProjectSidebarSection
-            :projects="projectRows"
-            :chats-by-project="partitioned.byProject"
-            :active-chat-id="activeId"
-            :active-project-id="activeProjectId"
-            :expanded="projectsExpanded"
-            :is-project-open="isProjectOpen"
-            :force-open-project-ids="forceOpenProjectIds"
-            @create="openCreateProject"
-            @toggle-section="toggleProjects"
-            @toggle="toggleProject"
-            @select="onOpenProject"
-            @new-chat="onProjectNewChat"
-            @edit="openEditProject"
-            @delete="openDeleteProject"
-            @rename-chat="openRename"
-            @pin-chat="onPin"
-            @archive-chat="onArchive"
-            @delete-chat="openDelete"
-            @move-chat="openMove"
-          />
+    <div class="flex min-h-0 flex-1 flex-col gap-3 p-4">
+      <BButton
+        variant="secondary"
+        class="w-full"
+        :icon-only="collapsed"
+        :leading-icon="Plus"
+        :aria-label="collapsed ? $t('sidebar.newChat') : undefined"
+        :disabled="authSession.isPending"
+        @click="onNewChat"
+      >
+        <span v-if="!collapsed">{{ $t("sidebar.newChat") }}</span>
+      </BButton>
 
-          <div class="space-y-1">
-            <button
-              type="button"
-              class="flex w-full items-center gap-1 rounded-md px-2 py-1 text-base font-medium text-muted hover:bg-elevated"
-              @click="toggleChats"
-            >
-              <UIcon
-                :name="chatsExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-                class="size-5"
-              />
-              <span>{{ $t("sidebar.chats") }}</span>
-            </button>
+      <BButton
+        v-if="!collapsed"
+        variant="secondary"
+        size="small"
+        class="w-full justify-start"
+        @click="
+          () => {
+            searchOpen = true;
+          }
+        "
+      >
+        <Search class="size-[18px] shrink-0" />
+        {{ $t("sidebar.search") }}
+      </BButton>
 
-            <div v-if="chatsExpanded" class="space-y-3">
-              <div v-for="group in standaloneGroups" :key="group.key" class="pl-4 mb-4">
-                <p class="px-2 pb-1 text-xs font-medium text-muted">
-                  {{ $t(`groups.${group.key}`) }}
-                </p>
-                <ChatHistoryItem
-                  v-for="chat in group.chats"
-                  :key="chat.id"
-                  :chat="chat"
-                  :active="chat.id === activeId"
-                  @rename="openRename"
-                  @pin="onPin"
-                  @archive="onArchive"
-                  @delete="openDelete"
-                  @move="openMove"
-                />
-              </div>
+      <div v-if="!collapsed" class="-me-4 min-h-0 flex-1 space-y-4 overflow-y-auto pe-1">
+        <ProjectSidebarSection
+          :projects="projectRows"
+          :chats-by-project="partitioned.byProject"
+          :active-chat-id="activeId"
+          :active-project-id="activeProjectId"
+          :expanded="projectsExpanded"
+          :is-project-open="isProjectOpen"
+          :force-open-project-ids="forceOpenProjectIds"
+          @create="openCreateProject"
+          @toggle-section="toggleProjects"
+          @toggle="toggleProject"
+          @select="onOpenProject"
+          @new-chat="onProjectNewChat"
+          @edit="openEditProject"
+          @delete="openDeleteProject"
+          @rename-chat="openRename"
+          @pin-chat="onPin"
+          @archive-chat="onArchive"
+          @delete-chat="openDelete"
+          @move-chat="openMove"
+        />
 
-              <p
-                v-if="!standaloneGroups.length && list.status.value === 'success'"
-                class="px-2 text-sm text-muted"
-              >
-                {{ $t("sidebar.empty") }}
+        <div class="space-y-1">
+          <button
+            type="button"
+            class="flex w-full items-center gap-1 rounded-md px-2 py-1 text-base font-medium text-muted hover:bg-elevated"
+            @click="toggleChats"
+          >
+            <BIcon
+              :name="chatsExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
+              class="size-5"
+            />
+            <span>{{ $t("sidebar.chats") }}</span>
+          </button>
+
+          <div v-if="chatsExpanded" class="space-y-3">
+            <div v-for="group in standaloneGroups" :key="group.key" class="pl-4 mb-4">
+              <p class="px-2 pb-1 text-xs font-medium text-muted">
+                {{ $t(`groups.${group.key}`) }}
               </p>
+              <ChatHistoryItem
+                v-for="chat in group.chats"
+                :key="chat.id"
+                :chat="chat"
+                :active="chat.id === activeId"
+                @rename="openRename"
+                @pin="onPin"
+                @archive="onArchive"
+                @delete="openDelete"
+                @move="openMove"
+              />
             </div>
+
+            <p
+              v-if="!standaloneGroups.length && list.status.value === 'success'"
+              class="px-2 text-sm text-muted"
+            >
+              {{ $t("sidebar.empty") }}
+            </p>
           </div>
         </div>
       </div>
-    </template>
+    </div>
 
-    <template #footer="{ collapsed: isCollapsed }">
-      <ChatSidebarFooter :collapsed="isCollapsed" />
-    </template>
-  </UDashboardSidebar>
+    <footer class="border-t border-separator-border p-4">
+      <ChatSidebarFooter :collapsed="collapsed" />
+    </footer>
+  </aside>
 
-  <UModal v-model:open="searchOpen" :ui="{ content: 'sm:max-w-lg' }">
-    <template #content>
-      <UCommandPalette
-        close
-        :groups="paletteGroups"
-        :placeholder="$t('sidebar.search')"
-        :ui="{ input: 'h-12 text-base' }"
-        @update:open="searchOpen = $event"
-      />
+  <BModal v-model:open="searchOpen" :title="$t('sidebar.search')">
+    <template #body>
+      <BInput v-model="searchQuery" :leading-icon="Search" :placeholder="$t('sidebar.search')" />
+      <div class="mt-4 max-h-96 space-y-4 overflow-y-auto">
+        <section v-for="group in filteredPaletteGroups" :key="group.id">
+          <h3 class="px-2 text-caption-1-semibold text-text-tertiary">{{ group.label }}</h3>
+          <button
+            v-for="item in group.items"
+            :key="item.label"
+            type="button"
+            class="mt-1 flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-body-regular text-text-primary hover:bg-background-secondary-hover"
+            @click="item.onSelect"
+          >
+            <span>{{ item.label }}</span>
+            <span
+              v-if="'suffix' in item && item.suffix"
+              class="text-caption-1-regular text-text-tertiary"
+            >
+              {{ item.suffix }}
+            </span>
+          </button>
+        </section>
+      </div>
     </template>
-  </UModal>
+  </BModal>
 
   <ProjectFormModal
     v-model:open="projectFormOpen"
@@ -391,7 +449,7 @@ const moveItems = computed(() => [
     @created="onProjectCreated"
   />
 
-  <UModal
+  <BModal
     v-model:open="renameOpen"
     :title="$t('confirm.renameTitle')"
     :ui="{ footer: 'justify-end' }"
@@ -408,9 +466,9 @@ const moveItems = computed(() => [
         {{ $t("actions.save") }}
       </BButton>
     </template>
-  </UModal>
+  </BModal>
 
-  <UModal
+  <BModal
     v-model:open="deleteOpen"
     :title="$t('confirm.deleteTitle')"
     :description="$t('confirm.deleteDescription')"
@@ -424,9 +482,9 @@ const moveItems = computed(() => [
         {{ $t("actions.delete") }}
       </BButton>
     </template>
-  </UModal>
+  </BModal>
 
-  <UModal
+  <BModal
     v-model:open="deleteProjectOpen"
     :title="$t('project.deleteTitle')"
     :description="$t('project.deleteDescription')"
@@ -444,15 +502,15 @@ const moveItems = computed(() => [
         {{ $t("actions.delete") }}
       </BButton>
     </template>
-  </UModal>
+  </BModal>
 
-  <UModal
+  <BModal
     v-model:open="moveOpen"
     :title="$t('project.moveToProject')"
     :ui="{ footer: 'justify-end' }"
   >
     <template #body>
-      <USelect v-model="moveProjectId" :items="moveItems" value-key="value" class="w-full" />
+      <BSelect v-model="moveProjectId" :items="moveItems" class="w-full" />
     </template>
     <template #footer="{ close }">
       <BButton variant="secondary" :disabled="isMoving" @click="close">
@@ -462,5 +520,5 @@ const moveItems = computed(() => [
         {{ $t("actions.save") }}
       </BButton>
     </template>
-  </UModal>
+  </BModal>
 </template>

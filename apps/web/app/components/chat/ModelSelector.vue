@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Search } from "lucide-vue-next";
-import { BInput } from "@chestnut-chat/ui";
+import { BButton, BInput, BPopover } from "@chestnut-chat/ui";
 import type { ModelOption } from "~/utils/models";
 
 import ModelIcon from "./ModelIcon.vue";
@@ -45,7 +45,7 @@ function selectModel(value: string) {
 </script>
 
 <template>
-  <UPopover
+  <BPopover
     :open="open"
     :content="{ align: 'start', side: 'bottom', sideOffset: 8 }"
     :ui="{ content: 'w-[min(calc(100vw-2rem),38rem)] overflow-hidden p-0' }"
@@ -62,7 +62,7 @@ function selectModel(value: string) {
     >
       <ModelIcon :icon="selectedProviderIcon" />
       <span class="min-w-0 truncate text-left">{{ selectedLabel }}</span>
-      <UIcon name="i-lucide-chevron-down" class="size-4 shrink-0 text-muted" />
+      <BIcon name="i-lucide-chevron-down" class="size-4 shrink-0 text-muted" />
     </BButton>
 
     <template #content>
@@ -134,7 +134,7 @@ function selectModel(value: string) {
                 compact
               />
 
-              <UIcon
+              <BIcon
                 v-if="item.value === model"
                 name="i-lucide-check"
                 class="size-4 shrink-0 text-primary"
@@ -144,5 +144,5 @@ function selectModel(value: string) {
         </div>
       </div>
     </template>
-  </UPopover>
+  </BPopover>
 </template>

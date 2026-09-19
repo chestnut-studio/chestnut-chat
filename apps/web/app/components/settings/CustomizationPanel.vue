@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowUp, RotateCcw } from "lucide-vue-next";
-import { BButton, BDivider } from "@chestnut-chat/ui";
+import { BButton, BCard, BDivider, BSelect, BSkeleton } from "@chestnut-chat/ui";
 import { NEUTRAL_THEME_COLORS, PRIMARY_THEME_COLORS, THEME_RADIUS_OPTIONS } from "~/utils/theme";
 
 const colorMode = useColorMode();
@@ -78,7 +78,7 @@ function resetTheme() {
 
     <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
       <div class="space-y-6">
-        <UCard>
+        <BCard>
           <div>
             <h3 class="font-medium text-highlighted">{{ $t("settings.colorMode") }}</h3>
             <p class="mt-1 text-sm text-muted">{{ $t("settings.colorModeDescription") }}</p>
@@ -107,7 +107,7 @@ function resetTheme() {
                       : 'bg-elevated text-muted'
                   "
                 >
-                  <UIcon :name="option.icon" class="size-4" />
+                  <BIcon :name="option.icon" class="size-4" />
                 </span>
                 <span class="min-w-0">
                   <span class="block text-sm font-medium text-highlighted">{{ option.label }}</span>
@@ -119,13 +119,13 @@ function resetTheme() {
             </div>
             <template #fallback>
               <div class="mt-4 grid gap-2 sm:grid-cols-3">
-                <USkeleton v-for="index in 3" :key="index" class="h-[74px] rounded-md" />
+                <BSkeleton v-for="index in 3" :key="index" class="h-[74px] rounded-md" />
               </div>
             </template>
           </ClientOnly>
-        </UCard>
+        </BCard>
 
-        <UCard>
+        <BCard>
           <div class="space-y-7">
             <SettingsThemeColorSelector
               v-model="primary"
@@ -173,7 +173,7 @@ function resetTheme() {
               </div>
             </fieldset>
           </div>
-        </UCard>
+        </BCard>
       </div>
 
       <div class="xl:sticky xl:top-6">
@@ -195,7 +195,7 @@ function resetTheme() {
               <div
                 class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
               >
-                <UIcon name="i-lucide-sparkles" class="size-3.5" />
+                <BIcon name="i-lucide-sparkles" class="size-3.5" />
               </div>
               <p class="pt-1 text-xs leading-5 text-default">
                 {{ $t("settings.previewResponse") }}
@@ -210,20 +210,20 @@ function resetTheme() {
           </div>
         </div>
         <p class="mt-3 flex items-center gap-1.5 text-xs text-muted">
-          <UIcon name="i-lucide-cloud-check" class="size-3.5 text-success" />
+          <BIcon name="i-lucide-cloud-check" class="size-3.5 text-success" />
           {{ $t("settings.savedAutomatically") }}
         </p>
       </div>
     </div>
 
-    <UCard>
+    <BCard>
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 class="font-medium text-highlighted">{{ $t("settings.language") }}</h3>
           <p class="mt-1 text-sm text-muted">{{ $t("settings.languageDescription") }}</p>
         </div>
-        <USelect v-model="language" :items="languageOptions" class="w-full sm:w-44" />
+        <BSelect v-model="language" :items="languageOptions" class="w-full sm:w-44" />
       </div>
-    </UCard>
+    </BCard>
   </div>
 </template>

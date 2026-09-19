@@ -85,7 +85,7 @@ function onStatusClick() {
               : 'bg-elevated text-muted'
         "
       >
-        <UIcon
+        <BIcon
           :name="
             isError ? 'i-lucide-globe-off' : isPending ? 'i-lucide-loader-circle' : 'i-lucide-radar'
           "
@@ -101,14 +101,14 @@ function onStatusClick() {
         </p>
       </div>
 
-      <UIcon
+      <BIcon
         v-if="canOpenSources"
         name="i-lucide-panel-right"
         class="mt-1 size-3.5 shrink-0 text-dimmed"
       />
     </button>
 
-    <USlideover
+    <BSlideover
       v-model:open="open"
       side="right"
       :title="t('chat.webSearchSources')"
@@ -118,6 +118,6 @@ function onStatusClick() {
       <template #body>
         <ChatSourceList :sources="displaySources" />
       </template>
-    </USlideover>
+    </BSlideover>
   </div>
 </template>

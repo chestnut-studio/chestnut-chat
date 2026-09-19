@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BAvatar, BButtonLink } from "@chestnut-chat/ui";
+import { BAvatar, BButtonLink, BPopover } from "@chestnut-chat/ui";
 import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
 
 import { sourceFaviconUrl, sourceSiteLabel, sourceTitle } from "~/utils/chat-sources";
@@ -17,7 +17,7 @@ const previewTitle = computed(() => sourceTitle(props.source));
 </script>
 
 <template>
-  <UPopover
+  <BPopover
     mode="hover"
     :open-delay="220"
     :close-delay="100"
@@ -61,7 +61,7 @@ const previewTitle = computed(() => sourceTitle(props.source));
           <span class="min-w-0 flex-1 truncate text-sm font-medium text-default">
             {{ displayLabel }}
           </span>
-          <UIcon name="i-lucide-arrow-up-right" class="size-3.5 shrink-0 text-dimmed" />
+          <BIcon name="i-lucide-arrow-up-right" class="size-3.5 shrink-0 text-dimmed" />
         </div>
 
         <p class="mt-2.5 line-clamp-2 text-sm leading-5 font-semibold text-default">
@@ -75,5 +75,5 @@ const previewTitle = computed(() => sourceTitle(props.source));
         <p class="mt-2 truncate text-[11px] text-dimmed">{{ source.url }}</p>
       </a>
     </template>
-  </UPopover>
+  </BPopover>
 </template>

@@ -52,6 +52,21 @@ export { default as BHintText } from "./components/input/hint-text.vue";
 export type { HintTextProps } from "./components/input/hint-text.vue";
 export { default as BInput } from "./components/input/input.vue";
 export type { InputProps } from "./components/input/input.vue";
+export { default as BTextarea } from "./components/input/textarea.vue";
+export type { TextareaProps } from "./components/input/textarea.vue";
+export { default as BSelect } from "./components/input/select.vue";
+export { default as BFormField } from "./components/input/form-field.vue";
+export { default as BOtpInput } from "./components/input/otp-input.vue";
+
+export { default as BModal } from "./components/overlay/modal.vue";
+export type { ModalProps } from "./components/overlay/modal.vue";
+export { default as BPopover } from "./components/overlay/popover.vue";
+export type { PopoverProps } from "./components/overlay/popover.vue";
+export { default as BTooltip } from "./components/overlay/tooltip.vue";
+export { default as BDropdown } from "./components/dropdown/dropdown.vue";
+export type { DropdownItem } from "./components/dropdown/dropdown.vue";
+export { default as BSkeleton } from "./components/skeleton/skeleton.vue";
+export { default as BCard } from "./components/card/card.vue";
 
 export { default as BCheckbox } from "./components/checkbox/checkbox.vue";
 export type { CheckboxProps } from "./components/checkbox/checkbox.vue";

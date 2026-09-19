@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/vue";
 import { useQuery, useQueryClient } from "@tanstack/vue-query";
 import { DefaultChatTransport, type ChatStatus } from "ai";
 import { toast } from "vue-sonner";
+import { BButton, BModal, BTextarea } from "@chestnut-chat/ui";
 
 import type { DocumentAttachment } from "@chestnut-chat/api/chat/attachments";
 import type { FileUIPart } from "ai";
@@ -462,78 +463,70 @@ function confirmEdit() {
 </script>
 
 <template>
-  <UDashboardPanel
-    :id="`chat-${chatId}`"
-    :ui="{ body: 'min-h-0 gap-0 overflow-hidden p-0 sm:gap-0 sm:p-0' }"
-  >
-    <template #header>
-      <ChatHeader
-        :title="chatTitle"
-        :model="headerModel"
-        :reasoning="headerReasoning"
-        :web-search="headerWebSearch"
-        :project="chatProject"
-      />
-    </template>
-
-    <template #body>
-      <div class="group relative flex min-h-0 flex-1 overflow-hidden">
+  <main :id="`chat-${chatId}`" class="flex min-w-0 flex-1 flex-col overflow-hidden">
+    <ChatHeader
+      :title="chatTitle"
+      :model="headerModel"
+      :reasoning="headerReasoning"
+      :web-search="headerWebSearch"
+      :project="chatProject"
+    />
+    <div class="group relative flex min-h-0 flex-1 overflow-hidden">
+      <div
+        ref="scrollContainer"
+        class="group relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden py-4 sm:py-6"
+      >
         <div
-          ref="scrollContainer"
-          class="group relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden py-4 sm:py-6"
+          class="mx-auto w-full max-w-5xl px-4 sm:px-6"
+          :class="isHistoryLoading ? 'h-full' : ''"
         >
-          <UContainer :class="isHistoryLoading ? 'h-full' : ''">
-            <ChatHistoryLoading v-if="isHistoryLoading" />
-            <ChatMessages
-              v-else
-              :key="chatId"
-              :abort-key="abortRenderKey"
-              :messages="renderedMessages"
-              :status="status"
-              :forking-message-id="forkingMessageId"
-              @rendering-change="isRenderingResponse = $event"
-              @regenerate="onRegenerate"
-              @edit="openEdit"
-              @fork="onFork"
-            />
-          </UContainer>
+          <ChatHistoryLoading v-if="isHistoryLoading" />
+          <ChatMessages
+            v-else
+            :key="chatId"
+            :abort-key="abortRenderKey"
+            :messages="renderedMessages"
+            :status="status"
+            :forking-message-id="forkingMessageId"
+            @rendering-change="isRenderingResponse = $event"
+            @regenerate="onRegenerate"
+            @edit="openEdit"
+            @fork="onFork"
+          />
         </div>
-
-        <ChatToc
-          v-if="!isHistoryLoading"
-          :messages="renderedMessages"
-          :scroll-container="scrollContainer"
-          :status="status"
-          :forking-message-id="forkingMessageId"
-          @rendering-change="isRenderingResponse = $event"
-          @regenerate="onRegenerate"
-          @edit="openEdit"
-          @fork="onFork"
-        />
       </div>
-    </template>
 
-    <template #footer>
-      <UContainer class="w-full pb-4 sm:pb-6">
-        <ChatBox
-          v-model="selectedModel"
-          v-model:reasoning="selectedReasoning"
-          v-model:reasoning-effort="selectedReasoningEffort"
-          v-model:web-search="selectedWebSearch"
-          :status="promptStatus"
-          :project="chatProject"
-          :usage="chatUsage"
-          @submit="send"
-          @stop="abortResponse"
-          @reload="regenerate({ body: requestBody() })"
-        />
-      </UContainer>
-    </template>
-  </UDashboardPanel>
+      <ChatToc
+        v-if="!isHistoryLoading"
+        :messages="renderedMessages"
+        :scroll-container="scrollContainer"
+        :status="status"
+        :forking-message-id="forkingMessageId"
+        @rendering-change="isRenderingResponse = $event"
+        @regenerate="onRegenerate"
+        @edit="openEdit"
+        @fork="onFork"
+      />
+    </div>
+    <div class="mx-auto w-full max-w-5xl px-4 pb-4 sm:px-6 sm:pb-6">
+      <ChatBox
+        v-model="selectedModel"
+        v-model:reasoning="selectedReasoning"
+        v-model:reasoning-effort="selectedReasoningEffort"
+        v-model:web-search="selectedWebSearch"
+        :status="promptStatus"
+        :project="chatProject"
+        :usage="chatUsage"
+        @submit="send"
+        @stop="abortResponse"
+        @reload="regenerate({ body: requestBody() })"
+      />
+    </div>
+  </main>
 
-  <UModal v-model:open="editOpen" :title="$t('chat.editMessage')" :ui="{ footer: 'justify-end' }">
+  <BModal v-model:open="editOpen" :title="$t('chat.editMessage')">
     <template #body>
-      <UTextarea v-model="editText" autoresize :maxrows="8" class="w-full" />
+      <BTextarea v-model="editText" autoresize :maxrows="8" class="w-full" />
     </template>
 
     <template #footer="{ close }">
@@ -544,5 +537,5 @@ function confirmEdit() {
         {{ $t("actions.save") }}
       </BButton>
     </template>
-  </UModal>
+  </BModal>
 </template>

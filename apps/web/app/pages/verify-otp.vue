@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft } from "lucide-vue-next";
 import { toast } from "vue-sonner";
-import { BButton, BLinkButton } from "@chestnut-chat/ui";
+import { BButton, BCard, BLinkButton, BOtpInput } from "@chestnut-chat/ui";
 
 definePageMeta({
   layout: false,
@@ -144,13 +144,13 @@ function goBack() {
 
 <template>
   <div class="flex h-svh items-center justify-center bg-elevated p-4">
-    <UCard class="w-full max-w-md">
+    <BCard class="w-full max-w-md">
       <template #header>
         <div class="text-center">
           <div
             class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-primary/10"
           >
-            <UIcon name="i-lucide-mail" class="size-6 text-primary" />
+            <BIcon name="i-lucide-mail" class="size-6 text-primary" />
           </div>
           <h1 class="text-xl font-semibold text-default">{{ $t("verifyOtp.title") }}</h1>
           <p class="mt-1.5 text-sm text-muted">
@@ -162,7 +162,7 @@ function goBack() {
 
       <div class="space-y-6">
         <div class="flex justify-center">
-          <UPinInput
+          <BOtpInput
             v-model="digits"
             type="number"
             :length="6"
@@ -197,6 +197,6 @@ function goBack() {
           {{ $t("verifyOtp.back") }}
         </BButton>
       </template>
-    </UCard>
+    </BCard>
   </div>
 </template>

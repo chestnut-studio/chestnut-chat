@@ -55,7 +55,7 @@ function onSelect(prompt: string) {
         <span
           class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15"
         >
-          <UIcon :name="item.icon" class="size-4" />
+          <BIcon :name="item.icon" class="size-4" />
         </span>
 
         <span class="min-w-0 flex-1">
@@ -65,7 +65,7 @@ function onSelect(prompt: string) {
           </span>
         </span>
 
-        <UIcon
+        <BIcon
           name="i-lucide-arrow-up-right"
           class="mt-1 size-3.5 shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100"
         />

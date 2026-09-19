@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BPopover } from "@chestnut-chat/ui";
 import type { ChatMessageUsage } from "~/types/chat";
 import { formatTokenCount } from "~/utils/format-tokens";
 import {
@@ -63,7 +64,7 @@ const segments = computed(() => {
 </script>
 
 <template>
-  <UPopover
+  <BPopover
     mode="hover"
     :open-delay="150"
     :close-delay="80"
@@ -156,5 +157,5 @@ const segments = computed(() => {
         </ul>
       </div>
     </template>
-  </UPopover>
+  </BPopover>
 </template>

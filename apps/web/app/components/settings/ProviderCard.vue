@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CircleCheck, CircleHelp, CircleX, Pencil, Plus, Trash2 } from "lucide-vue-next";
-import { BButton, BChip } from "@chestnut-chat/ui";
+import { BButton, BChip, BTooltip } from "@chestnut-chat/ui";
 import type { ProviderModel } from "~/composables/useProviderKeys";
 import type {
   ConnectionTestStatus,
@@ -100,7 +100,7 @@ const connectionIconComponent = computed(() => {
       <div class="min-w-0 flex-1">
         <p class="font-semibold">{{ provider.name }}</p>
         <div v-if="showCredits" class="mt-1 flex items-center gap-1.5">
-          <UIcon
+          <BIcon
             v-if="credits.state === 'loading'"
             name="i-lucide-loader-circle"
             class="text-muted size-3.5 animate-spin"
@@ -115,7 +115,7 @@ const connectionIconComponent = computed(() => {
           v-if="!editing"
           class="invisible flex items-center gap-1 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
         >
-          <UTooltip :text="$t('settings.editProvider')">
+          <BTooltip :text="$t('settings.editProvider')">
             <BButton
               variant="ghost"
               size="small"
@@ -124,8 +124,8 @@ const connectionIconComponent = computed(() => {
               :aria-label="$t('settings.editProvider')"
               @click="emit('edit')"
             />
-          </UTooltip>
-          <UTooltip :text="$t('actions.delete')">
+          </BTooltip>
+          <BTooltip :text="$t('actions.delete')">
             <BButton
               variant="ghost"
               size="small"
@@ -134,9 +134,9 @@ const connectionIconComponent = computed(() => {
               :aria-label="$t('actions.delete')"
               @click="emit('delete')"
             />
-          </UTooltip>
+          </BTooltip>
         </div>
-        <UTooltip v-if="!editing" :text="connectionLabel">
+        <BTooltip v-if="!editing" :text="connectionLabel">
           <BButton
             variant="ghost"
             size="small"
@@ -146,7 +146,7 @@ const connectionIconComponent = computed(() => {
             :aria-label="connectionLabel"
             @click="emit('testConnection')"
           />
-        </UTooltip>
+        </BTooltip>
       </div>
     </div>
 
@@ -178,7 +178,7 @@ const connectionIconComponent = computed(() => {
             @refresh="emit('fetchModels')"
             @add="emit('addFetchedModel', $event)"
           />
-          <UTooltip :text="$t('settings.addModelManually')">
+          <BTooltip :text="$t('settings.addModelManually')">
             <BButton
               variant="ghost"
               size="small"
@@ -187,7 +187,7 @@ const connectionIconComponent = computed(() => {
               :aria-label="$t('settings.addModelManually')"
               @click="emit('addModel')"
             />
-          </UTooltip>
+          </BTooltip>
         </div>
       </div>
 
@@ -200,7 +200,7 @@ const connectionIconComponent = computed(() => {
           :key="model.id"
           class="border-default flex min-h-12 items-center gap-3 border-b px-3 py-2 last:border-b-0"
         >
-          <UIcon
+          <BIcon
             :name="model.source === 'manual' ? 'i-lucide-pencil-line' : 'i-lucide-box'"
             class="text-muted size-4 shrink-0"
           />

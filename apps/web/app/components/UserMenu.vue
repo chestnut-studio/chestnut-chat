@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LogIn, LogOut } from "lucide-vue-next";
-import { BButton } from "@chestnut-chat/ui";
+import { BButton, BSkeleton } from "@chestnut-chat/ui";
 
 const authSession = useAuthSession();
 const signOut = useSignOut();
@@ -15,7 +15,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <USkeleton v-if="!hydrated || authSession.isPending" class="h-9 w-24" />
+    <BSkeleton v-if="!hydrated || authSession.isPending" class="h-9 w-24" />
 
     <BButton
       v-else-if="!authSession.data"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ChevronDown, Paperclip, Trash2, X } from "lucide-vue-next";
-import { BButton, BChip, BInput } from "@chestnut-chat/ui";
+import { BButton, BChip, BFormField, BInput, BModal, BSelect, BTextarea } from "@chestnut-chat/ui";
 
 import {
   PROJECT_FILE_ACCEPT,
@@ -169,7 +169,7 @@ async function onSubmit() {
 </script>
 
 <template>
-  <UModal
+  <BModal
     v-model:open="open"
     :title="isEdit ? $t('project.editTitle') : $t('project.createTitle')"
     :ui="{ footer: 'justify-end', content: 'sm:max-w-lg' }"
@@ -214,8 +214,8 @@ async function onSubmit() {
           {{ $t("project.advanced") }}
         </BButton>
         <div v-show="advancedOpen" class="mt-3 space-y-4">
-          <UFormField :label="$t('project.memoryMode')" :description="$t('project.memoryModeHint')">
-            <USelect
+          <BFormField :label="$t('project.memoryMode')" :description="$t('project.memoryModeHint')">
+            <BSelect
               v-model="memoryMode"
               :items="[
                 { label: $t('project.memoryDefault'), value: 'default' },
@@ -223,16 +223,16 @@ async function onSubmit() {
               ]"
               class="w-full"
             />
-          </UFormField>
+          </BFormField>
 
-          <UFormField
+          <BFormField
             :label="$t('project.instructions')"
             :description="$t('project.instructionsHint')"
           >
-            <UTextarea v-model="instructions" :rows="4" maxlength="8000" class="w-full" />
-          </UFormField>
+            <BTextarea v-model="instructions" :rows="4" :maxlength="8000" class="w-full" />
+          </BFormField>
 
-          <UFormField
+          <BFormField
             :label="$t('project.files')"
             :description="$t('project.filesHint', { count: MAX_PROJECT_FILES })"
           >
@@ -242,7 +242,7 @@ async function onSubmit() {
                 :key="file.id"
                 class="flex items-center gap-2 rounded-md bg-elevated px-2 py-1.5 text-sm"
               >
-                <UIcon name="i-lucide-file-text" class="size-4 shrink-0 text-muted" />
+                <BIcon name="i-lucide-file-text" class="size-4 shrink-0 text-muted" />
                 <span class="min-w-0 flex-1 truncate">{{ file.filename }}</span>
                 <BChip variant="caption" color="soft">{{ file.status }}</BChip>
                 <BButton
@@ -260,7 +260,7 @@ async function onSubmit() {
                 :key="`${file.name}-${index}`"
                 class="flex items-center gap-2 rounded-md bg-elevated px-2 py-1.5 text-sm"
               >
-                <UIcon name="i-lucide-upload" class="size-4 shrink-0 text-muted" />
+                <BIcon name="i-lucide-upload" class="size-4 shrink-0 text-muted" />
                 <span class="min-w-0 flex-1 truncate">{{ file.name }}</span>
                 <BButton
                   variant="ghost"
@@ -288,7 +288,7 @@ async function onSubmit() {
                 @change="onPickFiles"
               />
             </div>
-          </UFormField>
+          </BFormField>
         </div>
       </div>
     </template>
@@ -301,5 +301,5 @@ async function onSubmit() {
         {{ isEdit ? $t("actions.save") : $t("project.create") }}
       </BButton>
     </template>
-  </UModal>
+  </BModal>
 </template>

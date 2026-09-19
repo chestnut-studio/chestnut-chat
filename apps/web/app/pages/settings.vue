@@ -6,6 +6,7 @@ import {
   BButton,
   BButtonLink,
   BDivider,
+  BModal,
   BTab,
   BTabList,
   BTabPanel,
@@ -87,7 +88,7 @@ async function deleteAccount() {
           </BButtonLink>
         </NuxtLink>
         <div class="flex items-center gap-2">
-          <UColorModeButton />
+          <BColorModeButton />
           <BButton variant="ghost" @click="signOut">
             {{ $t("settings.signOut") }}
           </BButton>
@@ -174,7 +175,7 @@ async function deleteAccount() {
       </div>
     </div>
 
-    <UModal
+    <BModal
       v-model:open="deleteConfirmOpen"
       :title="$t('settings.deleteAccount')"
       :description="$t('settings.deleteAccountDescription')"
@@ -188,6 +189,6 @@ async function deleteAccount() {
           {{ $t("settings.deleteAccount") }}
         </BButton>
       </template>
-    </UModal>
+    </BModal>
   </div>
 </template>

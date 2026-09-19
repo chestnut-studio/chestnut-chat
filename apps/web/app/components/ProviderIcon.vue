@@ -13,7 +13,7 @@ import type { ProviderIconId } from "~/types/providers";
 
 const props = withDefaults(
   defineProps<{
-    provider: ProviderIconId;
+    provider: ProviderIconId | string;
     size?: "xs" | "sm" | "md";
     variant?: "badge" | "glyph";
   }>(),
@@ -67,7 +67,7 @@ const CONFIGS: Record<ProviderIconId, ProviderConfig> = {
   custom: { icon: "i-lucide-cpu", background: "#6B7280", color: "#fff" },
 };
 
-const config = computed(() => CONFIGS[props.provider]);
+const config = computed(() => CONFIGS[props.provider as ProviderIconId] ?? CONFIGS.custom);
 const iconClass = computed(() => (props.size === "md" ? "size-5" : "size-4"));
 const badgeClass = computed(() => {
   if (props.size === "xs") return "size-6 rounded-lg";
@@ -81,7 +81,7 @@ const badgeClass = computed(() => {
     v-if="variant === 'glyph' && config.component"
     :class="[iconClass, 'text-muted shrink-0']"
   />
-  <UIcon
+  <BIcon
     v-else-if="variant === 'glyph'"
     :name="config.icon ?? 'i-lucide-cpu'"
     :class="[iconClass, 'text-muted shrink-0']"
@@ -98,7 +98,7 @@ const badgeClass = computed(() => {
       :class="iconClass"
       :style="{ color: config.color }"
     />
-    <UIcon
+    <BIcon
       v-else
       :name="config.icon ?? 'i-lucide-cpu'"
       :class="iconClass"

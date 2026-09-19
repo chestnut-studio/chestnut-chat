@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BTooltip } from "@chestnut-chat/ui";
 interface ColorOption {
   label: string;
   value: string;
@@ -26,7 +27,7 @@ const model = defineModel<string>({ required: true });
     <p class="mt-1 text-sm text-muted">{{ description }}</p>
 
     <div v-if="variant === 'swatch'" class="mt-4 grid grid-cols-6 gap-2.5 sm:grid-cols-9">
-      <UTooltip v-for="option in options" :key="option.value" :text="option.label">
+      <BTooltip v-for="option in options" :key="option.value" :text="option.label">
         <button
           type="button"
           class="relative flex size-9 items-center justify-center justify-self-start rounded-md border border-default outline-none transition focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-default"
@@ -40,13 +41,13 @@ const model = defineModel<string>({ required: true });
           :aria-pressed="model === option.value"
           @click="model = option.value"
         >
-          <UIcon
+          <BIcon
             v-if="model === option.value"
             name="i-lucide-check"
             class="size-4 text-inverted drop-shadow"
           />
         </button>
-      </UTooltip>
+      </BTooltip>
     </div>
 
     <div v-else class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -73,7 +74,7 @@ const model = defineModel<string>({ required: true });
         </span>
         <span class="flex items-center justify-between gap-1 text-xs font-medium">
           {{ option.label }}
-          <UIcon
+          <BIcon
             v-if="model === option.value"
             name="i-lucide-check"
             class="size-3.5 text-primary"

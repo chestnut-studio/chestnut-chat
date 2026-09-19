@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ExternalLink } from "lucide-vue-next";
-import { BButton, BButtonLink, BInput } from "@chestnut-chat/ui";
+import { BButton, BButtonLink, BFormField, BInput } from "@chestnut-chat/ui";
 import type { ProviderFormFields } from "~/types/providers";
 
 const props = defineProps<{
@@ -27,15 +27,15 @@ function updateText(key: "displayName" | "baseUrl" | "apiKey", value: string | n
 
 <template>
   <div class="space-y-4">
-    <UFormField :label="$t('settings.displayName')" required>
+    <BFormField :label="$t('settings.displayName')" required>
       <BInput
         :model-value="form.displayName"
         class="w-full"
         @update:model-value="updateText('displayName', $event)"
       />
-    </UFormField>
+    </BFormField>
 
-    <UFormField
+    <BFormField
       v-if="form.showBaseUrl"
       :label="$t('settings.baseUrl')"
       :description="$t('settings.baseUrlDescription')"
@@ -47,9 +47,9 @@ function updateText(key: "displayName" | "baseUrl" | "apiKey", value: string | n
         class="w-full"
         @update:model-value="updateText('baseUrl', $event)"
       />
-    </UFormField>
+    </BFormField>
 
-    <UFormField
+    <BFormField
       :label="$t('settings.apiKey')"
       :description="
         form.apiKeyRequired
@@ -80,7 +80,7 @@ function updateText(key: "displayName" | "baseUrl" | "apiKey", value: string | n
           {{ $t("settings.getApiKey") }}
         </BButtonLink>
       </div>
-    </UFormField>
+    </BFormField>
 
     <div class="flex justify-end gap-2">
       <BButton variant="secondary" @click="emit('cancel')">
