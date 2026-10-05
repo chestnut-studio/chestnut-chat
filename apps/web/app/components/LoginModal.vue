@@ -145,9 +145,7 @@ async function sendOtp() {
       >
         <section
           class="w-full max-w-md transform-gpu overflow-hidden rounded-3xl border border-border-button-default bg-background-primary-default shadow-xl transition-[opacity,transform,filter] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-[opacity,transform,filter] motion-reduce:transition-none"
-          :class="
-            dialogVisible ? 'scale-100 opacity-100 blur-0' : 'scale-[0.85] opacity-0 blur-[4px]'
-          "
+          :class="dialogVisible ? 'scale-100 opacity-100 blur-0' : 'scale-[0.85] opacity-0 blur-xs'"
           role="document"
         >
           <header
