@@ -83,13 +83,13 @@ async function sendOtp() {
       <DialogContent
         :show-close-button="false"
         :aria-describedby="undefined"
-        class="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-md"
+        class="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-md p-4"
       >
         <DialogHeader class="flex-row items-center justify-between">
           <DialogTitle>{{ $t("login.title") }}</DialogTitle>
-          <DialogClose as-child
-            ><BCloseButton size="sm" :aria-label="$t('login.close')"
-          /></DialogClose>
+          <DialogClose as-child>
+            <BCloseButton size="sm" :aria-label="$t('login.close')" />
+          </DialogClose>
         </DialogHeader>
 
         <form @submit.prevent="sendOtp">
