@@ -25,7 +25,7 @@ const VueQueryDevtools = import.meta.dev
 <template>
   <NuxtAnnouncer />
   <NuxtRouteAnnouncer />
-  <NuxtLoadingIndicator />
+  <NuxtLoadingIndicator color="var(--primary)" />
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
