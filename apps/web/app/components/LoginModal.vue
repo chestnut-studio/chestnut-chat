@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import type { AuthProviderOptions } from "@chestnut-chat/auth";
 import { toast } from "vue-sonner";
+import { BButton, BCloseButton, BDivider, BInput } from "@chestnut-chat/ui";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@chestnut-chat/ui/components/ui/dialog";
+import { FieldGroup } from "@chestnut-chat/ui/components/ui/field";
 
 const open = defineModel<boolean>("open", { default: false });
 
@@ -36,9 +45,7 @@ async function loadAuthOptions() {
   }
 }
 
-onMounted(() => {
-  loadAuthOptions();
-});
+onMounted(loadAuthOptions);
 
 async function social(provider: "github" | "google") {
   if (!authOptions.value.socialProviders[provider]) return;
@@ -71,43 +78,67 @@ async function sendOtp() {
 </script>
 
 <template>
-  <UModal v-model:open="open" :title="$t('login.title')" :ui="{ content: 'max-w-md' }">
-    <template #body>
-      <div class="space-y-3">
-        <UButton
-          block
-          color="neutral"
-          variant="outline"
-          icon="i-simple-icons-github"
-          size="md"
-          :label="$t('login.github')"
-          :loading="authOptionsPending"
-          :disabled="!authOptions.socialProviders.github"
-          @click="social('github')"
-        />
-        <UButton
-          block
-          color="neutral"
-          variant="outline"
-          icon="i-simple-icons-google"
-          size="md"
-          :label="$t('login.google')"
-          :loading="authOptionsPending"
-          :disabled="!authOptions.socialProviders.google"
-          @click="social('google')"
-        />
+  <ClientOnly>
+    <Dialog v-model:open="open">
+      <DialogContent
+        :show-close-button="false"
+        :aria-describedby="undefined"
+        class="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-md p-4"
+      >
+        <DialogHeader class="flex-row items-center justify-between">
+          <DialogTitle>{{ $t("login.title") }}</DialogTitle>
+          <DialogClose as-child>
+            <BCloseButton size="sm" :aria-label="$t('login.close')" />
+          </DialogClose>
+        </DialogHeader>
 
-        <USeparator :label="$t('login.or')" />
+        <form @submit.prevent="sendOtp">
+          <FieldGroup class="gap-3">
+            <BButton
+              class="w-full"
+              variant="secondary"
+              :disabled="!authOptions.socialProviders.github || authOptionsPending"
+              @click="social('github')"
+            >
+              <Icon
+                name="simple-icons:github"
+                mode="svg"
+                class="mr-2 size-5 shrink-0"
+                aria-hidden="true"
+              />
+              {{ $t("login.github") }}
+            </BButton>
+            <BButton
+              class="w-full"
+              variant="secondary"
+              :disabled="!authOptions.socialProviders.google || authOptionsPending"
+              @click="social('google')"
+            >
+              <Icon
+                name="simple-icons:google"
+                mode="svg"
+                class="mr-2 size-5 shrink-0"
+                aria-hidden="true"
+              />
+              {{ $t("login.google") }}
+            </BButton>
 
-        <UInput
-          v-model="email"
-          type="email"
-          :placeholder="$t('login.email')"
-          class="w-full"
-          @keydown.enter="sendOtp"
-        />
-        <UButton block :label="$t('login.sendCode')" :loading="loading" @click="sendOtp" />
-      </div>
-    </template>
-  </UModal>
+            <BDivider>{{ $t("login.or") }}</BDivider>
+
+            <BInput
+              v-model="email"
+              type="email"
+              autocomplete="email"
+              :aria-label="$t('login.email')"
+              :placeholder="$t('login.email')"
+              class="w-full"
+            />
+            <BButton type="submit" class="w-full" :disabled="!email || loading">
+              {{ $t("login.sendCode") }}
+            </BButton>
+          </FieldGroup>
+        </form>
+      </DialogContent>
+    </Dialog>
+  </ClientOnly>
 </template>

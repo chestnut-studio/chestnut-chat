@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ArrowUp, Globe, LoaderCircle, Paperclip, RotateCcw, Square } from "lucide-vue-next";
+import { BButton, BChip, BTooltip } from "@chestnut-chat/ui";
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
 import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
 import type { ChatStatus, FileUIPart } from "ai";
@@ -170,6 +172,12 @@ function onPaste(event: ClipboardEvent) {
   });
 }
 
+function onPromptKeydown(event: KeyboardEvent) {
+  if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+  event.preventDefault();
+  void onSubmit();
+}
+
 function clearFiles() {
   files.value = [];
   if (fileInput.value) {
@@ -246,41 +254,34 @@ async function submitSuggestion(text: string) {
 <template>
   <div class="w-full">
     <div v-if="files.length" class="mb-2 flex flex-wrap gap-2">
-      <UBadge
+      <BChip
         v-for="(file, index) in files"
         :key="`${file.name}-${file.size}-${index}`"
+        variant="caption"
         color="neutral"
-        variant="subtle"
-        :label="file.name"
-        icon="i-lucide-paperclip"
       >
-        <template #trailing>
-          <UButton
-            color="neutral"
-            variant="link"
-            size="xs"
-            icon="i-lucide-x"
-            class="ms-1"
-            :aria-label="$t('chat.attachRemove')"
-            @click="removeFile(index)"
-          />
-        </template>
-      </UBadge>
+        <BIcon name="i-lucide-paperclip" class="size-3.5 shrink-0" />
+        {{ file.name }}
+        <button
+          type="button"
+          class="ml-0.5 inline-flex cursor-pointer items-center rounded-sm p-0.5 hover:text-text-primary"
+          :aria-label="$t('chat.attachRemove')"
+          @click="removeFile(index)"
+        >
+          <BIcon name="i-lucide-x" class="size-3.5 shrink-0" />
+        </button>
+      </BChip>
     </div>
 
-    <UChatPrompt
-      v-model="input"
-      :placeholder="$t('chat.placeholder')"
-      :maxrows="8"
-      @paste="onPaste"
-      @submit="onSubmit"
+    <div
+      class="rounded-3xl border border-border-button-default bg-background-primary-default p-3 shadow-card focus-within:ring-2 focus-within:ring-border-focus-ring"
     >
-      <template v-if="project" #header>
+      <div v-if="project" class="mb-2">
         <div class="flex items-center gap-2 px-1 text-sm text-muted">
           <span v-if="project.iconKind === 'emoji'" aria-hidden="true">
             {{ project.iconValue }}
           </span>
-          <UIcon
+          <BIcon
             v-else
             :name="`i-lucide-${project.iconValue}`"
             class="size-4"
@@ -288,12 +289,19 @@ async function submitSuggestion(text: string) {
           />
           <span class="truncate font-medium text-highlighted">{{ project.name }}</span>
         </div>
-      </template>
+      </div>
 
-      <UChatPromptSubmit :status="promptStatus" @stop="emit('stop')" @reload="emit('reload')" />
+      <textarea
+        v-model="input"
+        :placeholder="$t('chat.placeholder')"
+        rows="2"
+        class="max-h-40 min-h-12 w-full resize-none bg-transparent px-1 py-2 text-body-regular text-text-primary outline-none placeholder:text-text-placeholder"
+        @paste="onPaste"
+        @keydown="onPromptKeydown"
+      />
 
-      <template #footer>
-        <div class="flex flex-wrap items-center gap-1.5">
+      <div class="flex items-end justify-between gap-2">
+        <div class="flex min-w-0 flex-wrap items-center gap-1.5">
           <ChatModelSelector
             :model-value="model"
             :items="modelOptions"
@@ -309,13 +317,12 @@ async function submitSuggestion(text: string) {
             :efforts="selectedModelReasoningEfforts"
           />
 
-          <UTooltip :text="$t('chat.webSearch')">
-            <UButton
-              :color="webSearch ? 'primary' : 'neutral'"
-              :variant="webSearch ? 'soft' : 'ghost'"
-              icon="i-lucide-globe"
-              size="sm"
-              square
+          <BTooltip :text="$t('chat.webSearch')">
+            <BButton
+              :variant="webSearch ? 'primary' : 'ghost'"
+              size="small"
+              icon-only
+              :leading-icon="Globe"
               :aria-label="$t('chat.webSearch')"
               :aria-pressed="webSearch"
               @click="
@@ -324,22 +331,21 @@ async function submitSuggestion(text: string) {
                 }
               "
             />
-          </UTooltip>
+          </BTooltip>
 
-          <UTooltip
+          <BTooltip
             :text="selectedModelSupportsVision ? $t('chat.attach') : $t('chat.attachDocumentsOnly')"
           >
-            <UButton
-              color="neutral"
+            <BButton
               variant="ghost"
-              icon="i-lucide-paperclip"
-              size="sm"
-              square
+              size="small"
+              icon-only
+              :leading-icon="Paperclip"
               :disabled="isUploading"
               :aria-label="$t('chat.attach')"
               @click="fileInput?.click()"
             />
-          </UTooltip>
+          </BTooltip>
 
           <ChatUsageIndicator v-if="usage" :usage="usage" :context-window="contextWindow" />
 
@@ -352,8 +358,34 @@ async function submitSuggestion(text: string) {
             @change="onPickFiles"
           />
         </div>
-      </template>
-    </UChatPrompt>
+
+        <BButton
+          v-if="promptStatus === 'error'"
+          size="small"
+          icon-only
+          :leading-icon="RotateCcw"
+          :aria-label="$t('actions.regenerate')"
+          @click="emit('reload')"
+        />
+        <BButton
+          v-else-if="isBusy"
+          size="small"
+          icon-only
+          :leading-icon="promptStatus === 'submitted' ? LoaderCircle : Square"
+          :aria-label="$t('chat.stop')"
+          @click="emit('stop')"
+        />
+        <BButton
+          v-else
+          size="small"
+          icon-only
+          :leading-icon="ArrowUp"
+          :aria-label="$t('chat.send')"
+          :disabled="!input.trim() && files.length === 0"
+          @click="onSubmit"
+        />
+      </div>
+    </div>
 
     <slot name="below" :submit-suggestion="submitSuggestion" :disabled="isBusy" />
   </div>

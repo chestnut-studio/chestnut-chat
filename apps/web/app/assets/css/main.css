@@ -1,13 +1,40 @@
 @import "tailwindcss";
-@import "@nuxt/ui";
 @import "markstream-vue/index.css" layer(components);
 @import "katex/dist/katex.min.css";
 
+/* Shared shadcn-vue components and semantic Tailwind tokens. */
+@import "@chestnut-chat/ui/styles/theme.css";
+@import "@chestnut-chat/ui/styles/typography.css";
+@import "@chestnut-chat/ui/styles/base.css";
+
 :root {
-  --ui-radius: 0.25rem;
+  --ui-header-height: 4rem;
+  --theme-font-sans: ui-sans-serif, system-ui, sans-serif;
+  --theme-font-mono: ui-monospace, monospace;
+  --theme-font-serif: ui-serif, Georgia, serif;
+}
+
+@theme inline {
+  --font-sans: var(--theme-font-sans);
+  --font-mono: var(--theme-font-mono);
+  --font-serif: var(--theme-font-serif);
+  --shadow-2xs: var(--theme-shadow-2xs);
+  --shadow-xs: var(--theme-shadow-xs);
+  --shadow-sm: var(--theme-shadow-sm);
+  --shadow-md: var(--theme-shadow-md);
+  --shadow-lg: var(--theme-shadow-lg);
+  --shadow-xl: var(--theme-shadow-xl);
+  --shadow-2xl: var(--theme-shadow-2xl);
+  --shadow-card: var(--theme-shadow-sm);
+  --shadow-dropdown: var(--theme-shadow-md);
 }
 
 @layer base {
+  body {
+    font-family: var(--theme-font-sans);
+    letter-spacing: var(--tracking-normal, 0em);
+  }
+
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;

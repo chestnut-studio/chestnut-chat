@@ -1,60 +1,44 @@
 <script setup lang="ts">
-import { NEUTRAL_THEME_COLORS, PRIMARY_THEME_COLORS, THEME_RADIUS_OPTIONS } from "~/utils/theme";
+import { ArrowUp, Check, Monitor, Moon, RotateCcw, Sparkles, Sun } from "lucide-vue-next";
+import { Button } from "@chestnut-chat/ui/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@chestnut-chat/ui/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@chestnut-chat/ui/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@chestnut-chat/ui/components/ui/toggle-group";
+import { THEME_PRESETS, THEME_RADIUS_OPTIONS } from "~/utils/theme";
 
 const colorMode = useColorMode();
 const { locale, locales, setLocale, t } = useI18n();
-const { primary, neutral, radius, reset } = useThemePreferences();
-
-const colorModeOptions = computed(() => [
-  {
-    label: t("settings.system"),
-    description: t("settings.systemDescription"),
-    value: "system",
-    icon: "i-lucide-monitor",
+const { preset, radius, reset } = useThemePreferences();
+const mode = computed({
+  get: () => colorMode.preference,
+  set: (value: string) => {
+    if (value) colorMode.preference = value;
   },
-  {
-    label: t("settings.light"),
-    description: t("settings.lightDescription"),
-    value: "light",
-    icon: "i-lucide-sun",
-  },
-  {
-    label: t("settings.dark"),
-    description: t("settings.darkDescription"),
-    value: "dark",
-    icon: "i-lucide-moon",
-  },
-]);
-
-const primaryOptions = computed(() =>
-  PRIMARY_THEME_COLORS.map((option) => ({
-    ...option,
-    label: t(`settings.colors.${option.value}`),
-  })),
-);
-
-const neutralOptions = computed(() =>
-  NEUTRAL_THEME_COLORS.map((option) => ({
-    ...option,
-    label: t(`settings.colors.${option.value}`),
-  })),
-);
-
-const languageOptions = computed(() =>
-  (locales.value as { code: string; name: string }[]).map((item) => ({
-    label: item.name,
-    value: item.code,
-  })),
-);
-
-const language = computed({
-  get: () => locale.value,
-  set: (value: string) => setLocale(value as "en" | "zh"),
 });
-
-function setColorMode(value: string) {
-  colorMode.preference = value;
-}
+const colorModeOptions = computed(() => [
+  { value: "system", label: t("settings.system"), icon: Monitor },
+  { value: "light", label: t("settings.light"), icon: Sun },
+  { value: "dark", label: t("settings.dark"), icon: Moon },
+]);
+const themeOptions = computed(() =>
+  THEME_PRESETS.map((option) => ({
+    ...option,
+    swatches: colorMode.value === "dark" ? option.theme.dark : option.theme.light,
+  })),
+);
 
 function resetTheme() {
   reset();
@@ -63,170 +47,202 @@ function resetTheme() {
 </script>
 
 <template>
-  <div class="mt-6 space-y-6">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+  <div class="mt-6 flex flex-col gap-6">
+    <div class="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <h2 class="text-xl font-semibold text-highlighted">{{ $t("settings.appearance") }}</h2>
-        <p class="mt-1 text-sm text-muted">{{ $t("settings.appearanceDescription") }}</p>
+        <h2 class="text-xl font-semibold">{{ $t("settings.appearance") }}</h2>
+        <p class="mt-1 text-sm text-muted-foreground">{{ $t("settings.appearanceDescription") }}</p>
       </div>
-      <UButton
-        icon="i-lucide-rotate-ccw"
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        :label="$t('settings.resetTheme')"
-        @click="resetTheme"
-      />
+      <Button variant="ghost" size="sm" @click="resetTheme">
+        <RotateCcw data-icon="inline-start" />{{ $t("settings.resetTheme") }}
+      </Button>
     </div>
 
     <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
-      <div class="space-y-6">
-        <UCard>
-          <div>
-            <h3 class="font-medium text-highlighted">{{ $t("settings.colorMode") }}</h3>
-            <p class="mt-1 text-sm text-muted">{{ $t("settings.colorModeDescription") }}</p>
-          </div>
+      <div class="flex min-w-0 flex-col gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{{ $t("settings.colorMode") }}</CardTitle>
+            <CardDescription>{{ $t("settings.colorModeDescription") }}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ClientOnly>
+              <ToggleGroup
+                v-model="mode"
+                type="single"
+                variant="outline"
+                :spacing="2"
+                :aria-label="$t('settings.colorMode')"
+                class="grid w-full grid-cols-3"
+              >
+                <ToggleGroupItem
+                  v-for="option in colorModeOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  <component :is="option.icon" data-icon="inline-start" />{{ option.label }}
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </ClientOnly>
+          </CardContent>
+        </Card>
 
-          <ClientOnly>
-            <div class="mt-4 grid gap-2 sm:grid-cols-3" role="group">
-              <button
-                v-for="option in colorModeOptions"
-                :key="option.value"
-                type="button"
-                class="flex items-start gap-3 rounded-md border bg-default p-3 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-primary"
-                :class="
-                  colorMode.preference === option.value
-                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                    : 'border-default hover:border-accented hover:bg-elevated'
-                "
-                :aria-pressed="colorMode.preference === option.value"
-                @click="setColorMode(option.value)"
+        <Card>
+          <CardHeader>
+            <CardTitle>{{ $t("settings.themePreset") }}</CardTitle>
+            <CardDescription>{{ $t("settings.themePresetDescription") }}</CardDescription>
+          </CardHeader>
+          <CardContent class="flex flex-col gap-6">
+            <ToggleGroup
+              :model-value="preset"
+              type="single"
+              variant="outline"
+              :spacing="3"
+              :aria-label="$t('settings.themePreset')"
+              class="grid w-full grid-cols-2 sm:grid-cols-3"
+              @update:model-value="
+                (value) => {
+                  if (typeof value === 'string' && value) preset = value;
+                }
+              "
+            >
+              <ToggleGroupItem
+                v-for="option in themeOptions"
+                :key="option.id"
+                :value="option.id"
+                :aria-label="option.label"
+                class="h-auto min-w-0 flex-col items-stretch gap-3 p-3"
               >
                 <span
-                  class="flex size-8 shrink-0 items-center justify-center rounded-md"
-                  :class="
-                    colorMode.preference === option.value
-                      ? 'bg-primary text-inverted'
-                      : 'bg-elevated text-muted'
-                  "
-                >
-                  <UIcon :name="option.icon" class="size-4" />
-                </span>
-                <span class="min-w-0">
-                  <span class="block text-sm font-medium text-highlighted">{{ option.label }}</span>
-                  <span class="mt-0.5 block text-xs leading-4 text-muted">
-                    {{ option.description }}
-                  </span>
-                </span>
-              </button>
-            </div>
-            <template #fallback>
-              <div class="mt-4 grid gap-2 sm:grid-cols-3">
-                <USkeleton v-for="index in 3" :key="index" class="h-[74px] rounded-md" />
-              </div>
-            </template>
-          </ClientOnly>
-        </UCard>
-
-        <UCard>
-          <div class="space-y-7">
-            <SettingsThemeColorSelector
-              v-model="primary"
-              :title="$t('settings.primaryColor')"
-              :description="$t('settings.primaryColorDescription')"
-              :options="primaryOptions"
-            />
-
-            <USeparator />
-
-            <SettingsThemeColorSelector
-              v-model="neutral"
-              variant="palette"
-              :title="$t('settings.neutralColor')"
-              :description="$t('settings.neutralColorDescription')"
-              :options="neutralOptions"
-            />
-
-            <USeparator />
-
-            <fieldset>
-              <legend class="font-medium text-highlighted">{{ $t("settings.radius") }}</legend>
-              <p class="mt-1 text-sm text-muted">{{ $t("settings.radiusDescription") }}</p>
-              <div class="mt-4 grid grid-cols-5 gap-2">
-                <button
-                  v-for="option in THEME_RADIUS_OPTIONS"
-                  :key="option"
-                  type="button"
-                  class="flex min-w-0 flex-col items-center gap-2 rounded-md border bg-default px-2 py-3 text-xs font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-primary"
-                  :class="
-                    radius === option
-                      ? 'border-primary text-primary ring-1 ring-primary'
-                      : 'border-default text-muted hover:border-accented hover:bg-elevated'
-                  "
-                  :aria-label="`${option * 16} px`"
-                  :aria-pressed="radius === option"
-                  @click="radius = option"
+                  class="flex h-16 overflow-hidden rounded-md border"
+                  :style="{
+                    borderColor: option.swatches.border,
+                    backgroundColor: option.swatches.background,
+                  }"
+                  aria-hidden="true"
                 >
                   <span
-                    class="h-6 w-9 border-2 border-current"
-                    :style="{ borderRadius: `${option}rem` }"
-                  />
-                  <span>{{ option * 16 }}px</span>
-                </button>
-              </div>
-            </fieldset>
-          </div>
-        </UCard>
+                    class="flex w-1/3 flex-col gap-1.5 border-r p-2"
+                    :style="{
+                      backgroundColor: option.swatches.sidebar,
+                      borderColor: option.swatches.border,
+                    }"
+                  >
+                    <span
+                      class="h-1.5 w-full rounded-sm"
+                      :style="{ backgroundColor: option.swatches.primary }"
+                    />
+                    <span
+                      class="h-1.5 w-2/3 rounded-sm"
+                      :style="{ backgroundColor: option.swatches.muted }"
+                    />
+                  </span>
+                  <span class="flex flex-1 flex-col justify-center gap-1.5 p-2">
+                    <span
+                      class="h-2 w-4/5 rounded-sm"
+                      :style="{ backgroundColor: option.swatches.foreground }"
+                    />
+                    <span
+                      class="h-1.5 w-full rounded-sm"
+                      :style="{ backgroundColor: option.swatches.muted }"
+                    />
+                    <span
+                      class="h-3 w-1/2 rounded-sm"
+                      :style="{ backgroundColor: option.swatches.primary }"
+                    />
+                  </span>
+                </span>
+                <span class="flex items-center justify-between gap-1">
+                  <span class="truncate">{{ option.label }}</span>
+                  <Check v-if="preset === option.id" aria-hidden="true" />
+                </span>
+              </ToggleGroupItem>
+            </ToggleGroup>
+            <a
+              href="https://tweakcn.com/editor/theme"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-sm text-muted-foreground underline underline-offset-4"
+              >{{ $t("settings.themesFromTweakcn") }} ↗</a
+            >
+
+            <div class="flex flex-col gap-3">
+              <label for="theme-radius" class="text-sm font-medium">{{
+                $t("settings.radius")
+              }}</label>
+              <Select v-model="radius">
+                <SelectTrigger id="theme-radius" class="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="preset">{{ $t("settings.presetDefault") }}</SelectItem>
+                    <SelectItem
+                      v-for="option in THEME_RADIUS_OPTIONS"
+                      :key="option"
+                      :value="String(option)"
+                      >{{ option * 16 }}px</SelectItem
+                    >
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <p class="text-xs text-muted-foreground">{{ $t("settings.radiusDescription") }}</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div class="xl:sticky xl:top-6">
-        <p class="mb-2 text-xs font-medium uppercase tracking-wide text-muted">
+      <div class="flex flex-col gap-3 xl:sticky xl:top-6">
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           {{ $t("settings.livePreview") }}
         </p>
-        <div class="overflow-hidden rounded-lg border border-default bg-default shadow-sm">
-          <div class="flex items-center gap-1.5 border-b border-default bg-elevated px-4 py-3">
-            <span class="size-2 rounded-full bg-error" />
-            <span class="size-2 rounded-full bg-warning" />
-            <span class="size-2 rounded-full bg-success" />
-            <span class="ml-2 text-xs font-medium text-muted">{{ $t("app.name") }}</span>
-          </div>
-          <div class="space-y-4 p-4">
-            <div class="ml-8 rounded-lg bg-elevated p-3 text-xs leading-5 text-default">
+        <Card>
+          <CardHeader
+            ><CardTitle class="flex items-center gap-2"
+              ><Sparkles class="size-4" />{{ $t("app.name") }}</CardTitle
+            ></CardHeader
+          >
+          <CardContent class="flex flex-col gap-4">
+            <div class="ml-6 rounded-lg bg-muted p-3 text-xs leading-5">
               {{ $t("settings.previewPrompt") }}
             </div>
-            <div class="flex gap-2.5">
-              <div
-                class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
-              >
-                <UIcon name="i-lucide-sparkles" class="size-3.5" />
-              </div>
-              <p class="pt-1 text-xs leading-5 text-default">
-                {{ $t("settings.previewResponse") }}
-              </p>
+            <p class="text-xs leading-5">{{ $t("settings.previewResponse") }}</p>
+            <div class="flex items-center gap-2 rounded-md border p-2">
+              <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">{{
+                $t("settings.previewPlaceholder")
+              }}</span>
+              <Button size="icon" :aria-label="$t('chat.send')"><ArrowUp /></Button>
             </div>
-            <div class="flex items-center gap-2 rounded-md border border-default bg-default p-2">
-              <span class="min-w-0 flex-1 truncate pl-1 text-xs text-dimmed">
-                {{ $t("settings.previewPlaceholder") }}
-              </span>
-              <UButton icon="i-lucide-arrow-up" size="xs" square :aria-label="$t('chat.send')" />
-            </div>
-          </div>
-        </div>
-        <p class="mt-3 flex items-center gap-1.5 text-xs text-muted">
-          <UIcon name="i-lucide-cloud-check" class="size-3.5 text-success" />
-          {{ $t("settings.savedAutomatically") }}
-        </p>
+          </CardContent>
+        </Card>
+        <p class="text-xs text-muted-foreground">{{ $t("settings.savedAutomatically") }}</p>
       </div>
     </div>
 
-    <UCard>
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 class="font-medium text-highlighted">{{ $t("settings.language") }}</h3>
-          <p class="mt-1 text-sm text-muted">{{ $t("settings.languageDescription") }}</p>
-        </div>
-        <USelect v-model="language" :items="languageOptions" class="w-full sm:w-44" />
-      </div>
-    </UCard>
+    <Card>
+      <CardHeader>
+        <CardTitle>{{ $t("settings.language") }}</CardTitle>
+        <CardDescription>{{ $t("settings.languageDescription") }}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Select
+          :model-value="locale"
+          @update:model-value="
+            (value) => {
+              if (value === 'en' || value === 'zh') setLocale(value);
+            }
+          "
+        >
+          <SelectTrigger :aria-label="$t('settings.language')" class="w-full sm:w-44"
+            ><SelectValue
+          /></SelectTrigger>
+          <SelectContent
+            ><SelectGroup
+              ><SelectItem v-for="item in locales" :key="item.code" :value="item.code">{{
+                item.name
+              }}</SelectItem></SelectGroup
+            ></SelectContent
+          >
+        </Select>
+      </CardContent>
+    </Card>
   </div>
 </template>

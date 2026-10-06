@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Plus } from "lucide-vue-next";
+import { BButton, BDropdown, BFormField, BInput, BModal, BSkeleton } from "@chestnut-chat/ui";
+
 const {
   addProviderItems,
   providers,
@@ -51,31 +54,31 @@ onMounted(() => {
           {{ $t("settings.apiProvidersDescription") }}
         </p>
       </div>
-      <UDropdownMenu :items="addProviderItems">
+      <BDropdown :items="addProviderItems">
         <template #item-leading="{ item }">
-          <ProviderIcon :provider="item.iconProvider" size="xs" />
+          <ProviderIcon :provider="item.iconProvider ?? 'custom'" size="xs" />
         </template>
 
-        <UButton
-          icon="i-lucide-plus"
-          variant="outline"
-          color="neutral"
-          :label="$t('settings.addProvider')"
+        <BButton
+          variant="secondary"
+          :leading-icon="Plus"
           :disabled="isLoadingProviders || isSavingProvider"
-        />
-      </UDropdownMenu>
+        >
+          {{ $t("settings.addProvider") }}
+        </BButton>
+      </BDropdown>
     </div>
 
     <div v-if="isLoadingProviders" class="space-y-3">
-      <USkeleton class="h-28 w-full rounded-xl" />
-      <USkeleton class="h-28 w-full rounded-xl" />
+      <BSkeleton class="h-28 w-full rounded-xl" />
+      <BSkeleton class="h-28 w-full rounded-xl" />
     </div>
 
     <div
       v-else-if="!hasAnyProvider && !providerDraft"
       class="border-default rounded-xl border border-dashed py-14 text-center"
     >
-      <UIcon name="i-lucide-key-round" class="text-muted mx-auto mb-3 size-10" />
+      <BIcon name="i-lucide-key-round" class="text-muted mx-auto mb-3 size-10" />
       <p class="font-medium">{{ $t("settings.noProvidersYet") }}</p>
       <p class="text-muted mt-1 text-sm">{{ $t("settings.noProvidersYetHint") }}</p>
     </div>
@@ -111,59 +114,53 @@ onMounted(() => {
       @remove-model="removeModel(provider, $event)"
     />
 
-    <UModal
+    <BModal
       v-model:open="deleteConfirmOpen"
       :title="$t('settings.deleteProviderTitle')"
       :description="$t('settings.deleteProviderDescription', { name: deleteProviderName })"
       :ui="{ footer: 'justify-end' }"
     >
       <template #footer>
-        <UButton
-          color="neutral"
-          variant="outline"
-          :label="$t('actions.cancel')"
-          @click="cancelDeleteProvider"
-        />
-        <UButton
-          color="error"
-          :label="$t('actions.delete')"
-          :loading="isSavingProvider"
-          @click="confirmDeleteProvider"
-        />
+        <BButton variant="secondary" :disabled="isSavingProvider" @click="cancelDeleteProvider">
+          {{ $t("actions.cancel") }}
+        </BButton>
+        <BButton variant="danger" :disabled="isSavingProvider" @click="confirmDeleteProvider">
+          {{ $t("actions.delete") }}
+        </BButton>
       </template>
-    </UModal>
+    </BModal>
 
-    <UModal
+    <BModal
       v-model:open="manualModelOpen"
       :title="$t('settings.addModelForProvider', { name: manualModelProviderName })"
       :ui="{ footer: 'justify-end' }"
     >
       <template #body>
         <div class="space-y-4">
-          <UFormField :label="$t('settings.modelId')" required>
-            <UInput
+          <BFormField :label="$t('settings.modelId')" required>
+            <BInput
               v-model="manualModelForm.id"
               placeholder="gpt-4o-mini"
               class="w-full font-mono"
             />
-          </UFormField>
-          <UFormField :label="$t('settings.modelName')" :hint="$t('settings.optional')">
-            <UInput
+          </BFormField>
+          <BFormField :label="$t('settings.modelName')" :hint="$t('settings.optional')">
+            <BInput
               v-model="manualModelForm.name"
               :placeholder="$t('settings.modelNamePlaceholder')"
               class="w-full"
             />
-          </UFormField>
+          </BFormField>
         </div>
       </template>
       <template #footer="{ close }">
-        <UButton color="neutral" variant="outline" :label="$t('actions.cancel')" @click="close" />
-        <UButton
-          :label="$t('actions.save')"
-          :disabled="!manualModelForm.id.trim()"
-          @click="submitManualModel"
-        />
+        <BButton variant="secondary" @click="close">
+          {{ $t("actions.cancel") }}
+        </BButton>
+        <BButton :disabled="!manualModelForm.id.trim()" @click="submitManualModel">
+          {{ $t("actions.save") }}
+        </BButton>
       </template>
-    </UModal>
+    </BModal>
   </div>
 </template>

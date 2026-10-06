@@ -203,7 +203,9 @@ export function useSettingsProviders() {
     providerDraft.value = {
       kind: "builtin",
       builtinId: def.id,
-      title: t("settings.addProviderTitle", { name: resolveBuiltinProviderName(def, undefined, t) }),
+      title: t("settings.addProviderTitle", {
+        name: resolveBuiltinProviderName(def, undefined, t),
+      }),
       iconProvider: def.id,
       displayName: resolveBuiltinProviderName(def, undefined, t),
       apiKey: "",
@@ -250,6 +252,7 @@ export function useSettingsProviders() {
       if (draft.kind === "builtin" && draft.builtinId) {
         const existing = getBuiltin(draft.builtinId);
         const def = getBuiltinProviderDef(draft.builtinId);
+        if (!def) return;
         await saveBuiltin(draft.builtinId, {
           ...existing,
           name: draft.displayName.trim(),
@@ -329,6 +332,7 @@ export function useSettingsProviders() {
 
     if (provider.kind === "builtin") {
       const def = getBuiltinProviderDef(provider.id);
+      if (!def) return;
       const existing = getBuiltin(provider.id);
       editForm.value = {
         displayName: resolveBuiltinProviderName(def, existing.name, t),

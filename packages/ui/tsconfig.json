@@ -1,0 +1,10 @@
+{
+  "extends": "@chestnut-chat/config/tsconfig.base.json",
+  "compilerOptions": {
+    "paths": { "@chestnut-chat/ui/*": ["./src/*"] },
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.vue"]
+}

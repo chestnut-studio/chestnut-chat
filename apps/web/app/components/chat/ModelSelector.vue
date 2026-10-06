@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Search } from "lucide-vue-next";
+import { BButton, BInput, BPopover } from "@chestnut-chat/ui";
 import type { ModelOption } from "~/utils/models";
 
 import ModelIcon from "./ModelIcon.vue";
@@ -43,26 +45,25 @@ function selectModel(value: string) {
 </script>
 
 <template>
-  <UPopover
+  <BPopover
     :open="open"
     :content="{ align: 'start', side: 'bottom', sideOffset: 8 }"
     :ui="{ content: 'w-[min(calc(100vw-2rem),38rem)] overflow-hidden p-0' }"
     @update:open="updateOpen"
   >
-    <UButton
+    <BButton
       type="button"
-      color="neutral"
-      :variant="open ? 'soft' : 'ghost'"
-      size="sm"
+      variant="ghost"
+      size="small"
       class="max-w-full justify-start sm:max-w-80"
       :title="selectedLabel"
       :aria-label="$t('chat.selectModel')"
-      :loading="loading && !items.length"
+      :disabled="loading && !items.length"
     >
       <ModelIcon :icon="selectedProviderIcon" />
       <span class="min-w-0 truncate text-left">{{ selectedLabel }}</span>
-      <UIcon name="i-lucide-chevron-down" class="size-4 shrink-0 text-muted" />
-    </UButton>
+      <BIcon name="i-lucide-chevron-down" class="size-4 shrink-0 text-muted" />
+    </BButton>
 
     <template #content>
       <div class="bg-default">
@@ -86,14 +87,11 @@ function selectModel(value: string) {
         </div>
 
         <div class="border-default border-b p-2">
-          <UInput
+          <BInput
             v-model="query"
-            icon="i-lucide-search"
-            variant="none"
-            autofocus
+            :leading-icon="Search"
             :placeholder="$t('chat.searchModels')"
             class="w-full"
-            :ui="{ base: 'text-base' }"
           />
         </div>
 
@@ -136,7 +134,7 @@ function selectModel(value: string) {
                 compact
               />
 
-              <UIcon
+              <BIcon
                 v-if="item.value === model"
                 name="i-lucide-check"
                 class="size-4 shrink-0 text-primary"
@@ -146,5 +144,5 @@ function selectModel(value: string) {
         </div>
       </div>
     </template>
-  </UPopover>
+  </BPopover>
 </template>

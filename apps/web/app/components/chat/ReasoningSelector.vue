@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { Brain, ChevronDown } from "lucide-vue-next";
+import { BButton, BDropdown, BTooltip, type DropdownItem } from "@chestnut-chat/ui";
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
-import type { DropdownMenuItem } from "@nuxt/ui";
 
 const props = defineProps<{
   supported: boolean;
@@ -42,7 +43,7 @@ function selectEffort(value: ReasoningEffort) {
   reasoning.value = true;
 }
 
-const effortItems = computed<DropdownMenuItem[]>(() => [
+const effortItems = computed<DropdownItem[]>(() => [
   {
     label: t("chat.reasoningOff"),
     icon: isActive.value ? undefined : "i-lucide-check",
@@ -62,34 +63,33 @@ function toggleReasoning() {
 </script>
 
 <template>
-  <UTooltip :text="statusLabel">
+  <BTooltip :text="statusLabel">
     <span class="inline-flex">
-      <UDropdownMenu
+      <BDropdown
         v-if="supported && supportsEffortSelection"
         :items="effortItems"
         :content="{ align: 'start', side: 'bottom', sideOffset: 8 }"
       >
-        <UButton
+        <BButton
           type="button"
-          :color="isActive ? 'primary' : 'neutral'"
-          :variant="isActive ? 'soft' : 'ghost'"
-          icon="i-lucide-brain"
-          trailing-icon="i-lucide-chevron-down"
-          size="sm"
-          :label="buttonLabel"
+          :variant="isActive ? 'primary' : 'ghost'"
+          size="small"
+          :leading-icon="Brain"
+          :trailing-icon="ChevronDown"
           :aria-label="statusLabel"
           :aria-pressed="isActive"
-        />
-      </UDropdownMenu>
+        >
+          {{ buttonLabel }}
+        </BButton>
+      </BDropdown>
 
-      <UButton
+      <BButton
         v-else
         type="button"
-        :color="isActive ? 'primary' : 'neutral'"
-        :variant="isActive ? 'soft' : 'ghost'"
-        icon="i-lucide-brain"
-        size="sm"
-        square
+        :variant="isActive ? 'primary' : 'ghost'"
+        size="small"
+        icon-only
+        :leading-icon="Brain"
         :disabled="!supported"
         :class="required ? 'cursor-default' : 'disabled:text-dimmed disabled:opacity-40'"
         :aria-label="statusLabel"
@@ -98,5 +98,5 @@ function toggleReasoning() {
         @click="toggleReasoning"
       />
     </span>
-  </UTooltip>
+  </BTooltip>
 </template>

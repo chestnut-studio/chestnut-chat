@@ -1,17 +1,16 @@
 <script setup lang="ts">
-import { en, zh_cn } from "@nuxt/ui/locale";
+import { getThemeCss } from "~/utils/theme";
 
-const { locale } = useI18n();
 const colorMode = useColorMode();
-const { radius } = useThemePreferences();
-const uiLocale = computed(() => (locale.value === "zh" ? zh_cn : en));
+const { preferences } = useThemePreferences();
 const sonnerTheme = computed(() => (colorMode.value === "dark" ? "dark" : "light"));
 
 useHead(() => ({
+  htmlAttrs: { "data-theme": preferences.value.preset },
   style: [
     {
-      key: "theme-radius",
-      innerHTML: `:root { --ui-radius: ${radius.value}rem; }`,
+      key: "theme-preset",
+      innerHTML: getThemeCss(preferences.value),
     },
   ],
 }));
@@ -26,12 +25,10 @@ const VueQueryDevtools = import.meta.dev
 <template>
   <NuxtAnnouncer />
   <NuxtRouteAnnouncer />
-  <NuxtLoadingIndicator />
-  <UApp :locale="uiLocale" :toaster="null">
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
-    <Toaster :theme="sonnerTheme" />
-  </UApp>
+  <NuxtLoadingIndicator color="var(--primary)" />
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
+  <Toaster :theme="sonnerTheme" />
   <component :is="VueQueryDevtools" v-if="VueQueryDevtools" />
 </template>

@@ -1,4 +1,13 @@
 <script setup lang="ts">
+import { Plus } from "lucide-vue-next";
+import {
+  SidebarGroup,
+  SidebarGroupAction,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+} from "@chestnut-chat/ui/components/ui/sidebar";
+
 import type { ProjectRow } from "~/composables/useProjects";
 import type { ChatRow } from "~/utils/group-chats";
 
@@ -29,55 +38,49 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="space-y-1">
-    <div class="flex items-center gap-1">
+  <SidebarGroup>
+    <SidebarGroupLabel as-child>
       <button
         type="button"
-        class="flex min-w-0 flex-1 items-center gap-1 rounded-md px-2 py-1 text-base font-medium text-muted hover:bg-elevated"
+        class="gap-1 pr-8"
+        :aria-expanded="expanded"
         @click="emit('toggleSection')"
       >
-        <UIcon
-          :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-          class="size-5 shrink-0"
-        />
+        <BIcon :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" />
         <span class="truncate">{{ $t("project.section") }}</span>
       </button>
-      <UButton
-        icon="i-lucide-plus"
-        color="neutral"
-        variant="ghost"
-        size="xs"
-        square
-        :aria-label="$t('project.create')"
-        @click="emit('create')"
-      />
-    </div>
+    </SidebarGroupLabel>
+    <SidebarGroupAction as="button" :aria-label="$t('project.create')" @click="emit('create')">
+      <Plus />
+    </SidebarGroupAction>
 
-    <template v-if="expanded">
-      <ProjectSidebarItem
-        v-for="project in projects"
-        :key="project.id"
-        :project="project"
-        :chats="chatsByProject[project.id] ?? []"
-        :open="isProjectOpen(project.id)"
-        :force-open="forceOpenProjectIds.has(project.id)"
-        :active-chat-id="activeChatId"
-        :active-project-id="activeProjectId"
-        @toggle="emit('toggle', project.id)"
-        @select="emit('select', $event)"
-        @new-chat="emit('newChat', $event)"
-        @edit="emit('edit', $event)"
-        @delete="emit('delete', $event)"
-        @rename-chat="emit('renameChat', $event)"
-        @pin-chat="emit('pinChat', $event)"
-        @archive-chat="emit('archiveChat', $event)"
-        @delete-chat="emit('deleteChat', $event)"
-        @move-chat="emit('moveChat', $event)"
-      />
+    <SidebarGroupContent v-if="expanded">
+      <SidebarMenu>
+        <ProjectSidebarItem
+          v-for="project in projects"
+          :key="project.id"
+          :project="project"
+          :chats="chatsByProject[project.id] ?? []"
+          :open="isProjectOpen(project.id)"
+          :force-open="forceOpenProjectIds.has(project.id)"
+          :active-chat-id="activeChatId"
+          :active-project-id="activeProjectId"
+          @toggle="emit('toggle', project.id)"
+          @select="emit('select', $event)"
+          @new-chat="emit('newChat', $event)"
+          @edit="emit('edit', $event)"
+          @delete="emit('delete', $event)"
+          @rename-chat="emit('renameChat', $event)"
+          @pin-chat="emit('pinChat', $event)"
+          @archive-chat="emit('archiveChat', $event)"
+          @delete-chat="emit('deleteChat', $event)"
+          @move-chat="emit('moveChat', $event)"
+        />
+      </SidebarMenu>
 
-      <p v-if="!projects.length" class="px-2 pl-8 text-xs text-muted">
+      <p v-if="!projects.length" class="px-2 py-1 text-xs text-muted-foreground">
         {{ $t("project.empty") }}
       </p>
-    </template>
-  </div>
+    </SidebarGroupContent>
+  </SidebarGroup>
 </template>

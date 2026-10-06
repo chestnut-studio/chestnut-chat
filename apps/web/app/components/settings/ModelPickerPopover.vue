@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { FileSearch, Search } from "lucide-vue-next";
+import { BButton, BInput, BPopover, BTooltip } from "@chestnut-chat/ui";
 import type { ProviderModel } from "~/composables/useProviderKeys";
 
 const props = defineProps<{
@@ -48,35 +50,31 @@ function isConfigured(modelId: string) {
 </script>
 
 <template>
-  <UPopover
+  <BPopover
     :open="open"
     :content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
     :ui="{ content: 'w-[min(calc(100vw-2rem),30rem)] overflow-hidden p-0' }"
     @update:open="updateOpen"
   >
-    <UTooltip :text="$t('settings.fetchModels')">
-      <UButton
-        icon="i-lucide-file-search"
-        size="sm"
-        color="neutral"
-        :variant="open ? 'soft' : 'ghost'"
-        square
-        :loading="loading"
+    <BTooltip :text="$t('settings.fetchModels')">
+      <BButton
+        variant="ghost"
+        size="small"
+        icon-only
+        :leading-icon="FileSearch"
+        :disabled="loading"
         :aria-label="$t('settings.fetchModels')"
       />
-    </UTooltip>
+    </BTooltip>
 
     <template #content>
       <div class="bg-default">
         <div class="border-default border-b p-2">
-          <UInput
+          <BInput
             v-model="query"
-            icon="i-lucide-search"
-            variant="none"
-            autofocus
+            :leading-icon="Search"
             :placeholder="$t('settings.searchModels')"
             class="w-full"
-            :ui="{ base: 'text-base' }"
           />
         </div>
 
@@ -85,7 +83,7 @@ function isConfigured(modelId: string) {
             v-if="loading && !models.length"
             class="text-muted flex min-h-32 items-center justify-center gap-2 text-sm"
           >
-            <UIcon name="i-lucide-loader-circle" class="size-4 animate-spin" />
+            <BIcon name="i-lucide-loader-circle" class="size-4 animate-spin" />
             <span>{{ $t("settings.fetchingModels") }}</span>
           </div>
 
@@ -117,7 +115,7 @@ function isConfigured(modelId: string) {
                 </span>
               </span>
               <SettingsModelCapabilityIcons :provider-id="providerId" :model="model" compact />
-              <UIcon
+              <BIcon
                 :name="isConfigured(model.id) ? 'i-lucide-check' : 'i-lucide-plus'"
                 class="text-muted size-4 shrink-0"
               />
@@ -126,16 +124,12 @@ function isConfigured(modelId: string) {
         </div>
 
         <div v-if="!loading" class="border-default border-t p-2">
-          <UButton
-            icon="i-lucide-refresh-cw"
-            color="neutral"
-            variant="ghost"
-            block
-            :label="$t('settings.refreshCatalog')"
-            @click="emit('refresh')"
-          />
+          <BButton variant="ghost" class="w-full" @click="emit('refresh')">
+            <BIcon name="i-lucide-refresh-cw" class="size-5 shrink-0" />
+            {{ $t("settings.refreshCatalog") }}
+          </BButton>
         </div>
       </div>
     </template>
-  </UPopover>
+  </BPopover>
 </template>

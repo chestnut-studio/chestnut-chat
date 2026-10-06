@@ -1,0 +1,252 @@
+@import "tw-animate-css";
+
+@source "../components";
+@source "../utils";
+
+/* Standard shadcn variables. Applications may override these in :root/.dark
+ * with a tweakcn theme; compatibility utilities below always resolve live. */
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-2lg: var(--radius);
+
+  /* Legacy markup aliases; no independent palette or fixed light/dark colors. */
+  --color-text-primary: var(--foreground);
+  --color-text-secondary: var(--muted-foreground);
+  --color-text-tertiary: var(--muted-foreground);
+  --color-text-placeholder: var(--muted-foreground);
+  --color-text-error-primary: var(--destructive);
+  --color-text-white: var(--primary-foreground);
+  --color-foreground-icon-primary: var(--foreground);
+  --color-foreground-icon-secondary: var(--muted-foreground);
+  --color-background-full: var(--background);
+  --color-background-primary-default: var(--card);
+  --color-background-secondary-default: var(--muted);
+  --color-background-secondary-hover: var(--accent);
+  --color-background-tertiary-default: var(--secondary);
+  --color-border-button-default: var(--border);
+  --color-border-button-hover: var(--input);
+  --color-border-button-active: var(--ring);
+  --color-border-focus-ring: var(--ring);
+  --color-separator-border: var(--border);
+  --color-accent-50: color-mix(in oklab, var(--primary) 5%, var(--background));
+  --color-accent-100: color-mix(in oklab, var(--primary) 10%, var(--background));
+  --color-accent-200: color-mix(in oklab, var(--primary) 20%, var(--background));
+  --color-accent-300: color-mix(in oklab, var(--primary) 40%, var(--background));
+  --color-accent-400: color-mix(in oklab, var(--primary) 80%, var(--background));
+  --color-accent-500: var(--primary);
+  --color-accent-600: var(--primary);
+  --color-accent-700: color-mix(in oklab, var(--primary) 90%, var(--foreground));
+  --color-accent-800: color-mix(in oklab, var(--primary) 80%, var(--foreground));
+  --color-accent-900: color-mix(in oklab, var(--primary) 70%, var(--foreground));
+  --color-accent-950: color-mix(in oklab, var(--primary) 60%, var(--foreground));
+  --color-success: var(--chart-2);
+  --color-warning: var(--chart-4);
+  --color-error: var(--destructive);
+  --color-info: var(--primary);
+  --color-legacy-bg-default: var(--background);
+  --color-legacy-bg-elevated: var(--card);
+  --color-legacy-bg-accented: var(--accent);
+  --color-legacy-bg-inverted: var(--foreground);
+  --color-legacy-text-default: var(--foreground);
+  --color-legacy-text-highlighted: var(--foreground);
+  --color-legacy-text-muted: var(--muted-foreground);
+  --color-legacy-text-dimmed: var(--muted-foreground);
+  --color-legacy-text-toned: var(--muted-foreground);
+  --color-legacy-text-inverted: var(--primary-foreground);
+  --color-legacy-text-accented: var(--accent-foreground);
+  --color-legacy-border-default: var(--border);
+  --color-legacy-border-muted: var(--border);
+  --color-legacy-border-accented: var(--input);
+  --shadow-card: var(--shadow-sm);
+  --shadow-dropdown: var(--shadow-md);
+}
+
+/* Context-specific aliases cannot share one --color-default/muted variable. */
+@utility text-default {
+  color: var(--foreground);
+}
+@utility text-highlighted {
+  color: var(--foreground);
+}
+@utility text-muted {
+  color: var(--muted-foreground);
+}
+@utility text-dimmed {
+  color: color-mix(in oklab, var(--muted-foreground) 70%, var(--background));
+}
+@utility text-toned {
+  color: var(--muted-foreground);
+}
+@utility text-inverted {
+  color: var(--primary-foreground);
+}
+@utility text-accented {
+  color: var(--accent-foreground);
+}
+@utility bg-default {
+  background-color: var(--background);
+}
+@utility bg-elevated {
+  background-color: var(--card);
+}
+@utility bg-accented {
+  background-color: var(--accent);
+}
+@utility bg-inverted {
+  background-color: var(--foreground);
+}
+@utility border-default {
+  border-color: var(--border);
+}
+@utility border-muted {
+  border-color: var(--border);
+}
+@utility border-accented {
+  border-color: var(--input);
+}
+@utility divide-default {
+  :where(& > :not(:last-child)) {
+    border-color: var(--border);
+  }
+}
+@utility ring-default {
+  --tw-ring-color: var(--ring);
+}
+@utility ring-offset-default {
+  --tw-ring-offset-color: var(--background);
+}
+
+/* Preserve opacity modifiers used by legacy markup (bg-elevated/60, etc.). */
+@utility bg-* {
+  background-color: --value(--color-legacy-bg-*);
+  background-color: color-mix(
+    in oklab,
+    --value(--color-legacy-bg-*) calc(--modifier(integer) * 1%),
+    transparent
+  );
+}
+@utility text-* {
+  color: --value(--color-legacy-text-*);
+  color: color-mix(
+    in oklab,
+    --value(--color-legacy-text-*) calc(--modifier(integer) * 1%),
+    transparent
+  );
+}
+@utility border-* {
+  border-color: --value(--color-legacy-border-*);
+  border-color: color-mix(
+    in oklab,
+    --value(--color-legacy-border-*) calc(--modifier(integer) * 1%),
+    transparent
+  );
+}

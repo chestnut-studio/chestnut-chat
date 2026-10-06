@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BPopover } from "@chestnut-chat/ui";
 import {
   PROJECT_EMOJI_ALLOWLIST,
   PROJECT_ICON_COLORS,
@@ -43,7 +44,7 @@ const colorClass = computed(() => projectIconColorClass(color.value));
 </script>
 
 <template>
-  <UPopover v-model:open="open" :ui="{ content: 'w-[19.5rem] p-3' }">
+  <BPopover v-model:open="open" width="w-[19.5rem]">
     <button
       type="button"
       class="flex size-10 shrink-0 items-center justify-center rounded-full bg-elevated text-highlighted transition-colors hover:bg-accented"
@@ -51,7 +52,7 @@ const colorClass = computed(() => projectIconColorClass(color.value));
       :aria-expanded="open"
     >
       <span v-if="kind === 'emoji'" class="text-lg leading-none">{{ value }}</span>
-      <UIcon v-else :name="`i-lucide-${value}`" class="size-5" :class="colorClass" />
+      <BIcon v-else :name="`i-lucide-${value}`" class="size-5" :class="colorClass" />
     </button>
 
     <template #content>
@@ -96,7 +97,7 @@ const colorClass = computed(() => projectIconColorClass(color.value));
             :aria-pressed="kind === 'lucide' && value === icon"
             @click="selectLucide(icon)"
           >
-            <UIcon
+            <BIcon
               :name="`i-lucide-${icon}`"
               class="size-5"
               :class="projectIconColorClass(color)"
@@ -138,5 +139,5 @@ const colorClass = computed(() => projectIconColorClass(color.value));
         </div>
       </div>
     </template>
-  </UPopover>
+  </BPopover>
 </template>

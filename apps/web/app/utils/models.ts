@@ -122,11 +122,7 @@ export function buildProviderModelOptions(
       reasoningRequired: modelRequiresReasoning(provider.id, model.id),
       reasoningEfforts: modelReasoningEfforts(provider.id, model.id),
       vision: modelSupportsVision(provider.id, model.id, model.supportsVision),
-      multimodal: modelSupportsMultimodal(
-        provider.id,
-        model.id,
-        model.supportsMultimodal,
-      ),
+      multimodal: modelSupportsMultimodal(provider.id, model.id, model.supportsMultimodal),
       contextWindow: model.contextWindow,
     }));
   });

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { DropdownMenuItem } from "@nuxt/ui";
+import { Ellipsis } from "lucide-vue-next";
+import { BButton, BDropdown, type DropdownItem } from "@chestnut-chat/ui";
 
 import type { ChatRow } from "~/utils/group-chats";
 
@@ -18,7 +19,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const items = computed<DropdownMenuItem[][]>(() => [
+const items = computed<DropdownItem[][]>(() => [
   [
     {
       label: t("actions.rename"),
@@ -40,7 +41,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
     {
       label: t("actions.delete"),
       icon: "i-lucide-trash-2",
-      color: "error",
+      color: "danger",
       onSelect: () => emit("delete", props.chat),
     },
   ],
@@ -52,18 +53,18 @@ const items = computed<DropdownMenuItem[][]>(() => [
     class="group flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-elevated"
     @click="emit('open', chat)"
   >
-    <UIcon v-if="chat.pinned" name="i-lucide-pin" class="size-3.5 shrink-0 text-muted" />
+    <BIcon v-if="chat.pinned" name="i-lucide-pin" class="size-3.5 shrink-0 text-muted" />
     <span class="min-w-0 flex-1 truncate text-sm">{{ chat.title }}</span>
     <span class="shrink-0 text-xs text-muted">{{ dateLabel }}</span>
-    <UDropdownMenu :items="items" @click.stop>
-      <UButton
-        icon="i-lucide-ellipsis"
-        color="neutral"
+    <BDropdown :items="items" @click.stop>
+      <BButton
         variant="ghost"
         size="xs"
+        icon-only
+        :leading-icon="Ellipsis"
         class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
         @click.stop
       />
-    </UDropdownMenu>
+    </BDropdown>
   </div>
 </template>

@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { ArrowLeft } from "lucide-vue-next";
 import { toast } from "vue-sonner";
+import { BButton, BCard, BLinkButton, BOtpInput } from "@chestnut-chat/ui";
 
 definePageMeta({
   layout: false,
@@ -142,13 +144,13 @@ function goBack() {
 
 <template>
   <div class="flex h-svh items-center justify-center bg-elevated p-4">
-    <UCard class="w-full max-w-md">
+    <BCard class="w-full max-w-md">
       <template #header>
         <div class="text-center">
           <div
             class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-primary/10"
           >
-            <UIcon name="i-lucide-mail" class="size-6 text-primary" />
+            <BIcon name="i-lucide-mail" class="size-6 text-primary" />
           </div>
           <h1 class="text-xl font-semibold text-default">{{ $t("verifyOtp.title") }}</h1>
           <p class="mt-1.5 text-sm text-muted">
@@ -160,7 +162,7 @@ function goBack() {
 
       <div class="space-y-6">
         <div class="flex justify-center">
-          <UPinInput
+          <BOtpInput
             v-model="digits"
             type="number"
             :length="6"
@@ -176,37 +178,25 @@ function goBack() {
           {{ error }}
         </p>
 
-        <UButton
-          block
-          :label="t('login.verify')"
-          :loading="verifying"
-          :disabled="getOtp().length !== 6 || verifying"
-          @click="verify"
-        />
+        <BButton class="w-full" :disabled="getOtp().length !== 6 || verifying" @click="verify">
+          {{ t("login.verify") }}
+        </BButton>
 
         <div class="text-center">
-          <UButton
-            v-if="cooldown > 0"
-            variant="link"
-            color="neutral"
-            size="xs"
-            disabled
-            :label="t('verifyOtp.resendIn', { seconds: cooldown })"
-          />
-          <UButton v-else variant="link" size="xs" :label="t('verifyOtp.resend')" @click="resend" />
+          <BLinkButton v-if="cooldown > 0" variant="secondary" size="xs" disabled>
+            {{ t("verifyOtp.resendIn", { seconds: cooldown }) }}
+          </BLinkButton>
+          <BLinkButton v-else variant="secondary" size="xs" @click="resend">
+            {{ t("verifyOtp.resend") }}
+          </BLinkButton>
         </div>
       </div>
 
       <template #footer>
-        <UButton
-          variant="ghost"
-          color="neutral"
-          icon="i-lucide-arrow-left"
-          :label="$t('verifyOtp.back')"
-          size="sm"
-          @click="goBack"
-        />
+        <BButton variant="ghost" size="small" :leading-icon="ArrowLeft" @click="goBack">
+          {{ $t("verifyOtp.back") }}
+        </BButton>
       </template>
-    </UCard>
+    </BCard>
   </div>
 </template>
