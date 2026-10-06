@@ -1,22 +1,23 @@
 <script setup lang="ts">
-import { Menu } from "lucide-vue-next";
-import { BIconButton } from "@chestnut-chat/ui";
+import { SidebarProvider, SidebarTrigger } from "@chestnut-chat/ui/components/ui/sidebar";
 
 const { open: loginOpen } = useLoginModal();
-const mobileSidebarOpen = ref(false);
+const sidebarOpen = useCookie<boolean>("sidebar_state", {
+  default: () => true,
+  maxAge: 60 * 60 * 24 * 7,
+  path: "/",
+});
 </script>
 
 <template>
-  <div class="flex h-svh min-h-0 overflow-hidden bg-background-full">
-    <BIconButton
-      class="fixed left-3 top-3 z-30 sm:hidden"
-      variant="secondary"
-      :icon="Menu"
-      aria-label="Open navigation"
-      @click="mobileSidebarOpen = true"
-    />
-    <ChatSidebar v-model:mobile-open="mobileSidebarOpen" />
+  <SidebarProvider
+    v-model:open="sidebarOpen"
+    class="h-svh min-h-0 overflow-hidden bg-background"
+    :style="{ '--sidebar-width': '18rem', '--sidebar-width-icon': '4rem' }"
+  >
+    <SidebarTrigger class="fixed left-3 top-3 z-30 md:hidden" aria-label="Open navigation" />
+    <ChatSidebar />
     <slot />
-  </div>
+  </SidebarProvider>
   <LoginModal v-model:open="loginOpen" />
 </template>

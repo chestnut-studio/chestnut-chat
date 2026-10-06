@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { LogIn } from "lucide-vue-next";
-import { BAvatar, BButton, BDropdown, BSkeleton, type DropdownItem } from "@chestnut-chat/ui";
+import { BAvatar, BDropdown, BSkeleton, type DropdownItem } from "@chestnut-chat/ui";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@chestnut-chat/ui/components/ui/sidebar";
 
 defineProps<{
   collapsed?: boolean;
@@ -38,36 +43,37 @@ const menuItems = computed<DropdownItem[][]>(() => [
 </script>
 
 <template>
-  <div class="w-full">
-    <BSkeleton v-if="!hydrated || authSession.isPending" class="h-9 w-full" />
+  <SidebarMenu>
+    <SidebarMenuItem>
+      <BSkeleton v-if="!hydrated || authSession.isPending" class="h-9 w-full" />
 
-    <BDropdown
-      v-else-if="authSession.data"
-      :items="menuItems"
-      class="w-full"
-      :ui="{ content: 'min-w-52' }"
-    >
-      <BButton variant="ghost" class="w-full justify-start">
-        <BAvatar
-          :src="authSession.data.user.image ?? undefined"
-          :alt="authSession.data.user.name"
-          :initials="authSession.data.user.name?.charAt(0)"
-          size="sm"
-        />
-        <span v-if="!collapsed" class="min-w-0 truncate">{{ authSession.data.user.name }}</span>
-      </BButton>
-    </BDropdown>
+      <BDropdown
+        v-else-if="authSession.data"
+        :items="menuItems"
+        class="w-full"
+        :ui="{ content: 'min-w-52' }"
+      >
+        <SidebarMenuButton size="lg" :aria-label="authSession.data.user.name">
+          <BAvatar
+            :src="authSession.data.user.image ?? undefined"
+            :alt="authSession.data.user.name"
+            :initials="authSession.data.user.name?.charAt(0)"
+            size="sm"
+          />
+          <span v-if="!collapsed" class="min-w-0 truncate">{{ authSession.data.user.name }}</span>
+        </SidebarMenuButton>
+      </BDropdown>
 
-    <BButton
-      v-else
-      variant="secondary"
-      class="w-full"
-      :icon-only="collapsed"
-      :leading-icon="LogIn"
-      :aria-label="collapsed ? $t('sidebar.signIn') : undefined"
-      @click="showLogin"
-    >
-      <span v-if="!collapsed">{{ $t("sidebar.signIn") }}</span>
-    </BButton>
-  </div>
+      <SidebarMenuButton
+        v-else
+        variant="outline"
+        :tooltip="$t('sidebar.signIn')"
+        :aria-label="$t('sidebar.signIn')"
+        @click="showLogin"
+      >
+        <LogIn />
+        <span v-if="!collapsed">{{ $t("sidebar.signIn") }}</span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  </SidebarMenu>
 </template>

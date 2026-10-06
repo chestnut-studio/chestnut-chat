@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { Ellipsis } from "lucide-vue-next";
-import { BButton, BDropdown, type DropdownItem } from "@chestnut-chat/ui";
+import { BDropdown, type DropdownItem } from "@chestnut-chat/ui";
+import {
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuAction,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+} from "@chestnut-chat/ui/components/ui/sidebar";
 import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
 
 import type { ProjectRow } from "~/composables/useProjects";
@@ -60,44 +67,34 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
 </script>
 
 <template>
-  <div>
-    <div
-      class="group flex cursor-pointer items-center gap-1 rounded-md px-2 pl-4 py-1.5 hover:bg-elevated"
-      :class="isActive ? 'bg-elevated' : ''"
-      @click="emit('select', project)"
-    >
-      <button
-        type="button"
-        class="flex size-4 shrink-0 items-center justify-center rounded text-muted hover:text-default"
-        :aria-label="expanded ? $t('project.collapse') : $t('project.expand')"
-        @click.stop="emit('toggle')"
+  <SidebarMenuItem>
+    <SidebarMenuButton as-child :is-active="isActive" class="pl-8">
+      <NuxtLink
+        :to="projectPath(project.id)"
+        :aria-current="isActive ? 'page' : undefined"
+        @click="emit('select', project)"
       >
-        <BIcon
-          :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-          class="size-4"
-        />
-      </button>
-      <span v-if="project.iconKind === 'emoji'" class="text-sm">{{ project.iconValue }}</span>
-      <BIcon
-        v-else
-        :name="`i-lucide-${project.iconValue}`"
-        class="size-3.5 shrink-0"
-        :class="iconColorClass"
-      />
-      <span class="min-w-0 flex-1 truncate text-sm font-medium">{{ project.name }}</span>
-      <BDropdown :items="items" @click.stop>
-        <BButton
-          variant="ghost"
-          size="xs"
-          icon-only
-          :leading-icon="Ellipsis"
-          class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
-          @click.stop
-        />
-      </BDropdown>
-    </div>
+        <span v-if="project.iconKind === 'emoji'">{{ project.iconValue }}</span>
+        <BIcon v-else :name="`i-lucide-${project.iconValue}`" :class="iconColorClass" />
+        <span>{{ project.name }}</span>
+      </NuxtLink>
+    </SidebarMenuButton>
+    <button
+      type="button"
+      class="absolute left-1 top-1.5 flex size-5 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+      :aria-label="expanded ? $t('project.collapse') : $t('project.expand')"
+      :aria-expanded="expanded"
+      @click="emit('toggle')"
+    >
+      <BIcon :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="size-4" />
+    </button>
+    <BDropdown :items="items">
+      <SidebarMenuAction show-on-hover :aria-label="`${$t('project.section')}: ${project.name}`">
+        <Ellipsis />
+      </SidebarMenuAction>
+    </BDropdown>
 
-    <div v-if="expanded" class="ms-3 space-y-0.5 border-s border-default ps-2">
+    <SidebarMenuSub v-if="expanded">
       <ChatHistoryItem
         v-for="chat in chats"
         :key="chat.id"
@@ -109,9 +106,9 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
         @delete="emit('deleteChat', $event)"
         @move="emit('moveChat', $event)"
       />
-      <p v-if="!chats.length" class="px-2 py-1 text-xs text-muted">
-        {{ $t("project.noChats") }}
-      </p>
-    </div>
-  </div>
+      <SidebarMenuSubItem v-if="!chats.length">
+        <p class="px-2 py-1 text-xs text-muted-foreground">{{ $t("project.noChats") }}</p>
+      </SidebarMenuSubItem>
+    </SidebarMenuSub>
+  </SidebarMenuItem>
 </template>

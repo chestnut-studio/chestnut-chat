@@ -11,7 +11,8 @@
     "chats": "Chats",
     "empty": "No chats yet.",
     "signIn": "Sign in",
-    "expand": "Expand sidebar"
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar"
   },
   "project": {
     "section": "Projects",

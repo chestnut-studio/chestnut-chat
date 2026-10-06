@@ -1,9 +1,24 @@
 <script setup lang="ts">
 import { PanelLeftClose, PanelLeftOpen, Plus, Search } from "lucide-vue-next";
 import { BButton, BInput, BModal, BSelect } from "@chestnut-chat/ui";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarSeparator,
+  useSidebar,
+} from "@chestnut-chat/ui/components/ui/sidebar";
+import { Button } from "@chestnut-chat/ui/components/ui/button";
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 
-const mobileOpen = defineModel<boolean>("mobileOpen", { default: false });
+const { state: sidebarState, isMobile, setOpenMobile, toggleSidebar } = useSidebar();
 const { t } = useI18n();
 const { list, rename, setPinned, setArchived, remove, create: createChat } = useChats();
 const { list: projects, remove: removeProject } = useProjects();
@@ -18,7 +33,7 @@ const { mutateAsync: moveChat, isPending: isMoving } = useMutation(
   $orpc.chat.move.mutationOptions(),
 );
 
-const collapsed = ref(false);
+const collapsed = computed(() => !isMobile.value && sidebarState.value === "collapsed");
 const searchOpen = ref(false);
 const searchQuery = shallowRef("");
 const renameOpen = ref(false);
@@ -126,18 +141,9 @@ watch(
 watch(
   () => route.fullPath,
   () => {
-    mobileOpen.value = false;
+    setOpenMobile(false);
   },
 );
-
-function closeSidebar() {
-  if (window.matchMedia("(max-width: 639px)").matches) {
-    mobileOpen.value = false;
-    return;
-  }
-
-  collapsed.value = true;
-}
 
 async function onNewChat() {
   const session = await authSession.ensure();
@@ -261,7 +267,6 @@ async function onProjectCreated(payload: { projectId: string; chatId: string }) 
 
 function onOpenProject(project: ProjectRow) {
   setProjectOpen(project.id, true);
-  void navigateTo(projectPath(project.id));
 }
 
 const moveItems = computed(() => [
@@ -274,24 +279,15 @@ const moveItems = computed(() => [
 </script>
 
 <template>
-  <button
-    v-if="mobileOpen"
-    type="button"
-    class="fixed inset-0 z-40 bg-black/60 sm:hidden"
-    aria-label="Close navigation"
-    @click="mobileOpen = false"
-  />
-  <aside
-    class="fixed inset-y-0 left-0 z-50 flex h-full w-72 shrink-0 flex-col border-r border-separator-border bg-background-primary-default transition-transform duration-200 sm:static sm:z-auto sm:translate-x-0 sm:transition-[width]"
-    :class="[mobileOpen ? 'translate-x-0' : '-translate-x-full', collapsed ? 'sm:w-16' : 'sm:w-72']"
-  >
-    <header class="flex h-16 items-center gap-2 border-b border-separator-border px-4">
-      <div
+  <Sidebar collapsible="icon">
+    <SidebarHeader class="h-16 flex-row items-center gap-2 px-4">
+      <Button
         v-if="collapsed"
-        role="button"
-        class="group relative flex w-full cursor-pointer items-center justify-center"
+        variant="ghost"
+        size="icon"
+        class="group relative"
         :aria-label="$t('sidebar.expand')"
-        @click="collapsed = false"
+        @click="toggleSidebar"
       >
         <NuxtImg
           src="/favicon.svg"
@@ -299,55 +295,55 @@ const moveItems = computed(() => [
           class="size-6 transition-opacity duration-150 group-hover:opacity-0"
         />
         <PanelLeftOpen
-          name="i-lucide-panel-left-open"
           aria-hidden="true"
-          class="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-muted opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+          class="absolute opacity-0 transition-opacity duration-150 group-hover:opacity-100"
         />
-      </div>
+      </Button>
       <template v-else>
         <NuxtImg src="/favicon.svg" alt="Chestnut Chat" class="size-6" />
         <span class="truncate font-semibold">{{ $t("app.name") }}</span>
-        <BButton
+        <Button
           class="ms-auto"
           variant="ghost"
-          size="small"
-          icon-only
-          :leading-icon="PanelLeftClose"
+          size="icon"
           :aria-label="$t('sidebar.collapse')"
-          @click="closeSidebar"
-        />
+          @click="toggleSidebar"
+        >
+          <PanelLeftClose />
+        </Button>
       </template>
-    </header>
+    </SidebarHeader>
+    <SidebarSeparator />
 
-    <div class="flex min-h-0 flex-1 flex-col gap-3 p-4">
-      <BButton
-        variant="secondary"
-        class="w-full"
-        :icon-only="collapsed"
-        :leading-icon="Plus"
-        :aria-label="collapsed ? $t('sidebar.newChat') : undefined"
-        :disabled="authSession.isPending"
-        @click="onNewChat"
-      >
-        <span v-if="!collapsed">{{ $t("sidebar.newChat") }}</span>
-      </BButton>
+    <SidebarHeader class="p-4">
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            variant="outline"
+            :tooltip="$t('sidebar.newChat')"
+            :aria-label="$t('sidebar.newChat')"
+            :disabled="authSession.isPending"
+            @click="onNewChat"
+          >
+            <Plus />
+            <span v-if="!collapsed">{{ $t("sidebar.newChat") }}</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            :tooltip="$t('sidebar.search')"
+            :aria-label="$t('sidebar.search')"
+            @click="searchOpen = true"
+          >
+            <Search />
+            <span v-if="!collapsed">{{ $t("sidebar.search") }}</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarHeader>
 
-      <BButton
-        v-if="!collapsed"
-        variant="secondary"
-        size="small"
-        class="w-full justify-start"
-        @click="
-          () => {
-            searchOpen = true;
-          }
-        "
-      >
-        <Search class="size-[18px] shrink-0" />
-        {{ $t("sidebar.search") }}
-      </BButton>
-
-      <div v-if="!collapsed" class="-me-4 min-h-0 flex-1 space-y-4 overflow-y-auto pe-1">
+    <SidebarContent>
+      <div v-if="!collapsed" class="flex flex-col gap-2 px-2">
         <ProjectSidebarSection
           :projects="projectRows"
           :chats-by-project="partitioned.byProject"
@@ -370,52 +366,50 @@ const moveItems = computed(() => [
           @move-chat="openMove"
         />
 
-        <div class="space-y-1">
-          <button
-            type="button"
-            class="flex w-full items-center gap-1 rounded-md px-2 py-1 text-base font-medium text-muted hover:bg-elevated"
-            @click="toggleChats"
-          >
-            <BIcon
-              :name="chatsExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
-              class="size-5"
-            />
-            <span>{{ $t("sidebar.chats") }}</span>
-          </button>
+        <SidebarGroup>
+          <SidebarGroupLabel as-child>
+            <button type="button" :aria-expanded="chatsExpanded" @click="toggleChats">
+              <BIcon :name="chatsExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" />
+              <span>{{ $t("sidebar.chats") }}</span>
+            </button>
+          </SidebarGroupLabel>
 
-          <div v-if="chatsExpanded" class="space-y-3">
-            <div v-for="group in standaloneGroups" :key="group.key" class="pl-4 mb-4">
-              <p class="px-2 pb-1 text-xs font-medium text-muted">
+          <SidebarGroupContent v-if="chatsExpanded" class="flex flex-col gap-3">
+            <div v-for="group in standaloneGroups" :key="group.key">
+              <p class="px-2 py-1 text-xs font-medium text-muted-foreground">
                 {{ $t(`groups.${group.key}`) }}
               </p>
-              <ChatHistoryItem
-                v-for="chat in group.chats"
-                :key="chat.id"
-                :chat="chat"
-                :active="chat.id === activeId"
-                @rename="openRename"
-                @pin="onPin"
-                @archive="onArchive"
-                @delete="openDelete"
-                @move="openMove"
-              />
+              <SidebarMenu>
+                <ChatHistoryItem
+                  v-for="chat in group.chats"
+                  :key="chat.id"
+                  :chat="chat"
+                  :active="chat.id === activeId"
+                  @rename="openRename"
+                  @pin="onPin"
+                  @archive="onArchive"
+                  @delete="openDelete"
+                  @move="openMove"
+                />
+              </SidebarMenu>
             </div>
 
             <p
               v-if="!standaloneGroups.length && list.status.value === 'success'"
-              class="px-2 text-sm text-muted"
+              class="px-2 text-sm text-muted-foreground"
             >
               {{ $t("sidebar.empty") }}
             </p>
-          </div>
-        </div>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </div>
-    </div>
+    </SidebarContent>
 
-    <footer class="border-t border-separator-border p-4">
+    <SidebarSeparator />
+    <SidebarFooter class="p-4">
       <ChatSidebarFooter :collapsed="collapsed" />
-    </footer>
-  </aside>
+    </SidebarFooter>
+  </Sidebar>
 
   <BModal v-model:open="searchOpen" :title="$t('sidebar.search')">
     <template #body>
