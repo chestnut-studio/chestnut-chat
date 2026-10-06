@@ -1,10 +1,7 @@
 /**
- * @chestnut-chat/ui — BoardUI design system ported to Vue 3.
- *
- * Components are ports of BoardUI's React components (MIT licensed,
- * https://github.com/BoardUI/boardui), reimplemented as Vue 3 SFCs. Visual
- * language (semantic tokens, composite typography, dark mode via `.dark`) is
- * carried by the CSS files in src/styles.
+ * @chestnut-chat/ui — shadcn-vue components with the existing B* API.
+ * CLI-managed primitives live in components/ui; compatibility compositions
+ * retain application props, slots and models in their original files.
  *
  * Styles must be imported by the consuming app (after "tailwindcss"):
  *

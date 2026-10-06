@@ -1,32 +1,12 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { cx } from "../../utils/cx";
-
-/**
- * Caption text rendered below a field. Ported from BoardUI
- * components/base/input/hint-text.tsx (MIT).
- *
- * Wire `aria-describedby` on the field to this element's id for full a11y.
- *
- * Visuals: Inter Medium 12/16, tracking 0.15px; color text/secondary (default)
- * or text/error-primary (invalid).
- */
-
+import { FieldDescription, FieldError } from "../ui/field";
 export interface HintTextProps {
   isInvalid?: boolean;
   id?: string;
 }
-
-const props = withDefaults(defineProps<HintTextProps>(), { isInvalid: false });
-
-const classes = computed(() =>
-  cx(
-    "pt-px text-caption-1-medium",
-    props.isInvalid ? "text-text-error-primary" : "text-text-secondary",
-  ),
-);
+defineProps<HintTextProps>();
 </script>
-
 <template>
-  <p :id="id" :class="classes"><slot /></p>
+  <FieldError v-if="isInvalid" :id="id"><slot /></FieldError>
+  <FieldDescription v-else :id="id"><slot /></FieldDescription>
 </template>

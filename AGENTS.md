@@ -6,13 +6,14 @@ Guidance for AI coding agents working in this repository.
 
 `chestnut-chat` is a Better-T-Stack TypeScript monorepo managed with pnpm and Turborepo.
 
-- `apps/web`: Nuxt 4 frontend using Nuxt UI v4, Tailwind CSS v4, Better Auth Vue client, oRPC client utilities, and TanStack Vue Query. Dev server runs on `http://localhost:3011`.
+- `apps/web`: Nuxt 4 frontend using shadcn-vue, Tailwind CSS v4, Better Auth Vue client, oRPC client utilities, and TanStack Vue Query. Dev server runs on `http://localhost:3011`.
 - `apps/server`: Node/Hono backend. It mounts Better Auth at `/api/auth/*`, serves oRPC at `/rpc`, exposes an OpenAPI reference at `/api-reference`, and listens on `http://localhost:3010`.
 - `packages/api`: Shared oRPC router/procedure layer and request context.
 - `packages/auth`: Better Auth server configuration.
 - `packages/db`: Drizzle schema and Neon serverless PostgreSQL database client.
 - `packages/env`: Server and Nuxt environment validation.
 - `packages/config`: Shared TypeScript config.
+- `packages/ui`: CLI-managed shadcn-vue components with compatibility compositions for the existing `B*` API.
 
 The repo uses ESM (`"type": "module"`), strict TypeScript, workspace packages, and catalog dependency versions in `pnpm-workspace.yaml`.
 
@@ -61,9 +62,9 @@ Drizzle config loads environment from `apps/server/.env`. Do not commit `.env` f
 ## Frontend Guidelines
 
 - Build app UI in `apps/web/app` with Vue single-file components and Nuxt conventions.
-- Prefer Nuxt UI components (`UButton`, `UCard`, `UPageHeader`, `UAuthForm`, etc.) and lucide Iconify names (`i-lucide-*`) over custom controls.
-- Theme tokens are configured in `apps/web/app/app.config.ts` with `primary: "emerald"` and `neutral: "neutral"`.
-- Global CSS is intentionally minimal in `apps/web/app/assets/css/main.css`; prefer component-level Tailwind/Nuxt UI classes.
+- Prefer shadcn-vue components from `@chestnut-chat/ui/components/ui/*` over custom controls. Add components with the shadcn-vue CLI from `packages/ui`; preserve existing `B*` contracts when modifying compatibility compositions.
+- Use semantic Tailwind tokens (`bg-background`, `text-foreground`, `border-border`). Theme presets from tweakcn live in `apps/web/app/utils/themes`; `useThemePreferences` persists them in a cookie, and `app.vue` applies their CSS variables during SSR.
+- Global CSS is intentionally minimal in `apps/web/app/assets/css/main.css`; prefer component-level Tailwind classes. Use `useColorMode()` for light/dark/system mode.
 - Use the provided plugins:
   - `$authClient` from `apps/web/app/plugins/auth-client.ts`
   - `$orpc` from `apps/web/app/plugins/orpc.ts`

@@ -110,10 +110,8 @@ function onStatusClick() {
 
     <BSlideover
       v-model:open="open"
-      side="right"
       :title="t('chat.webSearchSources')"
       :description="t('chat.webSearchSourcesDescription', { count: displaySources.length })"
-      :ui="{ content: 'max-w-md' }"
     >
       <template #body>
         <ChatSourceList :sources="displaySources" />

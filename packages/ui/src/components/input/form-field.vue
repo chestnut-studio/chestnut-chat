@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { useId } from "vue";
+import { Field, FieldDescription } from "../ui/field";
 import Label from "./label.vue";
-
 defineProps<{ label: string; description?: string; hint?: string; required?: boolean }>();
 const id = useId();
 </script>
-
 <template>
-  <div class="flex flex-col gap-1.5">
+  <Field class="gap-1.5">
     <div class="flex items-center justify-between gap-2">
       <Label :for="id" :is-required="required">{{ label }}</Label>
-      <span v-if="hint" class="text-caption-1-regular text-text-tertiary">{{ hint }}</span>
+      <span v-if="hint" class="text-xs text-muted-foreground">{{ hint }}</span>
     </div>
-    <p v-if="description" class="text-body-2-regular text-text-secondary">{{ description }}</p>
+    <FieldDescription v-if="description">{{ description }}</FieldDescription>
     <slot :id="id" />
-  </div>
+  </Field>
 </template>

@@ -25,12 +25,12 @@ import {
 } from "@chestnut-chat/ui";
 import { Bell, ChevronRight, Moon, Plus, Search, Sun, Trash2 } from "lucide-vue-next";
 
-useHead({ title: "BoardUI (Vue) showcase" });
+useHead({ title: "shadcn-vue showcase" });
 
-const dark = ref(false);
+const colorMode = useColorMode();
+const dark = computed(() => colorMode.value === "dark");
 function toggleDark() {
-  dark.value = !dark.value;
-  document.documentElement.classList.toggle("dark", dark.value);
+  colorMode.preference = dark.value ? "light" : "dark";
 }
 
 const input = ref("");
@@ -42,6 +42,7 @@ const switchRect = ref(false);
 const radio = ref("a");
 const activeTab = ref("overview");
 const selectedToolbar = ref<string | null>("center");
+const sheetOpen = shallowRef(false);
 </script>
 
 <template>
@@ -49,13 +50,15 @@ const selectedToolbar = ref<string | null>("center");
     <div class="mx-auto flex max-w-4xl flex-col gap-10 px-6 py-10">
       <header class="flex items-center justify-between">
         <div>
-          <h1 class="text-title-1-semibold">BoardUI components (Vue port)</h1>
+          <h1 class="text-title-1-semibold">shadcn-vue components</h1>
           <p class="text-body-regular text-text-secondary">
             Rendered from <code class="font-mono">@chestnut-chat/ui</code> — tokens + components.
           </p>
         </div>
         <BIconButton :icon="dark ? Sun : Moon" aria-label="Toggle dark mode" @click="toggleDark" />
       </header>
+
+      <SettingsCustomizationPanel />
 
       <!-- Buttons -->
       <section class="flex flex-col gap-4">
@@ -207,6 +210,18 @@ const selectedToolbar = ref<string | null>("center");
             Advanced panel content. Arrow keys move between tabs.
           </BTabPanel>
         </BTabs>
+      </section>
+
+      <section class="flex flex-col gap-4">
+        <h2 class="text-title-2-medium">Sheet</h2>
+        <BButton variant="secondary" @click="sheetOpen = true">Open sheet</BButton>
+        <BSlideover
+          v-model:open="sheetOpen"
+          title="Sources"
+          description="Supporting information for this conversation."
+        >
+          <p>Sheet content uses the selected theme and supports keyboard dismissal.</p>
+        </BSlideover>
       </section>
     </div>
   </div>

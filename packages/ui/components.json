@@ -1,0 +1,17 @@
+{
+  "$schema": "https://shadcn-vue.com/schema.json",
+  "style": "new-york",
+  "typescript": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles/theme.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "@chestnut-chat/ui/components",
+    "ui": "@chestnut-chat/ui/components/ui",
+    "utils": "@chestnut-chat/ui/lib/utils",
+    "lib": "@chestnut-chat/ui/lib"
+  }
+}

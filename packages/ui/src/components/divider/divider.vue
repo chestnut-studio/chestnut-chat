@@ -1,73 +1,40 @@
 <script setup lang="ts">
-import { computed, useSlots } from "vue";
-import { cx } from "../../utils/cx";
-
-/**
- * Horizontal content divider with three surface treatments. Ported from
- * BoardUI components/base/divider/divider.tsx (MIT).
- *
- * `single` places content within one continuous hairline, `double` frames it
- * with a line above and below, and `fill` uses the secondary surface color.
- */
-
-type DividerVariant = "single" | "double" | "fill";
-type DividerAlign = "start" | "center" | "end";
-
+import { Separator } from "../ui/separator";
+import { cn } from "../../lib/utils";
 export interface DividerProps {
-  variant?: DividerVariant;
-  align?: DividerAlign;
+  variant?: "single" | "double" | "fill";
+  align?: "start" | "center" | "end";
 }
-
-const props = withDefaults(defineProps<DividerProps>(), {
-  variant: "single",
-  align: "center",
-});
-
-const slots = useSlots();
-const hasContent = computed(() => Boolean(slots.default));
-
-const styles = {
-  root: "w-full",
-  line: "h-px min-w-0 flex-1 bg-separator-border",
-  content: "shrink-0 text-body-medium text-text-secondary",
-  align: {
-    start: "justify-start",
-    center: "justify-center",
-    end: "justify-end",
-  },
-  withContent: {
-    single: "flex items-center gap-3",
-    double: "flex items-center border-y border-separator-border py-2.5",
-    fill: "flex items-center rounded-2lg bg-background-secondary-default px-4 py-2.5",
-  },
-  empty: {
-    single: "h-px bg-separator-border",
-    double: "h-2 border-y border-separator-border",
-    fill: "h-2 rounded-full bg-background-secondary-default",
-  },
+withDefaults(defineProps<DividerProps>(), { variant: "single", align: "center" });
+const alignments = {
+  start: "justify-start",
+  center: "justify-center",
+  end: "justify-end",
 } as const;
-
-const rootClasses = computed(() =>
-  hasContent.value
-    ? cx(styles.root, styles.withContent[props.variant], styles.align[props.align])
-    : cx(styles.root, styles.empty[props.variant]),
-);
-
-const showLeadingLine = computed(() => props.variant === "single" && props.align !== "start");
-const showTrailingLine = computed(() => props.variant === "single" && props.align !== "end");
 </script>
-
 <template>
+  <Separator v-if="!$slots.default && variant === 'single'" />
+  <div v-else-if="variant === 'double'" class="flex w-full flex-col gap-2">
+    <Separator />
+    <div v-if="$slots.default" :class="cn('flex text-sm text-muted-foreground', alignments[align])">
+      <slot />
+    </div>
+    <Separator />
+  </div>
   <div
-    v-if="!hasContent"
-    role="separator"
-    aria-orientation="horizontal"
-    :data-variant="variant"
-    :class="rootClasses"
-  />
-  <div v-else :data-variant="variant" :data-align="align" :class="rootClasses">
-    <span v-if="showLeadingLine" aria-hidden="true" :class="styles.line" />
-    <div :class="styles.content"><slot /></div>
-    <span v-if="showTrailingLine" aria-hidden="true" :class="styles.line" />
+    v-else-if="variant === 'fill'"
+    :class="
+      cn(
+        'flex min-h-2 w-full rounded-md bg-muted px-4 py-2 text-sm text-muted-foreground',
+        alignments[align],
+      )
+    "
+  >
+    <slot />
+  </div>
+  <div v-else class="flex w-full items-center gap-3">
+    <Separator v-if="align !== 'start'" class="min-w-0 flex-1" />
+    <span class="shrink-0 text-sm text-muted-foreground"><slot /></span>
+    <Separator v-if="align !== 'end'" class="min-w-0 flex-1" />
   </div>
 </template>

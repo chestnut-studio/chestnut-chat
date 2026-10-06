@@ -1,13 +1,16 @@
 <script setup lang="ts">
+import { getThemeCss } from "~/utils/theme";
+
 const colorMode = useColorMode();
-const { radius } = useThemePreferences();
+const { preferences } = useThemePreferences();
 const sonnerTheme = computed(() => (colorMode.value === "dark" ? "dark" : "light"));
 
 useHead(() => ({
+  htmlAttrs: { "data-theme": preferences.value.preset },
   style: [
     {
-      key: "theme-radius",
-      innerHTML: `:root { --ui-radius: ${radius.value}rem; }`,
+      key: "theme-preset",
+      innerHTML: getThemeCss(preferences.value),
     },
   ],
 }));

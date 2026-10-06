@@ -7,6 +7,7 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 - **TypeScript** - For type safety and improved developer experience
 - **Nuxt** - The Intuitive Vue Framework
 - **TailwindCSS** - Utility-first CSS for rapid UI development
+- **shadcn-vue** - Accessible shared UI components with tweakcn theme presets
 - **Hono** - Lightweight, performant server framework
 - **oRPC** - End-to-end type-safe APIs with OpenAPI integration
 - **Node.js** - Runtime environment
@@ -49,6 +50,24 @@ The API is running at [http://localhost:3010](http://localhost:3010).
 ## Git Hooks and Formatting
 
 - Run checks: `pnpm run check`
+
+## UI and Themes
+
+The shared UI in `packages/ui` uses CLI-managed [shadcn-vue](https://shadcn-vue.com) components.
+Existing `B*` exports compose those components to retain application props, slots, and models.
+Add components from that package directory with `pnpm dlx shadcn-vue@latest add <component>`.
+
+Settings → Customization offers six [tweakcn](https://tweakcn.com) presets, light/dark/system mode,
+and an optional corner-radius override. Selecting a preset restores its own radius. Preferences
+are saved in the `chestnut-theme` cookie and applied during server rendering. Old color-only
+preferences fall back to Modern Minimal.
+
+The preset snapshots in `apps/web/app/utils/themes` come from tweakcn's official
+`https://tweakcn.com/r/themes/<name>.json` registry, retrieved on October 6, 2026, under Apache-2.0
+(license included beside the snapshots). Switching themes needs no network request. Font stacks
+use installed fonts with the preset's fallbacks; no third-party font service is contacted.
+The `/ui-test` route previews the same appearance controls and shared components without signing in.
+Run theme regression tests with `bun test apps/web/tests/theme.test.ts`.
 
 ## Project Structure
 

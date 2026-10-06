@@ -1,3 +1,4 @@
-<template>
-  <div class="animate-pulse rounded-lg bg-background-tertiary-default" aria-hidden="true" />
-</template>
+<script setup lang="ts">
+import { Skeleton } from "../ui/skeleton";
+</script>
+<template><Skeleton aria-hidden="true" /></template>

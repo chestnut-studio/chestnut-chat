@@ -1,9 +1,10 @@
+<script setup lang="ts">
+import { Card, CardHeader, CardContent, CardFooter } from "../ui/card";
+</script>
 <template>
-  <section
-    class="rounded-3xl border border-border-button-default bg-background-primary-default p-6 shadow-card"
-  >
-    <slot name="header" />
-    <slot />
-    <slot name="footer" />
-  </section>
+  <Card>
+    <CardHeader v-if="$slots.header"><slot name="header" /></CardHeader>
+    <CardContent><slot /></CardContent>
+    <CardFooter v-if="$slots.footer"><slot name="footer" /></CardFooter>
+  </Card>
 </template>
