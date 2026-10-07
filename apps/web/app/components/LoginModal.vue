@@ -83,7 +83,7 @@ async function sendOtp() {
       <DialogContent
         :show-close-button="false"
         :aria-describedby="undefined"
-        class="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-md p-4"
+        class="overflow-y-auto p-4 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:content-start max-sm:rounded-none max-sm:border-0 max-sm:pt-[max(1rem,env(safe-area-inset-top))] max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-h-[calc(100dvh-2rem)] sm:max-w-md"
       >
         <DialogHeader class="flex-row items-center justify-between">
           <DialogTitle>{{ $t("login.title") }}</DialogTitle>
