@@ -11,6 +11,8 @@
     "chats": "Chats",
     "empty": "No chats yet.",
     "signIn": "Sign in",
+    "guestProjects": "Sign in to organize chats and files into projects.",
+    "guestChats": "Sign in to save your chats and pick up where you left off.",
     "expand": "Expand sidebar",
     "collapse": "Collapse sidebar"
   },

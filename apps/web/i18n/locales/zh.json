@@ -11,6 +11,8 @@
     "chats": "对话",
     "empty": "暂无对话。",
     "signIn": "登录",
+    "guestProjects": "登录后，将对话和文件整理到项目中。",
+    "guestChats": "登录后，保存对话，随时继续交流。",
     "expand": "展开侧边栏",
     "collapse": "收起侧边栏"
   },

@@ -1,6 +1,12 @@
 <script setup lang="ts">
-import { PanelLeftClose, PanelLeftOpen, Plus, Search } from "lucide-vue-next";
+import { Minus, PanelLeftClose, PanelLeftOpen, Plus, Search } from "lucide-vue-next";
 import { BButton, BInput, BModal, BSelect } from "@chestnut-chat/ui";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@chestnut-chat/ui/components/ui/collapsible";
+import { cn } from "@chestnut-chat/ui/lib/utils";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +18,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarRail,
   SidebarSeparator,
   useSidebar,
 } from "@chestnut-chat/ui/components/ui/sidebar";
@@ -60,6 +69,23 @@ const standaloneGroups = computed(() => groupChats(partitioned.value.standalone)
 const chatsExpanded = computed(() => state.value.chatsOpen);
 const projectsExpanded = computed(() => state.value.projectsOpen);
 const forceOpenProjectIds = new Set<string>();
+
+const guestSections = computed(() => [
+  {
+    key: "projects",
+    label: t("project.section"),
+    open: projectsExpanded.value,
+    toggle: toggleProjects,
+    hint: t("sidebar.guestProjects"),
+  },
+  {
+    key: "chats",
+    label: t("sidebar.chats"),
+    open: chatsExpanded.value,
+    toggle: toggleChats,
+    hint: t("sidebar.guestChats"),
+  },
+]);
 
 const projectNameById = computed(() => {
   const map = new Map<string, string>();
@@ -280,7 +306,11 @@ const moveItems = computed(() => [
 
 <template>
   <Sidebar collapsible="icon">
-    <SidebarHeader class="h-16 flex-row items-center gap-2 px-4">
+    <SidebarHeader
+      :class="
+        cn('flex-row items-center gap-2', authSession.isAuthenticated ? 'h-16 px-4' : 'h-14 px-2')
+      "
+    >
       <Button
         v-if="collapsed"
         variant="ghost"
@@ -300,7 +330,15 @@ const moveItems = computed(() => [
         />
       </Button>
       <template v-else>
-        <NuxtImg src="/favicon.svg" alt="Chestnut Chat" class="size-6" />
+        <NuxtLink
+          v-if="!authSession.isAuthenticated"
+          to="/"
+          :aria-label="$t('app.name')"
+          class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+        >
+          <NuxtImg src="/favicon.svg" alt="" class="size-6" />
+        </NuxtLink>
+        <NuxtImg v-else src="/favicon.svg" alt="Chestnut Chat" class="size-6" />
         <span class="truncate font-semibold">{{ $t("app.name") }}</span>
         <Button
           class="ms-auto"
@@ -313,13 +351,13 @@ const moveItems = computed(() => [
         </Button>
       </template>
     </SidebarHeader>
-    <SidebarSeparator />
+    <SidebarSeparator v-if="authSession.isAuthenticated" />
 
-    <SidebarHeader class="p-4">
+    <SidebarHeader :class="cn(authSession.isAuthenticated ? 'p-4' : 'px-2 pb-2 pt-0')">
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton
-            variant="outline"
+            :variant="authSession.isAuthenticated ? 'outline' : 'default'"
             :tooltip="$t('sidebar.newChat')"
             :aria-label="$t('sidebar.newChat')"
             :disabled="authSession.isPending"
@@ -331,6 +369,7 @@ const moveItems = computed(() => [
         </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton
+            :variant="authSession.isAuthenticated ? 'default' : 'outline'"
             :tooltip="$t('sidebar.search')"
             :aria-label="$t('sidebar.search')"
             @click="searchOpen = true"
@@ -343,7 +382,37 @@ const moveItems = computed(() => [
     </SidebarHeader>
 
     <SidebarContent>
-      <div v-if="!collapsed" class="flex flex-col gap-2 px-2">
+      <SidebarGroup v-if="!collapsed && !authSession.isAuthenticated">
+        <SidebarMenu>
+          <Collapsible
+            v-for="section in guestSections"
+            :key="section.key"
+            :open="section.open"
+            class="group/collapsible"
+            @update:open="section.toggle"
+          >
+            <SidebarMenuItem>
+              <CollapsibleTrigger as-child>
+                <SidebarMenuButton>
+                  <span>{{ section.label }}</span>
+                  <Plus class="ml-auto group-data-[state=open]/collapsible:hidden" />
+                  <Minus class="ml-auto group-data-[state=closed]/collapsible:hidden" />
+                </SidebarMenuButton>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarMenuSub>
+                  <SidebarMenuSubItem>
+                    <p class="py-2 text-xs leading-relaxed text-muted-foreground">
+                      {{ section.hint }}
+                    </p>
+                  </SidebarMenuSubItem>
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            </SidebarMenuItem>
+          </Collapsible>
+        </SidebarMenu>
+      </SidebarGroup>
+      <div v-else-if="!collapsed" class="flex flex-col gap-2 px-2">
         <ProjectSidebarSection
           :projects="projectRows"
           :chats-by-project="partitioned.byProject"
@@ -405,10 +474,11 @@ const moveItems = computed(() => [
       </div>
     </SidebarContent>
 
-    <SidebarSeparator />
-    <SidebarFooter class="p-4">
+    <SidebarSeparator v-if="authSession.isAuthenticated" />
+    <SidebarFooter :class="cn(authSession.isAuthenticated ? 'p-4' : 'p-2')">
       <ChatSidebarFooter :collapsed="collapsed" />
     </SidebarFooter>
+    <SidebarRail v-if="!authSession.isAuthenticated" />
   </Sidebar>
 
   <BModal v-model:open="searchOpen" :title="$t('sidebar.search')">
