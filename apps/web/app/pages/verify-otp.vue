@@ -143,7 +143,7 @@ function goBack() {
 </script>
 
 <template>
-  <div class="flex h-svh items-center justify-center bg-elevated p-4">
+  <div class="flex h-svh items-center justify-center bg-background-primary-default p-4">
     <BCard class="w-full max-w-md">
       <template #header>
         <div class="text-center">
@@ -152,10 +152,10 @@ function goBack() {
           >
             <BIcon name="i-ri-mail-line" class="size-6 text-primary" />
           </div>
-          <h1 class="text-xl font-semibold text-default">{{ $t("verifyOtp.title") }}</h1>
-          <p class="mt-1.5 text-sm text-muted">
+          <h1 class="text-title-2-semibold text-text-primary">{{ $t("verifyOtp.title") }}</h1>
+          <p class="mt-1.5 text-body-2-regular text-text-secondary">
             {{ $t("verifyOtp.description") }}
-            <span class="font-medium text-default">{{ email }}</span>
+            <span class="font-medium text-text-primary">{{ email }}</span>
           </p>
         </div>
       </template>
@@ -174,7 +174,7 @@ function goBack() {
           />
         </div>
 
-        <p v-if="error" class="text-center text-sm font-medium text-error">
+        <p v-if="error" class="text-center text-body-2-medium text-text-error-primary">
           {{ error }}
         </p>
 

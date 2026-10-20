@@ -37,8 +37,8 @@ function onSelect(prompt: string) {
 </script>
 
 <template>
-  <div class="mt-5 space-y-3">
-    <p class="text-center text-xs font-medium tracking-wide text-muted uppercase">
+  <div class="mt-6 space-y-3">
+    <p class="text-center text-caption-1-semibold text-text-tertiary">
       {{ $t("chat.suggestions.label") }}
     </p>
 
@@ -47,27 +47,27 @@ function onSelect(prompt: string) {
         v-for="(item, index) in items"
         :key="item.id"
         type="button"
-        class="group suggestion-tile flex items-start gap-3 rounded-xl border border-default/80 bg-elevated/50 px-3.5 py-3 text-left transition-[background-color,border-color,transform,box-shadow] duration-200 hover:border-primary/35 hover:bg-elevated hover:shadow-sm focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50"
+        class="group suggestion-tile flex items-start gap-3 rounded-2xl border border-border-button-default bg-background-primary-default px-3.5 py-3 text-left shadow-card transition-[background-color,border-color] duration-150 hover:border-border-button-hover hover:bg-background-primary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring focus-visible:outline-none active:bg-background-primary-active disabled:pointer-events-none disabled:opacity-50"
         :style="{ animationDelay: `${index * 60}ms` }"
         :disabled="disabled"
         @click="onSelect(item.prompt)"
       >
         <span
-          class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15"
+          class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-button-ghost-background text-button-ghost-foreground transition-colors group-hover:bg-button-ghost-hover"
         >
           <BIcon :name="item.icon" class="size-4" />
         </span>
 
         <span class="min-w-0 flex-1">
-          <span class="block text-sm font-medium text-highlighted">{{ item.title }}</span>
-          <span class="mt-0.5 block text-xs leading-relaxed text-muted">
+          <span class="block text-body-2-medium text-text-primary">{{ item.title }}</span>
+          <span class="mt-0.5 block text-caption-1-regular leading-relaxed text-text-secondary">
             {{ item.description }}
           </span>
         </span>
 
         <BIcon
           name="i-ri-arrow-right-up-line"
-          class="mt-1 size-3.5 shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100"
+          class="mt-1 size-3.5 shrink-0 text-text-secondary opacity-0 transition-opacity group-hover:opacity-100"
         />
       </button>
     </div>

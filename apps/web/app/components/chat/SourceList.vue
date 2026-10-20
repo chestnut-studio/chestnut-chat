@@ -16,10 +16,10 @@ defineProps<{
         :href="source.url"
         target="_blank"
         rel="noopener noreferrer"
-        class="group flex gap-3 rounded-xl border border-default/80 bg-default p-3 no-underline transition-[border-color,background-color] hover:border-primary/35 hover:bg-elevated"
+        class="group flex gap-3 rounded-xl border border-border-button-default/80 bg-background-full p-3 no-underline transition-[border-color,background-color] hover:border-primary/35 hover:bg-background-primary-default"
       >
         <span
-          class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-elevated text-xs font-medium text-muted"
+          class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md bg-background-primary-default text-caption-1-medium text-text-secondary"
         >
           {{ index + 1 }}
         </span>
@@ -31,20 +31,27 @@ defineProps<{
               :alt="sourceSiteLabel(source)"
               :initials="sourceSiteLabel(source)"
               size="xs"
-              class="ring-1 ring-accented"
+              class="ring-1 ring-border-button-default"
             />
-            <span class="truncate text-xs text-muted">{{ sourceSiteLabel(source) }}</span>
+            <span class="truncate text-caption-1-regular text-text-secondary">{{
+              sourceSiteLabel(source)
+            }}</span>
             <BIcon
               name="i-ri-arrow-right-up-line"
-              class="ml-auto size-3.5 shrink-0 text-dimmed opacity-0 transition-opacity group-hover:opacity-100"
+              class="ml-auto size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
             />
           </div>
 
-          <p class="mt-1.5 line-clamp-2 text-sm leading-5 font-medium text-default">
+          <p
+            class="mt-1.5 line-clamp-2 text-body-2-regular leading-5 font-medium text-text-primary"
+          >
             {{ sourceTitle(source) }}
           </p>
 
-          <p v-if="source.excerpt" class="mt-1 line-clamp-3 text-xs leading-5 text-muted">
+          <p
+            v-if="source.excerpt"
+            class="mt-1 line-clamp-3 text-caption-1-regular leading-5 text-text-secondary"
+          >
             {{ source.excerpt }}
           </p>
         </div>

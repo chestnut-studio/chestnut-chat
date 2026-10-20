@@ -9,7 +9,7 @@ const id = useId();
   <Field class="gap-1.5">
     <div class="flex items-center justify-between gap-2">
       <Label :for="id" :is-required="required">{{ label }}</Label>
-      <span v-if="hint" class="text-xs text-muted-foreground">{{ hint }}</span>
+      <span v-if="hint" class="text-caption-1-regular text-muted-foreground">{{ hint }}</span>
     </div>
     <FieldDescription v-if="description">{{ description }}</FieldDescription>
     <slot :id="id" />

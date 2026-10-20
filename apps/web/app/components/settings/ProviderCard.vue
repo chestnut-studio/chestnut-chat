@@ -94,7 +94,7 @@ const connectionIconComponent = computed(() => {
 </script>
 
 <template>
-  <div class="group border-default rounded-xl border bg-background">
+  <div class="group border-border-button-default rounded-xl border bg-background">
     <div class="flex items-center gap-3 p-4">
       <ProviderIcon :provider="provider.iconProvider" size="sm" />
       <div class="min-w-0 flex-1">
@@ -103,7 +103,7 @@ const connectionIconComponent = computed(() => {
           <BIcon
             v-if="credits.state === 'loading'"
             name="i-ri-loader-4-line"
-            class="text-muted size-3.5 animate-spin"
+            class="text-text-secondary size-3.5 animate-spin"
           />
           <BChip v-else variant="caption" :color="creditsColor" class="max-w-full truncate">
             {{ creditsLabel }}
@@ -150,7 +150,7 @@ const connectionIconComponent = computed(() => {
       </div>
     </div>
 
-    <div v-if="editing && editForm" class="border-default border-t px-4 py-4">
+    <div v-if="editing && editForm" class="border-border-button-default border-t px-4 py-4">
       <SettingsProviderFormFields
         :form="editForm"
         :save-label="$t('actions.save')"
@@ -160,11 +160,11 @@ const connectionIconComponent = computed(() => {
       />
     </div>
 
-    <div v-else class="border-default border-t px-4 py-4">
+    <div v-else class="border-border-button-default border-t px-4 py-4">
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
           <p class="font-medium">{{ modelHeading }}</p>
-          <p v-if="!provider.models.length" class="text-muted mt-1 text-sm">
+          <p v-if="!provider.models.length" class="text-text-secondary mt-1 text-body-2-regular">
             {{ $t("settings.noModelsConfiguredHint") }}
           </p>
         </div>
@@ -193,20 +193,23 @@ const connectionIconComponent = computed(() => {
 
       <div
         v-if="provider.models.length"
-        class="border-default mt-3 max-h-64 overflow-y-auto rounded-lg border"
+        class="border-border-button-default mt-3 max-h-64 overflow-y-auto rounded-lg border"
       >
         <div
           v-for="model in provider.models"
           :key="model.id"
-          class="border-default flex min-h-12 items-center gap-3 border-b px-3 py-2 last:border-b-0"
+          class="border-border-button-default flex min-h-12 items-center gap-3 border-b px-3 py-2 last:border-b-0"
         >
           <BIcon
             :name="model.source === 'manual' ? 'i-ri-pencil-line' : 'i-ri-box-3-line'"
-            class="text-muted size-4 shrink-0"
+            class="text-text-secondary size-4 shrink-0"
           />
           <div class="min-w-0 flex-1">
-            <p class="truncate font-mono text-sm">{{ model.id }}</p>
-            <p v-if="model.name || model.ownedBy" class="text-muted truncate text-xs">
+            <p class="truncate font-mono text-body-2-regular">{{ model.id }}</p>
+            <p
+              v-if="model.name || model.ownedBy"
+              class="text-text-secondary truncate text-caption-1-regular"
+            >
               {{ model.name || model.ownedBy }}
             </p>
           </div>

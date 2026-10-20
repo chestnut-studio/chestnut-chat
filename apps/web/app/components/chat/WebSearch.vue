@@ -59,15 +59,15 @@ function onStatusClick() {
   <div class="mb-3 w-full min-w-0">
     <button
       type="button"
-      class="flex w-full min-w-0 items-start gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors"
+      class="flex w-full min-w-0 items-start gap-2.5 rounded-2xl border px-3 py-2.5 text-left transition-colors"
       :class="[
         isError
-          ? 'border-error/30 bg-error/5'
+          ? 'border-border-error-default/30 bg-text-error-primary/5'
           : isPending
             ? 'border-primary/25 bg-primary/5'
-            : 'border-default/80 bg-elevated/40',
+            : 'border-border-button-default bg-background-secondary-default',
         canOpenSources
-          ? 'cursor-pointer hover:border-primary/35 hover:bg-elevated'
+          ? 'cursor-pointer hover:border-primary/35 hover:bg-background-primary-default'
           : 'cursor-default',
       ]"
       :disabled="!canOpenSources"
@@ -79,10 +79,10 @@ function onStatusClick() {
         class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg"
         :class="
           isError
-            ? 'bg-error/10 text-error'
+            ? 'bg-text-error-primary/10 text-text-error-primary'
             : isPending
               ? 'bg-primary/10 text-primary'
-              : 'bg-elevated text-muted'
+              : 'bg-background-primary-default text-text-secondary'
         "
       >
         <BIcon
@@ -93,8 +93,12 @@ function onStatusClick() {
       </div>
 
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-default">{{ statusTitle }}</p>
-        <p v-if="statusDetail" class="mt-0.5 truncate text-xs text-muted" :title="statusDetail">
+        <p class="text-body-2-medium text-text-primary">{{ statusTitle }}</p>
+        <p
+          v-if="statusDetail"
+          class="mt-0.5 truncate text-caption-1-regular text-text-secondary"
+          :title="statusDetail"
+        >
           {{ statusDetail }}
         </p>
       </div>
@@ -102,7 +106,7 @@ function onStatusClick() {
       <BIcon
         v-if="canOpenSources"
         name="i-ri-layout-right-line"
-        class="mt-1 size-3.5 shrink-0 text-dimmed"
+        class="mt-1 size-3.5 shrink-0 text-text-tertiary"
       />
     </button>
 

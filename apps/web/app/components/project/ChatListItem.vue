@@ -50,12 +50,16 @@ const items = computed<DropdownItem[][]>(() => [
 
 <template>
   <div
-    class="group flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-elevated"
+    class="group flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-background-primary-default"
     @click="emit('open', chat)"
   >
-    <BIcon v-if="chat.pinned" name="i-ri-pushpin-line" class="size-3.5 shrink-0 text-muted" />
-    <span class="min-w-0 flex-1 truncate text-sm">{{ chat.title }}</span>
-    <span class="shrink-0 text-xs text-muted">{{ dateLabel }}</span>
+    <BIcon
+      v-if="chat.pinned"
+      name="i-ri-pushpin-line"
+      class="size-3.5 shrink-0 text-text-secondary"
+    />
+    <span class="min-w-0 flex-1 truncate text-body-2-regular">{{ chat.title }}</span>
+    <span class="shrink-0 text-caption-1-regular text-text-secondary">{{ dateLabel }}</span>
     <BDropdown :items="items" @click.stop>
       <BButton
         variant="ghost"

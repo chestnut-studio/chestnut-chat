@@ -151,7 +151,7 @@ function openChat(chat: ChatRow) {
 
       <div v-else-if="project" class="flex items-center gap-3">
         <div
-          class="flex size-10 shrink-0 items-center justify-center rounded-full bg-elevated text-lg"
+          class="flex size-10 shrink-0 items-center justify-center rounded-full bg-background-primary-default text-lg"
         >
           <span v-if="project.iconKind === 'emoji'">{{ project.iconValue }}</span>
           <BIcon
@@ -161,7 +161,7 @@ function openChat(chat: ChatRow) {
             :class="iconColorClass"
           />
         </div>
-        <h1 class="min-w-0 flex-1 truncate text-2xl font-semibold">{{ project.name }}</h1>
+        <h1 class="min-w-0 flex-1 truncate text-title-1-semibold">{{ project.name }}</h1>
         <BButton
           variant="ghost"
           size="small"
@@ -179,8 +179,8 @@ function openChat(chat: ChatRow) {
       <ChatBox v-if="project" :before-submit="() => !isStarting" @submit="onSubmit" />
 
       <section v-if="project" class="space-y-3">
-        <div class="flex items-center gap-2 border-b border-default pb-2">
-          <h2 class="text-sm font-medium text-muted">{{ $t("project.chats") }}</h2>
+        <div class="flex items-center gap-2 border-b border-border-button-default pb-2">
+          <h2 class="text-body-2-medium text-text-secondary">{{ $t("project.chats") }}</h2>
         </div>
 
         <div v-if="projectChats.length" class="space-y-0.5">
@@ -196,7 +196,9 @@ function openChat(chat: ChatRow) {
             @delete="openDelete"
           />
         </div>
-        <p v-else class="py-2 text-sm text-muted">{{ $t("project.noChats") }}</p>
+        <p v-else class="py-2 text-body-2-regular text-text-secondary">
+          {{ $t("project.noChats") }}
+        </p>
       </section>
     </div>
   </main>

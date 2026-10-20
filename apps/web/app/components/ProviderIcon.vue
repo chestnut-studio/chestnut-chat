@@ -79,12 +79,12 @@ const badgeClass = computed(() => {
   <component
     :is="config.component"
     v-if="variant === 'glyph' && config.component"
-    :class="[iconClass, 'text-muted shrink-0']"
+    :class="[iconClass, 'text-text-secondary shrink-0']"
   />
   <BIcon
     v-else-if="variant === 'glyph'"
     :name="config.icon ?? 'i-ri-cpu-line'"
-    :class="[iconClass, 'text-muted shrink-0']"
+    :class="[iconClass, 'text-text-secondary shrink-0']"
   />
   <div
     v-else

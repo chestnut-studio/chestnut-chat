@@ -30,9 +30,9 @@ const strokeDashoffset = computed(
 );
 
 const strokeClass = computed(() => {
-  if (severity.value === "critical") return "text-error";
-  if (severity.value === "warning") return "text-warning";
-  return "text-primary";
+  if (severity.value === "critical") return "text-text-error-primary";
+  if (severity.value === "warning") return "text-amber-500";
+  return "text-accent-600";
 });
 
 const segments = computed(() => {
@@ -73,7 +73,7 @@ const segments = computed(() => {
   >
     <button
       type="button"
-      class="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-muted transition-colors hover:bg-elevated hover:text-highlighted"
+      class="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-lg px-1.5 py-0.5 text-caption-1-medium text-text-secondary transition-colors hover:bg-background-secondary-hover hover:text-text-primary"
       :aria-label="
         $t('chat.usageAriaDetailed', {
           tokens: formatTokenCount(turnTokens),
@@ -93,7 +93,7 @@ const segments = computed(() => {
           cy="9"
           :r="RING_RADIUS"
           fill="none"
-          class="text-accented stroke-current"
+          class="text-border-button-default stroke-current"
           :stroke-width="RING_STROKE"
         />
         <circle
@@ -110,34 +110,27 @@ const segments = computed(() => {
         />
       </svg>
 
-      <span class="truncate tabular-nums text-highlighted">
-        {{ formatTokenCount(turnTokens) }}
-        <span class="text-dimmed">{{ $t("chat.usageTokensShort") }}</span>
-      </span>
-
-      <span class="text-dimmed" aria-hidden="true">·</span>
-
       <span class="shrink-0 tabular-nums">{{ percentLabel }}%</span>
     </button>
 
     <template #content>
-      <div class="space-y-2 p-3 text-xs">
+      <div class="space-y-2 p-3 text-caption-1-regular">
         <div class="flex items-center justify-between gap-4">
-          <span class="font-medium text-highlighted">{{ $t("chat.usageTitle") }}</span>
-          <span class="tabular-nums text-muted">
+          <span class="font-medium text-text-primary">{{ $t("chat.usageTitle") }}</span>
+          <span class="tabular-nums text-text-secondary">
             {{ formatTokenCount(Math.min(usedTokens, contextWindow)) }}
             /
             {{ formatTokenCount(contextWindow) }}
           </span>
         </div>
 
-        <div class="h-1.5 overflow-hidden rounded-full bg-accented">
+        <div class="h-1.5 overflow-hidden rounded-full bg-background-secondary-default">
           <div
             class="h-full rounded-full transition-[width]"
             :class="{
-              'bg-primary': severity === 'normal',
-              'bg-warning': severity === 'warning',
-              'bg-error': severity === 'critical',
+              'bg-accent-600': severity === 'normal',
+              'bg-amber-500': severity === 'warning',
+              'bg-text-error-primary': severity === 'critical',
             }"
             :style="{ width: `${percent}%` }"
           />
@@ -149,8 +142,8 @@ const segments = computed(() => {
             :key="segment.key"
             class="flex items-center justify-between gap-4"
           >
-            <span class="text-muted">{{ $t(segment.labelKey) }}</span>
-            <span class="tabular-nums text-highlighted">{{
+            <span class="text-text-secondary">{{ $t(segment.labelKey) }}</span>
+            <span class="tabular-nums text-text-primary">{{
               formatTokenCount(segment.tokens)
             }}</span>
           </li>

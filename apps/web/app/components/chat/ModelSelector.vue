@@ -62,17 +62,19 @@ function selectModel(value: string) {
     >
       <ModelIcon :icon="selectedProviderIcon" />
       <span class="min-w-0 truncate text-left">{{ selectedLabel }}</span>
-      <BIcon name="i-ri-arrow-down-s-line" class="size-4 shrink-0 text-muted" />
+      <BIcon name="i-ri-arrow-down-s-line" class="size-4 shrink-0 text-text-secondary" />
     </BButton>
 
     <template #content>
-      <div class="bg-default">
-        <div class="border-default border-b p-3">
-          <p class="text-muted mb-1 text-xs font-medium">{{ $t("chat.selectedModel") }}</p>
+      <div class="bg-background-full">
+        <div class="border-border-button-default border-b p-3">
+          <p class="text-text-secondary mb-1 text-caption-1-medium">
+            {{ $t("chat.selectedModel") }}
+          </p>
           <div class="flex items-center gap-2">
             <ModelIcon :icon="selectedProviderIcon" />
             <div class="min-w-0 flex-1 flex items-center justify-between">
-              <p class="wrap-break-word text-sm font-medium">
+              <p class="wrap-break-word text-body-2-medium">
                 {{ selectedLabel }}
               </p>
               <ModelCapabilityTags
@@ -86,7 +88,7 @@ function selectModel(value: string) {
           </div>
         </div>
 
-        <div class="border-default border-b p-2">
+        <div class="border-border-button-default border-b p-2">
           <BInput
             v-model="query"
             :leading-icon="Search"
@@ -102,7 +104,7 @@ function selectModel(value: string) {
         >
           <div
             v-if="!filteredItems.length"
-            class="text-muted flex min-h-28 items-center justify-center text-sm"
+            class="text-text-secondary flex min-h-28 items-center justify-center text-body-2-regular"
           >
             {{ $t("chat.noMatchingModels") }}
           </div>
@@ -112,7 +114,7 @@ function selectModel(value: string) {
               v-for="item in filteredItems"
               :key="item.value"
               type="button"
-              class="flex min-h-11 w-full items-start gap-3 rounded-md px-3 py-2 text-start text-sm transition hover:bg-elevated"
+              class="flex min-h-11 w-full items-start gap-3 rounded-md px-3 py-2 text-start text-body-2-regular transition hover:bg-background-primary-default"
               :class="item.value === model ? 'bg-primary/10 hover:bg-primary/15' : ''"
               role="option"
               :aria-selected="item.value === model"
@@ -122,7 +124,7 @@ function selectModel(value: string) {
 
               <span class="min-w-0 flex-1">
                 <span class="block wrap-break-word font-medium">{{ item.label }}</span>
-                <span class="text-muted mt-0.5 block truncate text-xs">
+                <span class="text-text-secondary mt-0.5 block truncate text-caption-1-regular">
                   {{ item.providerName }}
                 </span>
               </span>

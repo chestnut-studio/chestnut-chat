@@ -1,0 +1,42 @@
+/* BoardUI theming for markstream-vue. Unlayered, so it wins over the
+ * library's own layered defaults in both light and dark mode. */
+.markstream-vue {
+  --ms-font-sans: var(--font-sans);
+  --ms-font-mono: var(--font-mono);
+  --markstream-code-font-family: var(--font-mono);
+  --ms-radius: 0.75rem;
+  --ms-text-body: 0.9375rem;
+  --ms-leading-body: 1.7;
+  --ms-text-h1: 1.5rem;
+  --ms-text-h2: 1.25rem;
+  --ms-text-h3: 1.125rem;
+  --ms-text-h4: 1rem;
+  --ms-weight-h1: 600;
+  --ms-weight-h2: 600;
+  --ms-weight-h3: 600;
+  --ms-weight-h4: 600;
+
+  --code-bg: var(--color-background-secondary-default);
+  --code-fg: var(--color-text-primary);
+  --code-border: var(--color-border-button-default);
+  --code-header-bg: var(--color-background-secondary-default);
+  --code-line-number: var(--color-text-tertiary);
+  --code-action-fg: var(--color-text-secondary);
+  --code-action-hover-bg: var(--color-background-secondary-hover);
+  --code-action-hover-fg: var(--color-text-primary);
+  --inline-code-bg: var(--color-background-secondary-default);
+  --inline-code-fg: var(--color-text-primary);
+  --inline-code-border: var(--color-border-button-default);
+  --link-color: var(--color-accent-600);
+  --blockquote-border: var(--color-border-button-hover);
+  --table-border: var(--color-border-button-default);
+  --table-header-bg: var(--color-background-secondary-default);
+  --hr-border: var(--color-border-button-default);
+  --list-marker: var(--color-text-tertiary);
+  --list-counter-marker: var(--color-text-secondary);
+}
+
+.markstream-vue pre,
+.markstream-vue code {
+  font-family: var(--font-mono);
+}

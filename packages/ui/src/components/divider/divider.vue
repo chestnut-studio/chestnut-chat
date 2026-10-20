@@ -16,7 +16,10 @@ const alignments = {
   <Separator v-if="!$slots.default && variant === 'single'" />
   <div v-else-if="variant === 'double'" class="flex w-full flex-col gap-2">
     <Separator />
-    <div v-if="$slots.default" :class="cn('flex text-sm text-muted-foreground', alignments[align])">
+    <div
+      v-if="$slots.default"
+      :class="cn('flex text-body-2-regular text-muted-foreground', alignments[align])"
+    >
       <slot />
     </div>
     <Separator />
@@ -25,7 +28,7 @@ const alignments = {
     v-else-if="variant === 'fill'"
     :class="
       cn(
-        'flex min-h-2 w-full rounded-md bg-muted px-4 py-2 text-sm text-muted-foreground',
+        'flex min-h-2 w-full rounded-md bg-muted px-4 py-2 text-body-2-regular text-muted-foreground',
         alignments[align],
       )
     "
@@ -34,7 +37,7 @@ const alignments = {
   </div>
   <div v-else class="flex w-full items-center gap-3">
     <Separator v-if="align !== 'start'" class="min-w-0 flex-1" />
-    <span class="shrink-0 text-sm text-muted-foreground"><slot /></span>
+    <span class="shrink-0 text-body-2-regular text-muted-foreground"><slot /></span>
     <Separator v-if="align !== 'end'" class="min-w-0 flex-1" />
   </div>
 </template>

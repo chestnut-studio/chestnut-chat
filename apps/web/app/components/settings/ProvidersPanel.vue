@@ -49,8 +49,8 @@ onMounted(() => {
   <div class="mt-6 space-y-4">
     <div class="flex items-start justify-between gap-4">
       <div>
-        <h2 class="text-xl font-semibold">{{ $t("settings.apiProviders") }}</h2>
-        <p class="text-muted mt-1 max-w-md text-sm">
+        <h2 class="text-title-2-semibold">{{ $t("settings.apiProviders") }}</h2>
+        <p class="text-text-secondary mt-1 max-w-md text-body-2-regular">
           {{ $t("settings.apiProvidersDescription") }}
         </p>
       </div>
@@ -76,11 +76,13 @@ onMounted(() => {
 
     <div
       v-else-if="!hasAnyProvider && !providerDraft"
-      class="border-default rounded-xl border border-dashed py-14 text-center"
+      class="border-border-button-default rounded-xl border border-dashed py-14 text-center"
     >
-      <BIcon name="i-ri-key-2-line" class="text-muted mx-auto mb-3 size-10" />
+      <BIcon name="i-ri-key-2-line" class="text-text-secondary mx-auto mb-3 size-10" />
       <p class="font-medium">{{ $t("settings.noProvidersYet") }}</p>
-      <p class="text-muted mt-1 text-sm">{{ $t("settings.noProvidersYetHint") }}</p>
+      <p class="text-text-secondary mt-1 text-body-2-regular">
+        {{ $t("settings.noProvidersYetHint") }}
+      </p>
     </div>
 
     <SettingsProviderDraftCard

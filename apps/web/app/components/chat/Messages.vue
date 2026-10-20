@@ -49,8 +49,10 @@ function isPartStreaming(part: { state?: string }) {
   return part.state === "streaming";
 }
 
-function isToolStreaming(part: { state: string }) {
-  return !["output-available", "output-error", "output-denied"].includes(part.state);
+function toolStepState(part: { state: string }) {
+  if (part.state === "output-available") return "done" as const;
+  if (part.state === "output-error" || part.state === "output-denied") return "error" as const;
+  return "active" as const;
 }
 
 const typingStates = reactive<Record<string, TypingState>>({});
@@ -603,7 +605,7 @@ onBeforeUnmount(() => {
 
               <div
                 v-else-if="part.type === 'data-document'"
-                class="mb-2 inline-flex max-w-full items-center gap-2 rounded-md bg-elevated px-2.5 py-1.5 text-sm text-muted"
+                class="mb-2 inline-flex max-w-full items-center gap-2 rounded-md bg-background-primary-default px-2.5 py-1.5 text-body-2-regular text-text-secondary"
               >
                 <BIcon name="i-ri-file-text-line" class="size-4 shrink-0" />
                 <span class="truncate" :title="part.data.filename">{{ part.data.filename }}</span>
@@ -615,44 +617,38 @@ onBeforeUnmount(() => {
                   v-if="part.mediaType.startsWith('image/')"
                   :src="part.url"
                   :alt="part.filename || 'attachment'"
-                  class="max-h-64 max-w-full rounded-md border border-default object-contain"
+                  class="max-h-64 max-w-full rounded-md border border-border-button-default object-contain"
                 />
                 <div
                   v-else
-                  class="inline-flex max-w-full items-center gap-2 rounded-md bg-elevated px-2.5 py-1.5 text-sm text-muted"
+                  class="inline-flex max-w-full items-center gap-2 rounded-md bg-background-primary-default px-2.5 py-1.5 text-body-2-regular text-text-secondary"
                 >
                   <BIcon name="i-ri-attachment-2" class="size-4 shrink-0" />
                   <span class="truncate">{{ part.filename || part.mediaType }}</span>
                 </div>
               </div>
 
-              <details
+              <ChatAgentThinking
                 v-else-if="isReasoningUIPart(part) && renderable"
-                class="mb-3 rounded-xl border border-border-button-default bg-background-secondary-default p-3"
-                :open="isLivePart(message, part, index)"
+                :live="isLivePart(message, part, index)"
               >
-                <summary class="cursor-pointer text-body-medium text-text-secondary">
-                  {{ $t("chat.reasoningActive") }}
-                </summary>
                 <ChatMarkdown
-                  class="mt-2"
                   :content="typedText(message, part, index)"
                   :live="isLivePart(message, part, index)"
                   :sources="view.sources"
                 />
-              </details>
+              </ChatAgentThinking>
 
-              <div
+              <ChatStepList
                 v-else-if="isToolUIPart(part)"
-                class="mb-3 inline-flex items-center gap-2 rounded-xl border border-border-button-default bg-background-secondary-default px-3 py-2 text-body-2-medium text-text-secondary"
-              >
-                <BIcon
-                  :name="isToolStreaming(part) ? 'i-ri-loader-4-line' : 'i-ri-tools-line'"
-                  class="size-4"
-                  :class="isToolStreaming(part) ? 'animate-spin' : undefined"
-                />
-                {{ getToolName(part) }}
-              </div>
+                :steps="[
+                  {
+                    key: `${message.id}-${index}`,
+                    label: getToolName(part),
+                    state: toolStepState(part),
+                  },
+                ]"
+              />
 
               <template v-else-if="isTextUIPart(part)">
                 <ChatMarkdown

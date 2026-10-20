@@ -48,7 +48,7 @@ const colorClass = computed(() => projectIconColorClass(color.value));
   <BPopover v-model:open="open" width="w-[19.5rem]">
     <button
       type="button"
-      class="flex size-10 shrink-0 items-center justify-center rounded-full bg-elevated text-highlighted transition-colors hover:bg-accented"
+      class="flex size-10 shrink-0 items-center justify-center rounded-full bg-background-primary-default text-text-primary transition-colors hover:bg-background-secondary-default"
       :aria-label="$t('project.icon')"
       :aria-expanded="open"
     >
@@ -59,14 +59,14 @@ const colorClass = computed(() => projectIconColorClass(color.value));
     <template #content>
       <div class="space-y-3">
         <div class="flex justify-center">
-          <div class="inline-flex rounded-full bg-elevated p-0.5">
+          <div class="inline-flex rounded-full bg-background-primary-default p-0.5">
             <button
               type="button"
-              class="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+              class="rounded-full px-3 py-1 text-caption-1-medium transition-colors"
               :class="
                 tab === 'lucide'
-                  ? 'bg-default text-highlighted shadow-sm'
-                  : 'text-muted hover:text-default'
+                  ? 'bg-background-full text-text-primary shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary'
               "
               @click="tab = 'lucide'"
             >
@@ -74,11 +74,11 @@ const colorClass = computed(() => projectIconColorClass(color.value));
             </button>
             <button
               type="button"
-              class="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+              class="rounded-full px-3 py-1 text-caption-1-medium transition-colors"
               :class="
                 tab === 'emoji'
-                  ? 'bg-default text-highlighted shadow-sm'
-                  : 'text-muted hover:text-default'
+                  ? 'bg-background-full text-text-primary shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary'
               "
               @click="tab = 'emoji'"
             >
@@ -92,8 +92,8 @@ const colorClass = computed(() => projectIconColorClass(color.value));
             v-for="icon in PROJECT_LUCIDE_ALLOWLIST"
             :key="icon"
             type="button"
-            class="flex size-9 items-center justify-center rounded-md transition-colors hover:bg-elevated"
-            :class="kind === 'lucide' && value === icon ? 'bg-elevated' : ''"
+            class="flex size-9 items-center justify-center rounded-md transition-colors hover:bg-background-primary-default"
+            :class="kind === 'lucide' && value === icon ? 'bg-background-primary-default' : ''"
             :aria-label="icon"
             :aria-pressed="kind === 'lucide' && value === icon"
             @click="selectLucide(icon)"
@@ -111,8 +111,8 @@ const colorClass = computed(() => projectIconColorClass(color.value));
             v-for="emoji in PROJECT_EMOJI_ALLOWLIST"
             :key="emoji"
             type="button"
-            class="flex size-9 items-center justify-center rounded-md text-base transition-colors hover:bg-elevated"
-            :class="kind === 'emoji' && value === emoji ? 'bg-elevated' : ''"
+            class="flex size-9 items-center justify-center rounded-md text-base transition-colors hover:bg-background-primary-default"
+            :class="kind === 'emoji' && value === emoji ? 'bg-background-primary-default' : ''"
             :aria-label="emoji"
             :aria-pressed="kind === 'emoji' && value === emoji"
             @click="selectEmoji(emoji)"
@@ -121,7 +121,7 @@ const colorClass = computed(() => projectIconColorClass(color.value));
           </button>
         </div>
 
-        <div v-if="tab === 'lucide'" class="border-t border-default pt-3">
+        <div v-if="tab === 'lucide'" class="border-t border-border-button-default pt-3">
           <div class="flex items-center justify-center gap-2.5">
             <button
               v-for="item in PROJECT_ICON_COLORS"
@@ -130,7 +130,9 @@ const colorClass = computed(() => projectIconColorClass(color.value));
               class="size-5 rounded-full transition-shadow"
               :class="[
                 item.swatch,
-                color === item.key ? 'ring-2 ring-offset-2 ring-offset-default ring-inverted' : '',
+                color === item.key
+                  ? 'ring-2 ring-offset-2 ring-offset-background-full ring-text-primary'
+                  : '',
               ]"
               :aria-label="item.key"
               :aria-pressed="color === item.key"

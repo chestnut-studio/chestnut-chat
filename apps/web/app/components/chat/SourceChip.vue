@@ -37,7 +37,7 @@ const previewTitle = computed(() => sourceTitle(props.source));
         :src="faviconUrl"
         :alt="displayLabel"
         referrerpolicy="no-referrer"
-        class="size-4 shrink-0 rounded-full object-cover ring-1 ring-accented"
+        class="size-4 shrink-0 rounded-full object-cover ring-1 ring-border-button-default"
       />
       <span class="max-w-40 truncate">{{ displayLabel }}</span>
       <span v-if="additionalCount" class="shrink-0 text-text-tertiary">+{{ additionalCount }}</span>
@@ -48,7 +48,7 @@ const previewTitle = computed(() => sourceTitle(props.source));
         :href="source.url"
         target="_blank"
         rel="noopener noreferrer"
-        class="block rounded-xl p-3.5 no-underline outline-none transition-colors hover:bg-elevated/70 focus-visible:bg-elevated/70"
+        class="block rounded-xl p-3.5 no-underline outline-none transition-colors hover:bg-background-primary-default/70 focus-visible:bg-background-primary-default/70"
       >
         <div class="flex items-center gap-2.5">
           <BAvatar
@@ -56,23 +56,28 @@ const previewTitle = computed(() => sourceTitle(props.source));
             :alt="displayLabel"
             :initials="displayLabel"
             size="xs"
-            class="ring-1 ring-accented"
+            class="ring-1 ring-border-button-default"
           />
-          <span class="min-w-0 flex-1 truncate text-sm font-medium text-default">
+          <span class="min-w-0 flex-1 truncate text-body-2-medium text-text-primary">
             {{ displayLabel }}
           </span>
-          <BIcon name="i-ri-arrow-right-up-line" class="size-3.5 shrink-0 text-dimmed" />
+          <BIcon name="i-ri-arrow-right-up-line" class="size-3.5 shrink-0 text-text-tertiary" />
         </div>
 
-        <p class="mt-2.5 line-clamp-2 text-sm leading-5 font-semibold text-default">
+        <p
+          class="mt-2.5 line-clamp-2 text-body-2-regular leading-5 font-semibold text-text-primary"
+        >
           {{ previewTitle }}
         </p>
 
-        <p v-if="source.excerpt" class="mt-1.5 line-clamp-3 text-xs leading-5 text-muted">
+        <p
+          v-if="source.excerpt"
+          class="mt-1.5 line-clamp-3 text-caption-1-regular leading-5 text-text-secondary"
+        >
           {{ source.excerpt }}
         </p>
 
-        <p class="mt-2 truncate text-[11px] text-dimmed">{{ source.url }}</p>
+        <p class="mt-2 truncate text-[11px] text-text-tertiary">{{ source.url }}</p>
       </a>
     </template>
   </BPopover>

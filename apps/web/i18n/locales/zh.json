@@ -321,7 +321,10 @@
         "title": "规划",
         "description": "把目标拆成可执行步骤"
       }
-    }
+    },
+    "thinking": "思考中…",
+    "thoughtFor": "已思考 {seconds} 秒",
+    "thought": "已思考"
   },
   "toast": {
     "copied": "已复制",

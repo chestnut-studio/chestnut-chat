@@ -8,9 +8,9 @@
 @import "@chestnut-chat/ui/styles/motion.css";
 @import "@chestnut-chat/ui/styles/legacy.css";
 @import "@chestnut-chat/ui/styles/base.css";
+@import "./markdown.css";
 
 :root {
-  --ui-header-height: 4rem;
 }
 
 @layer base {

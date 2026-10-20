@@ -17,11 +17,11 @@ function updateDraft(patch: Partial<ProviderFormFields>) {
 </script>
 
 <template>
-  <div class="border-default rounded-xl border bg-background">
+  <div class="border-border-button-default rounded-xl border bg-background">
     <div class="space-y-5 p-4">
       <div class="flex items-center gap-3">
         <ProviderIcon :provider="draft.iconProvider" size="sm" />
-        <h3 class="text-lg font-semibold">{{ draft.title }}</h3>
+        <h3 class="text-title-3-semibold">{{ draft.title }}</h3>
       </div>
 
       <SettingsProviderFormFields

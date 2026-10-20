@@ -59,8 +59,10 @@ async function onSubmit(payload: {
 <template>
   <main id="dashboard-chat" class="flex min-w-0 flex-1 flex-col">
     <div class="flex h-full flex-col items-center justify-center px-4">
-      <div class="w-full max-w-2xl space-y-6">
-        <h1 class="text-center text-2xl font-semibold">{{ $t("chat.emptyTitle") }}</h1>
+      <div class="w-full max-w-3xl space-y-8">
+        <h1 class="text-center text-title-1-medium text-text-primary">
+          {{ $t("chat.emptyTitle") }}
+        </h1>
         <ChatBox :before-submit="requireAuth" @submit="onSubmit">
           <template #below="{ submitSuggestion }">
             <ChatSuggestions :disabled="isStarting" @select="submitSuggestion" />

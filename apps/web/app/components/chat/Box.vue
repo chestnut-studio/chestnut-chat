@@ -16,6 +16,7 @@ import {
   validateAttachmentSelection,
 } from "~/utils/attachments";
 import { DEFAULT_MODEL, resolveContextWindow } from "~/utils/models";
+import ModelIcon from "./ModelIcon.vue";
 import type { ChatMessageUsage } from "~/types/chat";
 
 type ChatBoxPayload = {
@@ -80,6 +81,10 @@ const selectedModelRequiresReasoning = computed(
 );
 const contextWindow = computed(() =>
   resolveContextWindow(findModelOption(model.value)?.contextWindow),
+);
+const selectedModelLabel = computed(() => findModelOption(model.value)?.label ?? model.value);
+const selectedModelIcon = computed(
+  () => findModelOption(model.value)?.providerIcon ?? "openrouter",
 );
 const selectedReasoningEnabled = computed(
   () =>
@@ -273,118 +278,130 @@ async function submitSuggestion(text: string) {
       </BChip>
     </div>
 
-    <div
-      class="rounded-3xl border border-border-button-default bg-background-primary-default p-3 shadow-card focus-within:ring-2 focus-within:ring-border-focus-ring"
-    >
-      <div v-if="project" class="mb-2">
-        <div class="flex items-center gap-2 px-1 text-sm text-muted">
-          <span v-if="project.iconKind === 'emoji'" aria-hidden="true">
-            {{ project.iconValue }}
-          </span>
-          <BIcon
-            v-else
-            :name="projectIconName(project.iconValue)"
-            class="size-4"
-            :class="projectIconColorClass(project.iconColor)"
-          />
-          <span class="truncate font-medium text-highlighted">{{ project.name }}</span>
-        </div>
-      </div>
+    <ChatComposerLoader :active="isBusy" class="relative z-10">
+      <div
+        class="rounded-3xl border border-border-button-default bg-background-primary-default p-3 shadow-card transition-shadow focus-within:ring-2 focus-within:ring-border-focus-ring/40"
+      >
+        <textarea
+          v-model="input"
+          :placeholder="$t('chat.placeholder')"
+          rows="2"
+          class="max-h-40 min-h-12 w-full resize-none bg-transparent px-1 py-2 text-body-regular text-text-primary outline-none placeholder:text-text-placeholder"
+          @paste="onPaste"
+          @keydown="onPromptKeydown"
+        />
 
-      <textarea
-        v-model="input"
-        :placeholder="$t('chat.placeholder')"
-        rows="2"
-        class="max-h-40 min-h-12 w-full resize-none bg-transparent px-1 py-2 text-body-regular text-text-primary outline-none placeholder:text-text-placeholder"
-        @paste="onPaste"
-        @keydown="onPromptKeydown"
-      />
-
-      <div class="flex items-end justify-between gap-2">
-        <div class="flex min-w-0 flex-wrap items-center gap-1.5">
-          <ChatModelSelector
-            :model-value="model"
-            :items="modelOptions"
-            :loading="areProvidersLoading"
-            @update:model-value="onSelectModel"
-          />
-
-          <ChatReasoningSelector
-            v-model="reasoning"
-            v-model:effort="reasoningEffort"
-            :supported="selectedModelSupportsReasoning"
-            :required="selectedModelRequiresReasoning"
-            :efforts="selectedModelReasoningEfforts"
-          />
-
-          <BTooltip :text="$t('chat.webSearch')">
-            <BButton
-              :variant="webSearch ? 'primary' : 'ghost'"
-              size="small"
-              icon-only
-              :leading-icon="Globe"
-              :aria-label="$t('chat.webSearch')"
-              :aria-pressed="webSearch"
-              @click="
-                () => {
-                  webSearch = !webSearch;
-                }
+        <div class="flex items-end justify-between gap-2">
+          <div class="flex min-w-0 flex-wrap items-center gap-1.5">
+            <BTooltip
+              :text="
+                selectedModelSupportsVision ? $t('chat.attach') : $t('chat.attachDocumentsOnly')
               "
+            >
+              <button
+                type="button"
+                class="flex size-8 shrink-0 items-center justify-center rounded-full bg-ai-chat-composer-add-background text-foreground-icon-secondary transition-colors hover:bg-ai-chat-composer-add-hover-background hover:text-foreground-icon-primary focus-visible:ring-2 focus-visible:ring-border-focus-ring disabled:opacity-50"
+                :disabled="isUploading"
+                :aria-label="$t('chat.attach')"
+                @click="fileInput?.click()"
+              >
+                <Paperclip class="size-4" />
+              </button>
+            </BTooltip>
+
+            <ChatModelSelector
+              :model-value="model"
+              :items="modelOptions"
+              :loading="areProvidersLoading"
+              @update:model-value="onSelectModel"
             />
-          </BTooltip>
 
-          <BTooltip
-            :text="selectedModelSupportsVision ? $t('chat.attach') : $t('chat.attachDocumentsOnly')"
-          >
-            <BButton
-              variant="ghost"
-              size="small"
-              icon-only
-              :leading-icon="Paperclip"
-              :disabled="isUploading"
-              :aria-label="$t('chat.attach')"
-              @click="fileInput?.click()"
+            <ChatReasoningSelector
+              v-model="reasoning"
+              v-model:effort="reasoningEffort"
+              :supported="selectedModelSupportsReasoning"
+              :required="selectedModelRequiresReasoning"
+              :efforts="selectedModelReasoningEfforts"
             />
-          </BTooltip>
 
-          <ChatUsageIndicator v-if="usage" :usage="usage" :context-window="contextWindow" />
+            <BTooltip :text="$t('chat.webSearch')">
+              <BButton
+                :variant="webSearch ? 'ghost' : 'tertiary'"
+                size="small"
+                icon-only
+                :leading-icon="Globe"
+                :aria-label="$t('chat.webSearch')"
+                :aria-pressed="webSearch"
+                @click="
+                  () => {
+                    webSearch = !webSearch;
+                  }
+                "
+              />
+            </BTooltip>
 
-          <input
-            ref="fileInput"
-            type="file"
-            multiple
-            :accept="ATTACHMENT_ACCEPT"
-            class="hidden"
-            @change="onPickFiles"
+            <input
+              ref="fileInput"
+              type="file"
+              multiple
+              :accept="ATTACHMENT_ACCEPT"
+              class="hidden"
+              @change="onPickFiles"
+            />
+          </div>
+
+          <BButton
+            v-if="promptStatus === 'error'"
+            size="small"
+            icon-only
+            :leading-icon="RotateCcw"
+            :aria-label="$t('actions.regenerate')"
+            @click="emit('reload')"
+          />
+          <BButton
+            v-else-if="isBusy"
+            size="small"
+            icon-only
+            :leading-icon="promptStatus === 'submitted' ? LoaderCircle : Square"
+            :aria-label="$t('chat.stop')"
+            @click="emit('stop')"
+          />
+          <BButton
+            v-else
+            size="small"
+            icon-only
+            :leading-icon="ArrowUp"
+            :aria-label="$t('chat.send')"
+            :disabled="!input.trim() && files.length === 0"
+            @click="onSubmit"
           />
         </div>
-
-        <BButton
-          v-if="promptStatus === 'error'"
-          size="small"
-          icon-only
-          :leading-icon="RotateCcw"
-          :aria-label="$t('actions.regenerate')"
-          @click="emit('reload')"
-        />
-        <BButton
-          v-else-if="isBusy"
-          size="small"
-          icon-only
-          :leading-icon="promptStatus === 'submitted' ? LoaderCircle : Square"
-          :aria-label="$t('chat.stop')"
-          @click="emit('stop')"
-        />
-        <BButton
-          v-else
-          size="small"
-          icon-only
-          :leading-icon="ArrowUp"
-          :aria-label="$t('chat.send')"
-          :disabled="!input.trim() && files.length === 0"
-          @click="onSubmit"
-        />
       </div>
+    </ChatComposerLoader>
+
+    <div
+      class="mx-5 -mt-3 flex items-center gap-3 rounded-b-2xl border border-t-0 border-border-button-default bg-background-secondary-default px-3 pb-1.5 pt-4 text-caption-1-medium text-text-secondary"
+    >
+      <span v-if="project" class="flex min-w-0 items-center gap-1.5">
+        <span v-if="project.iconKind === 'emoji'" aria-hidden="true">{{ project.iconValue }}</span>
+        <BIcon
+          v-else
+          :name="projectIconName(project.iconValue)"
+          class="size-3.5 shrink-0"
+          :class="projectIconColorClass(project.iconColor)"
+        />
+        <span class="truncate">{{ project.name }}</span>
+      </span>
+      <span class="flex min-w-0 items-center gap-1.5">
+        <ModelIcon :icon="selectedModelIcon" />
+        <span class="truncate">{{ selectedModelLabel }}</span>
+      </span>
+      <ChatUsageIndicator
+        v-if="usage"
+        class="ml-auto"
+        :usage="usage"
+        :context-window="contextWindow"
+      />
     </div>
 
     <slot name="below" :submit-suggestion="submitSuggestion" :disabled="isBusy" />

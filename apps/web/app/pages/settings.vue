@@ -79,7 +79,7 @@ async function deleteAccount() {
 
 <template>
   <div class="bg-muted/30 min-h-screen">
-    <div class="border-default border-b bg-background">
+    <div class="border-border-button-default border-b bg-background">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <NuxtLink v-slot="{ href, navigate }" custom to="/">
           <BButtonLink :href="href ?? undefined" variant="ghost" @click="navigate">
@@ -107,8 +107,10 @@ async function deleteAccount() {
               size="lg"
             />
             <div>
-              <p class="text-lg font-semibold">{{ authSession.data?.user?.name }}</p>
-              <p class="text-muted text-sm">{{ authSession.data?.user?.email }}</p>
+              <p class="text-title-3-semibold">{{ authSession.data?.user?.name }}</p>
+              <p class="text-text-secondary text-body-2-regular">
+                {{ authSession.data?.user?.email }}
+              </p>
             </div>
           </div>
         </aside>
@@ -124,10 +126,10 @@ async function deleteAccount() {
             <BTabPanel value="account">
               <div class="mt-6 space-y-8">
                 <section>
-                  <h2 class="mb-4 text-xl font-semibold">{{ $t("settings.securityOptions") }}</h2>
-                  <div class="border-default rounded-lg border p-4">
+                  <h2 class="mb-4 text-title-2-semibold">{{ $t("settings.securityOptions") }}</h2>
+                  <div class="border-border-button-default rounded-lg border p-4">
                     <h3 class="font-medium">{{ $t("settings.dangerZone") }}</h3>
-                    <p class="text-muted mt-1 text-sm">
+                    <p class="text-text-secondary mt-1 text-body-2-regular">
                       {{ $t("settings.deleteAccountDescription") }}
                     </p>
                     <BButton
@@ -157,15 +159,19 @@ async function deleteAccount() {
 
             <BTabPanel value="about">
               <div class="mt-6 space-y-4">
-                <div class="border-default space-y-2 rounded-lg border p-4">
+                <div class="border-border-button-default space-y-2 rounded-lg border p-4">
                   <div class="flex items-center justify-between">
-                    <span class="text-muted text-sm">{{ $t("settings.appName") }}</span>
-                    <span class="text-sm font-medium">{{ $t("app.name") }}</span>
+                    <span class="text-text-secondary text-body-2-regular">{{
+                      $t("settings.appName")
+                    }}</span>
+                    <span class="text-body-2-medium">{{ $t("app.name") }}</span>
                   </div>
                   <BDivider />
                   <div class="flex items-center justify-between">
-                    <span class="text-muted text-sm">{{ $t("settings.version") }}</span>
-                    <span class="text-sm font-medium">v0.1.0</span>
+                    <span class="text-text-secondary text-body-2-regular">{{
+                      $t("settings.version")
+                    }}</span>
+                    <span class="text-body-2-medium">v0.1.0</span>
                   </div>
                 </div>
               </div>

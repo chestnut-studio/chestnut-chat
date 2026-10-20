@@ -91,7 +91,7 @@ function toggleReasoning() {
         icon-only
         :leading-icon="Brain"
         :disabled="!supported"
-        :class="required ? 'cursor-default' : 'disabled:text-dimmed disabled:opacity-40'"
+        :class="required ? 'cursor-default' : 'disabled:text-text-tertiary disabled:opacity-40'"
         :aria-label="statusLabel"
         :aria-disabled="!supported || required"
         :aria-pressed="isActive"

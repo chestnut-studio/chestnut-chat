@@ -321,7 +321,10 @@
         "title": "Plan",
         "description": "Turn a goal into next steps"
       }
-    }
+    },
+    "thinking": "Thinking…",
+    "thoughtFor": "Thought for {seconds}s",
+    "thought": "Thought"
   },
   "toast": {
     "copied": "Copied",

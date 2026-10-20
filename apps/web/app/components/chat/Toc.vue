@@ -126,7 +126,7 @@ onBeforeUnmount(() => {
     >
       <span
         aria-hidden="true"
-        class="absolute top-1/2 right-0 h-[calc(100%_-_0.5rem)] w-[2.125rem] -translate-y-1/2 rounded-2xl bg-default/70 backdrop-blur-sm"
+        class="absolute top-1/2 right-0 h-[calc(100%_-_0.5rem)] w-[2.125rem] -translate-y-1/2 rounded-2xl bg-background-full/70 backdrop-blur-sm"
       />
 
       <div
@@ -141,11 +141,11 @@ onBeforeUnmount(() => {
             v-for="entry in entries"
             :key="entry.id"
             type="button"
-            class="toc-entry group/entry me-2 flex h-[1.875rem] w-[calc(100%_-_0.375rem)] shrink-0 items-center justify-end text-[13px] leading-5 outline-none transition-colors duration-200 focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-primary/70 motion-reduce:transition-none"
+            class="toc-entry group/entry me-2 flex h-[1.875rem] w-[calc(100%_-_0.375rem)] shrink-0 items-center justify-end text-[13px] leading-5 outline-none transition-colors duration-200 focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-border-focus-ring motion-reduce:transition-none"
             :class="
               activeId === entry.id
-                ? 'font-medium text-primary'
-                : 'text-muted hover:text-highlighted focus-visible:text-highlighted'
+                ? 'text-body-2-medium text-accent-600'
+                : 'text-text-secondary hover:text-text-primary focus-visible:text-text-primary'
             "
             :aria-current="activeId === entry.id ? 'location' : undefined"
             :aria-label="t('chat.toc.jumpTo', { text: entry.text })"
@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
             <span class="flex h-5 w-4 shrink-0 items-center justify-center">
               <span
                 class="toc-bar block h-0.5 w-2 rounded-sm transition-[background-color,transform] duration-200 motion-reduce:transition-none"
-                :class="activeId === entry.id ? 'scale-150 bg-primary' : 'bg-muted/60'"
+                :class="activeId === entry.id ? 'scale-150 bg-accent-600' : 'bg-text-tertiary'"
               />
             </span>
           </button>
@@ -170,8 +170,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .toc-surface {
-  border: 1px solid var(--ui-border);
-  background: var(--ui-bg-elevated);
+  border: 1px solid var(--color-border-button-default);
+  background: var(--color-background-primary-default);
   box-shadow:
     0 0 1px rgb(0 0 0 / 0.2),
     0 0 4px rgb(0 0 0 / 0.02),

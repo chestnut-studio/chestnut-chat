@@ -121,10 +121,14 @@
     background-position: -200% 0;
   }
 }
+@property --orbit-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
 @keyframes orbit {
   to {
     --orbit-angle: 360deg;
-    transform: rotate(360deg);
   }
 }
 @keyframes wave {
