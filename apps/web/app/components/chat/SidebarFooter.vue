@@ -12,7 +12,7 @@ defineProps<{
 
 const colorMode = useColorMode();
 const { t } = useI18n();
-const route = useRoute();
+const { open: settingsOpen, show: showSettings } = useSettingsModal();
 const isDark = computed(() => colorMode.value === "dark");
 
 function toggleColorMode() {
@@ -36,14 +36,13 @@ function toggleColorMode() {
     </SidebarMenuItem>
     <SidebarMenuItem>
       <SidebarMenuButton
-        as-child
-        :is-active="route.path.startsWith('/settings')"
+        :is-active="settingsOpen"
         :tooltip="t('settings.title')"
+        :aria-label="t('settings.title')"
+        @click="showSettings()"
       >
-        <NuxtLink to="/settings" :aria-label="t('settings.title')">
-          <Settings2 />
-          <span v-if="!collapsed">{{ t("settings.title") }}</span>
-        </NuxtLink>
+        <Settings2 />
+        <span v-if="!collapsed">{{ t("settings.title") }}</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
   </SidebarMenu>

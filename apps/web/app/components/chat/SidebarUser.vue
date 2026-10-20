@@ -15,6 +15,7 @@ const authSession = useAuthSession();
 const { t } = useI18n();
 const { show: showLogin } = useLoginModal();
 const signOut = useSignOut();
+const { show: showSettings } = useSettingsModal();
 
 const hydrated = ref(false);
 
@@ -28,7 +29,7 @@ const menuItems = computed<DropdownItem[][]>(() => [
     {
       label: t("settings.title"),
       icon: "i-ri-settings-3-line",
-      to: "/settings",
+      onSelect: () => showSettings(),
     },
   ],
   [
@@ -47,12 +48,7 @@ const menuItems = computed<DropdownItem[][]>(() => [
     <SidebarMenuItem>
       <BSkeleton v-if="!hydrated || authSession.isPending" class="h-9 w-full" />
 
-      <BDropdown
-        v-else-if="authSession.data"
-        :items="menuItems"
-        class="w-full"
-        :ui="{ content: 'min-w-52' }"
-      >
+      <BDropdown v-else-if="authSession.data" :items="menuItems" class="w-full" compact>
         <SidebarMenuButton
           class="group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0!"
           :aria-label="authSession.data.user.name"

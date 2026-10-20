@@ -3,6 +3,7 @@ import { PanelLeftClose } from "~/utils/icons";
 import { SidebarProvider, SidebarTrigger } from "@chestnut-chat/ui/components/ui/sidebar";
 
 const { open: loginOpen } = useLoginModal();
+const { open: settingsOpen, page: settingsPage } = useSettingsModal();
 const sidebarOpen = useCookie<boolean>("sidebar_state", {
   default: () => true,
   maxAge: 60 * 60 * 24 * 7,
@@ -22,5 +23,6 @@ const sidebarOpen = useCookie<boolean>("sidebar_state", {
     <ChatSidebar />
     <slot />
   </SidebarProvider>
+  <SettingsModal v-model:open="settingsOpen" v-model:page="settingsPage" />
   <LoginModal v-model:open="loginOpen" />
 </template>

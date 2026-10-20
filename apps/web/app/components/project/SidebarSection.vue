@@ -43,7 +43,12 @@ const emit = defineEmits<{
         <span class="truncate">{{ $t("project.section") }}</span>
       </button>
     </SidebarGroupLabel>
-    <SidebarGroupAction as="button" :aria-label="$t('project.create')" @click="emit('create')">
+    <SidebarGroupAction
+      as="button"
+      class="top-2.5"
+      :aria-label="$t('project.create')"
+      @click="emit('create')"
+    >
       <Plus />
     </SidebarGroupAction>
 

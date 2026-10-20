@@ -11,7 +11,7 @@ export const buttonVariants = cva(
         default:
           "bg-button-primary text-text-white shadow-checkbox-selected disabled:text-button-primary-disabled-foreground",
         destructive:
-          "bg-button-danger text-text-white shadow-checkbox-selected disabled:text-button-primary-disabled-foreground",
+          "bg-button-danger text-text-white shadow-[inset_0_2px_0_0_rgb(255_255_255/0.25)] disabled:text-button-primary-disabled-foreground",
         outline:
           "border border-border-button-default bg-background-primary-default text-text-primary shadow-card hover:border-border-button-hover hover:bg-background-primary-hover active:bg-background-primary-active disabled:bg-background-primary-disabled disabled:text-foreground-disabled",
         secondary:
