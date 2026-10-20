@@ -78,7 +78,7 @@ const emit = defineEmits<{
         />
       </SidebarMenu>
 
-      <p v-if="!projects.length" class="px-2 py-1 text-xs text-muted-foreground">
+      <p v-if="!projects.length" class="px-2 py-1 text-caption-1-regular text-text-secondary">
         {{ $t("project.empty") }}
       </p>
     </SidebarGroupContent>

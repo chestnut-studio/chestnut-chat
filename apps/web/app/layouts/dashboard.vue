@@ -12,7 +12,7 @@ const sidebarOpen = useCookie<boolean>("sidebar_state", {
 <template>
   <SidebarProvider
     v-model:open="sidebarOpen"
-    class="h-svh min-h-0 overflow-hidden bg-background"
+    class="h-svh min-h-0 overflow-hidden bg-background-full"
     :style="{ '--sidebar-width': '18rem', '--sidebar-width-icon': '4rem' }"
   >
     <SidebarTrigger class="fixed left-3 top-3 z-30 md:hidden" aria-label="Open navigation" />

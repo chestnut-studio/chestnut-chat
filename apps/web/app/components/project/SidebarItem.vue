@@ -81,7 +81,7 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
     </SidebarMenuButton>
     <button
       type="button"
-      class="absolute left-1 top-1.5 flex size-5 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+      class="absolute left-1 top-1.5 flex size-5 items-center justify-center rounded-md text-text-secondary hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
       :aria-label="expanded ? $t('project.collapse') : $t('project.expand')"
       :aria-expanded="expanded"
       @click="emit('toggle')"
@@ -110,7 +110,9 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
         @move="emit('moveChat', $event)"
       />
       <SidebarMenuSubItem v-if="!chats.length">
-        <p class="px-2 py-1 text-xs text-muted-foreground">{{ $t("project.noChats") }}</p>
+        <p class="px-2 py-1 text-caption-1-regular text-text-secondary">
+          {{ $t("project.noChats") }}
+        </p>
       </SidebarMenuSubItem>
     </SidebarMenuSub>
   </SidebarMenuItem>

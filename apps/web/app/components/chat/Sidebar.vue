@@ -22,7 +22,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarRail,
-  SidebarSeparator,
   useSidebar,
 } from "@chestnut-chat/ui/components/ui/sidebar";
 import { Button } from "@chestnut-chat/ui/components/ui/button";
@@ -306,11 +305,9 @@ const moveItems = computed(() => [
 </script>
 
 <template>
-  <Sidebar collapsible="icon">
+  <Sidebar collapsible="icon" variant="floating">
     <SidebarHeader
-      :class="
-        cn('flex-row items-center gap-2', authSession.isAuthenticated ? 'h-16 px-4' : 'h-14 px-2')
-      "
+      :class="cn('h-14 flex-row items-center gap-2', authSession.isAuthenticated ? 'px-4' : 'px-2')"
     >
       <Button
         v-if="collapsed"
@@ -340,7 +337,7 @@ const moveItems = computed(() => [
           <NuxtImg src="/favicon.svg" alt="" class="size-6" />
         </NuxtLink>
         <NuxtImg v-else src="/favicon.svg" alt="Chestnut Chat" class="size-6" />
-        <span class="truncate font-semibold">{{ $t("app.name") }}</span>
+        <span class="truncate text-body-semibold text-text-primary">{{ $t("app.name") }}</span>
         <Button
           class="ms-auto"
           variant="ghost"
@@ -352,13 +349,11 @@ const moveItems = computed(() => [
         </Button>
       </template>
     </SidebarHeader>
-    <SidebarSeparator v-if="authSession.isAuthenticated" />
-
-    <SidebarHeader :class="cn(authSession.isAuthenticated ? 'p-4' : 'px-2 pb-2 pt-0')">
+    <SidebarHeader :class="cn(authSession.isAuthenticated ? 'px-4 pb-3 pt-1' : 'px-2 pb-2 pt-0')">
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton
-            :variant="authSession.isAuthenticated ? 'outline' : 'default'"
+            variant="primary"
             :tooltip="$t('sidebar.newChat')"
             :aria-label="$t('sidebar.newChat')"
             :disabled="authSession.isPending"
@@ -370,7 +365,7 @@ const moveItems = computed(() => [
         </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton
-            :variant="authSession.isAuthenticated ? 'default' : 'outline'"
+            variant="outline"
             :tooltip="$t('sidebar.search')"
             :aria-label="$t('sidebar.search')"
             @click="searchOpen = true"
@@ -403,7 +398,7 @@ const moveItems = computed(() => [
               <CollapsibleContent>
                 <SidebarMenuSub>
                   <SidebarMenuSubItem>
-                    <p class="py-2 text-xs leading-relaxed text-muted-foreground">
+                    <p class="py-2 text-caption-1-regular text-text-secondary">
                       {{ section.hint }}
                     </p>
                   </SidebarMenuSubItem>
@@ -446,7 +441,7 @@ const moveItems = computed(() => [
 
           <SidebarGroupContent v-if="chatsExpanded" class="flex flex-col gap-3">
             <div v-for="group in standaloneGroups" :key="group.key">
-              <p class="px-2 py-1 text-xs font-medium text-muted-foreground">
+              <p class="px-2 py-1 text-caption-1-semibold text-text-tertiary">
                 {{ $t(`groups.${group.key}`) }}
               </p>
               <SidebarMenu>
@@ -466,7 +461,7 @@ const moveItems = computed(() => [
 
             <p
               v-if="!standaloneGroups.length && list.status.value === 'success'"
-              class="px-2 text-sm text-muted-foreground"
+              class="px-2 text-body-2-regular text-text-secondary"
             >
               {{ $t("sidebar.empty") }}
             </p>
@@ -475,7 +470,6 @@ const moveItems = computed(() => [
       </div>
     </SidebarContent>
 
-    <SidebarSeparator v-if="authSession.isAuthenticated" />
     <SidebarFooter :class="cn(authSession.isAuthenticated ? 'p-4' : 'p-2')">
       <ChatSidebarFooter :collapsed="collapsed" />
     </SidebarFooter>

@@ -43,12 +43,10 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
 </script>
 
 <template>
-  <header
-    class="flex h-(--ui-header-height) shrink-0 items-center justify-between gap-3 border-b border-default px-4 sm:px-6"
-  >
+  <header class="flex h-14 shrink-0 items-center justify-between gap-3 px-4 sm:px-6">
     <div class="flex min-w-0 flex-1 items-center gap-2">
       <BTooltip :text="title">
-        <h1 class="min-w-0 truncate text-sm font-semibold text-highlighted sm:text-base">
+        <h1 class="min-w-0 truncate text-body-2-semibold text-text-primary sm:text-body-semibold">
           {{ title }}
         </h1>
       </BTooltip>
@@ -56,7 +54,7 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
       <NuxtLink
         v-if="project"
         :to="projectPath(project.id)"
-        class="hidden shrink-0 items-center gap-1.5 rounded-full border border-default px-2.5 py-1 text-xs text-muted transition hover:border-primary/40 hover:text-highlighted sm:flex"
+        class="hidden shrink-0 items-center gap-1.5 rounded-full border border-border-button-default bg-background-primary-default px-2.5 py-1 text-caption-1-medium text-text-secondary shadow-card transition-colors hover:border-border-button-hover hover:text-text-primary sm:flex"
       >
         <span v-if="project.iconKind === 'emoji'" aria-hidden="true">{{ project.iconValue }}</span>
         <BIcon
@@ -76,11 +74,11 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
       :content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
       :ui="{
         content:
-          'bg-default text-highlighted shadow-sm rounded-sm ring ring-default h-auto p-3 select-none data-[state=delayed-open]:animate-[scale-in_100ms_ease-out] data-[state=closed]:animate-[scale-out_100ms_ease-in] origin-(--reka-tooltip-content-transform-origin) pointer-events-auto',
+          'bg-background-primary-default text-text-primary shadow-dropdown rounded-xl border border-border-button-default h-auto p-3 select-none pointer-events-auto',
       }"
     >
       <span
-        class="flex min-w-0 items-center gap-1.5 rounded-full border border-default bg-elevated/60 py-1 pe-3 ps-2 text-xs"
+        class="flex min-w-0 items-center gap-1.5 rounded-full border border-border-button-default bg-background-primary-default py-1 pe-3 ps-2 text-caption-1-regular text-text-primary shadow-card"
         :aria-label="t('chat.modelUsed')"
       >
         <ModelIcon :icon="modelIcon" />
@@ -88,22 +86,28 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
         <BIcon
           v-if="reasoningActive"
           name="i-ri-brain-line"
-          class="size-3.5 shrink-0 text-primary"
+          class="size-3.5 shrink-0 text-accent-600"
         />
-        <BIcon v-if="webSearch" name="i-ri-global-line" class="size-3.5 shrink-0 text-muted" />
+        <BIcon
+          v-if="webSearch"
+          name="i-ri-global-line"
+          class="size-3.5 shrink-0 text-text-secondary"
+        />
       </span>
 
       <template #content>
         <div class="max-w-64 space-y-1.5">
-          <p class="text-muted text-[10px] font-medium uppercase tracking-wide">
+          <p class="text-caption-2-semibold uppercase tracking-wide text-text-tertiary">
             {{ t("chat.modelUsed") }}
           </p>
 
           <div class="flex items-center gap-2">
             <ModelIcon :icon="modelIcon" />
             <div class="min-w-0">
-              <p class="wrap-break-word text-sm font-medium">{{ modelLabel }}</p>
-              <p v-if="providerName" class="text-muted truncate text-xs">{{ providerName }}</p>
+              <p class="wrap-break-word text-body-2-medium">{{ modelLabel }}</p>
+              <p v-if="providerName" class="truncate text-caption-1-regular text-text-secondary">
+                {{ providerName }}
+              </p>
             </div>
           </div>
 
