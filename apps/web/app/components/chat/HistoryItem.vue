@@ -75,12 +75,16 @@ const items = computed<DropdownItem[][]>(() => [
       </NuxtLink>
     </SidebarMenuButton>
     <SidebarMenuBadge
-      class="right-2 bg-background-secondary font-normal text-text-tertiary group-hover/menu-item:hidden"
+      class="right-1.5 min-w-6 justify-end peer-data-[size=default]/menu-button:top-1.75 px-1 text-caption-1-regular font-normal text-text-tertiary peer-data-[active=true]/menu-button:text-text-white/75 max-md:hidden group-focus-within/menu-item:hidden group-hover/menu-item:hidden group-has-data-[state=open]/menu-item:hidden"
     >
       {{ formatShortAge(chat.updatedAt) }}
     </SidebarMenuBadge>
-    <BDropdown :items="items">
-      <SidebarMenuAction show-on-hover :aria-label="`${$t('sidebar.chats')}: ${chat.title}`">
+    <BDropdown :items="items" compact>
+      <SidebarMenuAction
+        show-on-hover
+        class="right-1 size-6 rounded-lg text-text-secondary transition-colors peer-data-[size=default]/menu-button:top-1 hover:bg-background-secondary-hover hover:text-text-primary data-[state=open]:bg-background-secondary-hover data-[state=open]:text-text-primary peer-data-[active=true]/menu-button:text-text-white/80 peer-data-[active=true]/menu-button:hover:bg-white/20 peer-data-[active=true]/menu-button:hover:text-text-white peer-data-[active=true]/menu-button:data-[state=open]:bg-white/20 peer-data-[active=true]/menu-button:data-[state=open]:text-text-white"
+        :aria-label="`${$t('sidebar.chats')}: ${chat.title}`"
+      >
         <Ellipsis />
       </SidebarMenuAction>
     </BDropdown>

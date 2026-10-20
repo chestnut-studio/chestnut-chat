@@ -15,7 +15,6 @@ defineProps<{
   projects: ProjectRow[];
   chatsByProject: Record<string, ChatRow[]>;
   activeChatId?: string;
-  activeProjectId?: string;
   expanded: boolean;
   isProjectOpen: (projectId: string) => boolean;
   forceOpenProjectIds: Set<string>;
@@ -25,7 +24,6 @@ const emit = defineEmits<{
   create: [];
   toggleSection: [];
   toggle: [string];
-  select: [ProjectRow];
   newChat: [ProjectRow];
   edit: [ProjectRow];
   delete: [ProjectRow];
@@ -38,7 +36,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <SidebarGroup>
+  <SidebarGroup class="py-1">
     <SidebarGroupLabel as-child>
       <button type="button" class="gap-1" :aria-expanded="expanded" @click="emit('toggleSection')">
         <Icon size="16" :name="expanded ? 'i-ri-arrow-down-s-line' : 'i-ri-arrow-right-s-line'" />
@@ -59,9 +57,7 @@ const emit = defineEmits<{
           :open="isProjectOpen(project.id)"
           :force-open="forceOpenProjectIds.has(project.id)"
           :active-chat-id="activeChatId"
-          :active-project-id="activeProjectId"
           @toggle="emit('toggle', project.id)"
-          @select="emit('select', $event)"
           @new-chat="emit('newChat', $event)"
           @edit="emit('edit', $event)"
           @delete="emit('delete', $event)"

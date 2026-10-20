@@ -26,10 +26,10 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <SidebarGroup>
+  <SidebarGroup class="py-1">
     <SidebarGroupLabel as-child>
       <button type="button" class="gap-1" :aria-expanded="expanded" @click="emit('toggle')">
-        <BIcon :name="expanded ? 'i-ri-arrow-down-s-line' : 'i-ri-arrow-right-s-line'" />
+        <Icon size="16" :name="expanded ? 'i-ri-arrow-down-s-line' : 'i-ri-arrow-right-s-line'" />
         <span class="truncate">{{ $t("sidebar.chats") }}</span>
       </button>
     </SidebarGroupLabel>

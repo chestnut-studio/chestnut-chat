@@ -75,8 +75,6 @@ const guestSections = computed(() => [
 
 const activeId = computed(() => (route.params.chatId ?? route.params.id) as string | undefined);
 const routeProjectId = computed(() => route.params.projectId as string | undefined);
-// Only highlight the project row on the project home page, not on nested chats.
-const activeProjectId = computed(() => (route.params.chatId ? undefined : routeProjectId.value));
 
 watch(routeProjectId, (id) => id && setProjectOpen(id, true), { immediate: true });
 watch(
@@ -224,19 +222,17 @@ const onProjectCreated = (payload: { projectId: string; chatId: string }) =>
           </Collapsible>
         </SidebarMenu>
       </SidebarGroup>
-      <div v-else-if="!collapsed" class="flex flex-col gap-2 px-2">
+      <div v-else-if="!collapsed" class="flex flex-col px-2">
         <ProjectSidebarSection
           :projects="projectRows"
           :chats-by-project="partitioned.byProject"
           :active-chat-id="activeId"
-          :active-project-id="activeProjectId"
           :expanded="projectsExpanded"
           :is-project-open="isProjectOpen"
           :force-open-project-ids="forceOpenProjectIds"
           @create="openCreateProject"
           @toggle-section="toggleProjects"
           @toggle="toggleProject"
-          @select="(project) => setProjectOpen(project.id, true)"
           @new-chat="onProjectNewChat"
           @edit="openEditProject"
           @delete="dialogs?.removeProject($event)"

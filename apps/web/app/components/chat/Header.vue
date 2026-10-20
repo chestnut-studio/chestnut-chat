@@ -51,10 +51,9 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
         </h1>
       </BTooltip>
 
-      <NuxtLink
+      <span
         v-if="project"
-        :to="projectPath(project.id)"
-        class="hidden shrink-0 items-center gap-1.5 rounded-full border border-border-button-default bg-background-primary-default px-2.5 py-1 text-caption-1-medium text-text-secondary shadow-card transition-colors hover:border-border-button-hover hover:text-text-primary sm:flex"
+        class="hidden shrink-0 items-center gap-1.5 rounded-full border border-border-button-default bg-background-primary-default px-2.5 py-1 text-caption-1-medium text-text-secondary shadow-card sm:flex"
       >
         <span v-if="project.iconKind === 'emoji'" aria-hidden="true">{{ project.iconValue }}</span>
         <BIcon
@@ -64,7 +63,7 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
           :class="projectIconColorClass(project.iconColor)"
         />
         <span class="max-w-40 truncate">{{ project.name }}</span>
-      </NuxtLink>
+      </span>
     </div>
 
     <BSkeleton v-if="showModelSkeleton" class="h-7 w-28 shrink-0 rounded-full" />

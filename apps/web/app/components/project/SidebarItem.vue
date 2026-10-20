@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { Ellipsis } from "~/utils/icons";
-import { BDropdown, type DropdownItem } from "@chestnut-chat/ui";
+import { projectIconColorClass, projectIconName } from "@chestnut-chat/api/project/icons";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@chestnut-chat/ui/components/ui/context-menu";
 import {
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarMenuAction,
   SidebarMenuSub,
   SidebarMenuSubItem,
 } from "@chestnut-chat/ui/components/ui/sidebar";
@@ -17,13 +22,11 @@ const props = defineProps<{
   chats: ChatRow[];
   open: boolean;
   activeChatId?: string;
-  activeProjectId?: string;
   forceOpen?: boolean;
 }>();
 
 const emit = defineEmits<{
   toggle: [];
-  select: [ProjectRow];
   newChat: [ProjectRow];
   edit: [ProjectRow];
   delete: [ProjectRow];
@@ -34,60 +37,46 @@ const emit = defineEmits<{
   moveChat: [ChatRow];
 }>();
 
-const { t } = useI18n();
-
 const expanded = computed(() => props.forceOpen || props.open);
-const isActive = computed(() => props.activeProjectId === props.project.id);
-
-const items = computed<DropdownItem[][]>(() => [
-  [
-    {
-      label: t("project.newChat"),
-      icon: "i-ri-add-line",
-      onSelect: () => emit("newChat", props.project),
-    },
-    {
-      label: t("project.edit"),
-      icon: "i-ri-settings-3-line",
-      onSelect: () => emit("edit", props.project),
-    },
-  ],
-  [
-    {
-      label: t("actions.delete"),
-      icon: "i-ri-delete-bin-line",
-      color: "danger",
-      onSelect: () => emit("delete", props.project),
-    },
-  ],
-]);
 </script>
 
 <template>
   <SidebarMenuItem>
-    <SidebarMenuButton as-child :is-active="isActive" class="pl-8">
-      <NuxtLink
-        :to="projectPath(project.id)"
-        :aria-current="isActive ? 'page' : undefined"
-        @click="emit('select', project)"
-      >
-        <span>{{ project.name }}</span>
-      </NuxtLink>
-    </SidebarMenuButton>
-    <button
-      type="button"
-      class="absolute left-1.5 top-2 flex size-5 items-center justify-center rounded-md text-text-secondary hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
-      :aria-label="expanded ? $t('project.collapse') : $t('project.expand')"
-      :aria-expanded="expanded"
-      @click="emit('toggle')"
-    >
-      <BIcon :name="expanded ? 'i-ri-folder-open-line' : 'i-ri-folder-line'" class="size-4" />
-    </button>
-    <BDropdown :items="items">
-      <SidebarMenuAction show-on-hover :aria-label="`${$t('project.section')}: ${project.name}`">
-        <Ellipsis />
-      </SidebarMenuAction>
-    </BDropdown>
+    <ContextMenu>
+      <ContextMenuTrigger as-child>
+        <SidebarMenuButton :aria-expanded="expanded" @click="emit('toggle')">
+          <span
+            v-if="project.iconKind === 'emoji'"
+            class="flex size-4 shrink-0 items-center justify-center text-sm"
+            aria-hidden="true"
+          >
+            {{ project.iconValue }}
+          </span>
+          <BIcon
+            v-else
+            :name="projectIconName(project.iconValue)"
+            class="size-4"
+            :class="projectIconColorClass(project.iconColor)"
+          />
+          <span>{{ project.name }}</span>
+        </SidebarMenuButton>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem @select="emit('newChat', project)">
+          <BIcon name="i-ri-add-line" />
+          {{ $t("project.newChat") }}
+        </ContextMenuItem>
+        <ContextMenuItem @select="emit('edit', project)">
+          <BIcon name="i-ri-settings-3-line" />
+          {{ $t("project.edit") }}
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem variant="destructive" @select="emit('delete', project)">
+          <BIcon name="i-ri-delete-bin-line" />
+          {{ $t("actions.delete") }}
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
 
     <SidebarMenuSub v-if="expanded" class="mx-0 ml-3.5 gap-0 border-l-0 pr-0 pl-3">
       <ChatHistoryItem

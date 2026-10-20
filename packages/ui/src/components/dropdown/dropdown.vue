@@ -37,8 +37,9 @@ const props = withDefaults(
       sideOffset?: number;
     };
     ui?: { content?: string };
+    compact?: boolean;
   }>(),
-  { align: "end" },
+  { align: "end", compact: false },
 );
 
 const groups = computed(() =>
@@ -65,13 +66,22 @@ function select(item: DropdownItem) {
       :side="content?.side"
       :side-offset="content?.sideOffset"
       :class="
-        cn('flex w-[266px] max-w-[calc(100vw-32px)] flex-col gap-1 rounded-2xl p-2.5', ui?.content)
+        cn(
+          'flex max-w-[calc(100vw-32px)] flex-col gap-1',
+          compact ? 'w-44 rounded-xl p-1' : 'w-[266px] rounded-2xl p-2.5',
+          ui?.content,
+        )
       "
     >
       <template v-for="(group, groupIndex) in groups" :key="groupIndex">
         <DropdownMenuSeparator
           v-if="groupIndex"
-          class="-mx-2.5 my-1.5 w-auto shrink-0 bg-border-button-default"
+          :class="
+            cn(
+              'w-auto shrink-0 bg-border-button-default',
+              compact ? '-mx-1 my-0.5' : '-mx-2.5 my-1.5',
+            )
+          "
         />
         <DropdownMenuGroup class="flex w-full flex-col gap-1">
           <DropdownMenuItem
@@ -83,7 +93,10 @@ function select(item: DropdownItem) {
             :aria-checked="item.selected"
             :class="
               cn(
-                'w-full gap-2 rounded-2lg p-2 text-body-medium text-text-primary transition-colors focus:bg-dropdown-item-hover-background focus:text-text-primary',
+                'w-full gap-2 text-text-primary transition-colors focus:bg-dropdown-item-hover-background focus:text-text-primary',
+                compact
+                  ? 'rounded-lg px-2 py-1.5 text-body-2-regular'
+                  : 'rounded-2lg p-2 text-body-medium',
                 item.selected && 'bg-dropdown-item-hover-background',
                 item.color === 'danger' &&
                   'text-text-error-primary focus:bg-dropdown-item-hover-background focus:text-text-error-primary [&_svg:not([class*=text-])]:text-foreground-icon-error',
@@ -95,20 +108,24 @@ function select(item: DropdownItem) {
               <component
                 :is="item.icon"
                 v-if="item.icon && typeof item.icon !== 'string'"
-                class="size-5 shrink-0 text-foreground-icon-secondary"
+                :class="
+                  cn('shrink-0 text-foreground-icon-secondary', compact ? 'size-4' : 'size-5')
+                "
                 aria-hidden="true"
               />
               <RiIcon
                 v-else-if="item.icon"
                 :name="remixName(item.icon)"
-                class="size-5 shrink-0 text-foreground-icon-secondary"
+                :class="
+                  cn('shrink-0 text-foreground-icon-secondary', compact ? 'size-4' : 'size-5')
+                "
               />
             </slot>
             <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
             <RiIcon
               v-if="item.selected"
               name="check-line"
-              class="size-5 shrink-0 text-foreground-icon-secondary"
+              :class="cn('shrink-0 text-foreground-icon-secondary', compact ? 'size-4' : 'size-5')"
             />
           </DropdownMenuItem>
         </DropdownMenuGroup>

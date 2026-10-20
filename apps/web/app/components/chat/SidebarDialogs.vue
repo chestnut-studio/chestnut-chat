@@ -55,8 +55,7 @@ async function confirmDelete() {
   if (target) {
     await remove.mutateAsync({ id: target.id });
     if (activeChatId.value === target.id) {
-      const projectId = target.projectId ?? routeProjectId.value;
-      await navigateTo(projectId ? projectPath(projectId) : "/");
+      await navigateTo("/");
     }
   }
   deleteTarget.value = null;

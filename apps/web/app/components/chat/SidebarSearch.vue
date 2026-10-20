@@ -49,17 +49,6 @@ const groups = computed(() => {
         to: chatPath(chat),
       })),
     },
-    {
-      id: "projects",
-      label: t("project.section"),
-      items: projects.value.map<PaletteItem>((project) => ({
-        id: `project:${project.id}`,
-        label: project.name,
-        icon:
-          project.iconKind === "lucide" ? projectIconName(project.iconValue) : "i-ri-folder-line",
-        to: projectPath(project.id),
-      })),
-    },
   ];
 
   return all
