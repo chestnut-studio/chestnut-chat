@@ -76,7 +76,7 @@ onMounted(() => {
 
     <div
       v-else-if="!hasAnyProvider && !providerDraft"
-      class="border-border-button-default rounded-xl border border-dashed py-14 text-center"
+      class="border-border-button-default rounded-3xl border border-dashed py-14 text-center"
     >
       <BIcon name="i-ri-key-2-line" class="text-text-secondary mx-auto mb-3 size-10" />
       <p class="font-medium">{{ $t("settings.noProvidersYet") }}</p>

@@ -17,7 +17,9 @@ function updateDraft(patch: Partial<ProviderFormFields>) {
 </script>
 
 <template>
-  <div class="border-border-button-default rounded-xl border bg-background">
+  <div
+    class="border-border-button-default rounded-3xl border bg-background-primary-default shadow-card"
+  >
     <div class="space-y-5 p-4">
       <div class="flex items-center gap-3">
         <ProviderIcon :provider="draft.iconProvider" size="sm" />

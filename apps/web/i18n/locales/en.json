@@ -228,7 +228,8 @@
     "codeSentDescription": "Check your email or the server console in dev.",
     "sendFailed": "Failed to send code",
     "signedIn": "Signed in",
-    "signInFailed": "Sign in failed"
+    "signInFailed": "Sign in failed",
+    "subtitle": "Sign in to continue with Chestnut Chat."
   },
   "verifyOtp": {
     "title": "Check your email",

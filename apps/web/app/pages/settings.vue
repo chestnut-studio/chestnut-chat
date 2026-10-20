@@ -127,7 +127,9 @@ async function deleteAccount() {
               <div class="mt-6 space-y-8">
                 <section>
                   <h2 class="mb-4 text-title-2-semibold">{{ $t("settings.securityOptions") }}</h2>
-                  <div class="border-border-button-default rounded-lg border p-4">
+                  <div
+                    class="border-border-button-default rounded-2xl border bg-background-primary-default p-4 shadow-card"
+                  >
                     <h3 class="font-medium">{{ $t("settings.dangerZone") }}</h3>
                     <p class="text-text-secondary mt-1 text-body-2-regular">
                       {{ $t("settings.deleteAccountDescription") }}
@@ -159,7 +161,9 @@ async function deleteAccount() {
 
             <BTabPanel value="about">
               <div class="mt-6 space-y-4">
-                <div class="border-border-button-default space-y-2 rounded-lg border p-4">
+                <div
+                  class="border-border-button-default space-y-2 rounded-2xl border bg-background-primary-default p-4 shadow-card"
+                >
                   <div class="flex items-center justify-between">
                     <span class="text-text-secondary text-body-2-regular">{{
                       $t("settings.appName")

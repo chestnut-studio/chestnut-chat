@@ -83,13 +83,21 @@ async function sendOtp() {
       <DialogContent
         :show-close-button="false"
         :aria-describedby="undefined"
-        class="overflow-y-auto p-4 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:content-start max-sm:rounded-none max-sm:border-0 max-sm:pt-[max(1rem,env(safe-area-inset-top))] max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-h-[calc(100dvh-2rem)] sm:max-w-md"
+        class="overflow-y-auto p-6 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:content-start max-sm:rounded-none max-sm:border-0 max-sm:pt-[max(1rem,env(safe-area-inset-top))] max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-h-[calc(100dvh-2rem)] sm:max-w-md"
       >
-        <DialogHeader class="flex-row items-center justify-between">
-          <DialogTitle>{{ $t("login.title") }}</DialogTitle>
-          <DialogClose as-child>
-            <BCloseButton size="sm" :aria-label="$t('login.close')" />
-          </DialogClose>
+        <DialogClose as-child>
+          <BCloseButton class="absolute top-3 right-3" size="sm" :aria-label="$t('login.close')" />
+        </DialogClose>
+        <DialogHeader class="items-center gap-2 pt-4 text-center">
+          <span
+            class="flex size-12 items-center justify-center rounded-2xl border border-border-button-default bg-background-primary-default shadow-card"
+          >
+            <NuxtImg src="/favicon.svg" alt="" class="size-7" />
+          </span>
+          <DialogTitle class="text-title-3-semibold text-text-primary">{{
+            $t("login.title")
+          }}</DialogTitle>
+          <p class="text-body-2-regular text-text-secondary">{{ $t("login.subtitle") }}</p>
         </DialogHeader>
 
         <form @submit.prevent="sendOtp">

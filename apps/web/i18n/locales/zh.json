@@ -228,7 +228,8 @@
     "codeSentDescription": "请查看邮箱；开发环境也会输出到服务端控制台。",
     "sendFailed": "验证码发送失败",
     "signedIn": "已登录",
-    "signInFailed": "登录失败"
+    "signInFailed": "登录失败",
+    "subtitle": "登录后继续使用 Chestnut Chat。"
   },
   "verifyOtp": {
     "title": "查看您的邮箱",

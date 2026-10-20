@@ -74,7 +74,7 @@ Drizzle config loads environment from `apps/server/.env`. Do not commit `.env` f
 - Build app UI in `apps/web/app` with Vue single-file components and Nuxt conventions.
 - Use Composition API with `<script setup lang="ts">`. English and Chinese translations live in `apps/web/i18n/locales`; use `useI18n()`/`$t` for user-facing text.
 - Prefer shadcn-vue components from `@chestnut-chat/ui/components/ui/*` over custom controls. Add components with the shadcn-vue CLI from `packages/ui`; preserve existing `B*` contracts when modifying compatibility compositions.
-- Use semantic Tailwind tokens (`bg-background`, `text-foreground`, `border-border`). Theme presets from tweakcn live in `apps/web/app/utils/themes`; `useThemePreferences` persists them in a cookie, and `app.vue` applies their CSS variables during SSR.
+- Use semantic Tailwind tokens (`bg-background`, `text-foreground`, `border-border`). BoardUI tokens in `packages/ui/src/styles/theme.css` are the source of truth; shadcn variables are bridged to them. `useThemePreferences` persists the accent in a cookie, and `app.vue` sets `data-accent` and injects the accent ramp during SSR. Use Remix icons (`i-ri-*` or helpers in `app/utils/icons.ts`), not Lucide.
 - Global CSS is intentionally minimal in `apps/web/app/assets/css/main.css`; prefer component-level Tailwind classes. Use `useColorMode()` for light/dark/system mode.
 - Use the provided plugins:
   - `$authClient` from `apps/web/app/plugins/auth-client.ts`
@@ -150,7 +150,7 @@ For code changes, run the narrowest useful checks first, then broaden when neede
 
 ## Local Agent and Tooling Notes
 
-- Local skills live under `.agents/skills`; use the relevant available skill for the task. The application UI uses shadcn-vue, not BoardUI or Nuxt UI.
+- Local skills live under `.agents/skills`; use the relevant available skill for the task. The application UI uses shadcn-vue styled with BoardUI tokens (Vue port; no React BoardUI components).
 - `.vscode/settings.json` disables Biome and uses OXC/Oxfmt formatting on save.
 - In Amp orbs, `.agents/setup` installs dependencies and creates a placeholder `apps/server/.env` only if missing. Real environment values take precedence; placeholders do not provide a usable database.
 - `.amp/services.yaml` declares supervised `server` and `web` services. Use `amp orb services ensure` to start them and obtain public portal URLs rather than starting unmanaged background dev servers. Share the returned portal URL, not a sandbox-local URL.

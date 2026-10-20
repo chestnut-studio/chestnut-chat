@@ -94,7 +94,9 @@ const connectionIconComponent = computed(() => {
 </script>
 
 <template>
-  <div class="group border-border-button-default rounded-xl border bg-background">
+  <div
+    class="group border-border-button-default rounded-3xl border bg-background-primary-default shadow-card"
+  >
     <div class="flex items-center gap-3 p-4">
       <ProviderIcon :provider="provider.iconProvider" size="sm" />
       <div class="min-w-0 flex-1">
