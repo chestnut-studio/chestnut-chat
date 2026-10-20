@@ -4,29 +4,33 @@ import { cva } from "class-variance-authority";
 export { default as Button } from "./Button.vue";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2lg text-body-2-medium transition-colors disabled:pointer-events-none shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background-full [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 aria-invalid:ring-2 aria-invalid:ring-border-error-default",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default:
+          "bg-button-primary text-text-white shadow-checkbox-selected disabled:text-button-primary-disabled-foreground",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+          "bg-button-danger text-text-white shadow-checkbox-selected disabled:text-button-primary-disabled-foreground",
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
-        "muted-link": "text-muted-foreground underline-offset-4 hover:underline",
+          "border border-border-button-default bg-background-primary-default text-text-primary shadow-card hover:border-border-button-hover hover:bg-background-primary-hover active:bg-background-primary-active disabled:bg-background-primary-disabled disabled:text-foreground-disabled",
+        secondary:
+          "bg-background-secondary-default text-text-primary hover:bg-background-secondary-hover active:bg-background-tertiary-default disabled:text-foreground-disabled",
+        tint: "bg-button-ghost-background text-button-ghost-foreground hover:bg-button-ghost-hover active:bg-button-ghost-active disabled:bg-button-ghost-disabled disabled:text-button-ghost-disabled-foreground",
+        ghost:
+          "text-text-primary hover:bg-background-secondary-default active:bg-background-secondary-hover disabled:text-foreground-disabled",
+        link: "text-button-ghost-foreground underline-offset-4 hover:underline",
+        "muted-link": "text-text-secondary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        xs: "h-6 gap-1 rounded-lg px-2 text-caption-1-medium has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-8 rounded-lg gap-1.5 px-3 has-[>svg]:px-2.5",
+        lg: "h-10 rounded-xl px-6 has-[>svg]:px-4",
         icon: "size-9",
-        "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-8",
-        "icon-lg": "size-10",
+        "icon-xs": "size-6 rounded-lg [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-8 rounded-lg",
+        "icon-lg": "size-10 rounded-xl",
       },
     },
     defaultVariants: {

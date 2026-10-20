@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { Button } from "../ui/button";
 
 export interface ButtonProps {
-  variant?: "primary" | "secondary" | "ghost" | "danger";
+  variant?: "primary" | "secondary" | "tertiary" | "ghost" | "danger";
   size?: "medium" | "small" | "xs";
   iconOnly?: boolean;
   leadingIcon?: Component;
@@ -20,7 +20,8 @@ const props = withDefaults(defineProps<ButtonProps>(), {
 const variants = {
   primary: "default",
   secondary: "outline",
-  ghost: "ghost",
+  tertiary: "secondary",
+  ghost: "tint",
   danger: "destructive",
 } as const;
 const sizes = { medium: "default", small: "sm", xs: "xs" } as const;
