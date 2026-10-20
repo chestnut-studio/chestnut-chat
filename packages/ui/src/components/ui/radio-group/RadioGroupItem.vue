@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { RadioGroupItemProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
-import { DotFilledIcon } from "@radix-icons/vue";
+import RiIcon from "../../icon/ri-icon.vue";
 import { reactiveOmit } from "@vueuse/core";
 import { RadioGroupIndicator, RadioGroupItem, useForwardProps } from "reka-ui";
 import { cn } from "@chestnut-chat/ui/lib/utils";
@@ -29,7 +29,8 @@ const forwardedProps = useForwardProps(delegatedProps);
       class="relative flex items-center justify-center"
     >
       <slot>
-        <DotFilledIcon
+        <RiIcon
+          name="circle-fill"
           class="fill-primary absolute top-1/2 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2"
         />
       </slot>

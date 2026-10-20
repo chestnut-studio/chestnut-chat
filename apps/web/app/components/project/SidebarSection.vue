@@ -40,13 +40,8 @@ const emit = defineEmits<{
 <template>
   <SidebarGroup>
     <SidebarGroupLabel as-child>
-      <button
-        type="button"
-        class="gap-1 pr-8"
-        :aria-expanded="expanded"
-        @click="emit('toggleSection')"
-      >
-        <BIcon :name="expanded ? 'i-ri-arrow-down-s-line' : 'i-ri-arrow-right-s-line'" />
+      <button type="button" class="gap-1" :aria-expanded="expanded" @click="emit('toggleSection')">
+        <Icon size="16" :name="expanded ? 'i-ri-arrow-down-s-line' : 'i-ri-arrow-right-s-line'" />
         <span class="truncate">{{ $t("project.section") }}</span>
       </button>
     </SidebarGroupLabel>

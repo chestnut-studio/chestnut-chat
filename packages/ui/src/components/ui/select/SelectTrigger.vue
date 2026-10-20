@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SelectTriggerProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
-import { ChevronDownIcon } from "@radix-icons/vue";
+import RiIcon from "../../icon/ri-icon.vue";
 import { reactiveOmit } from "@vueuse/core";
 import { SelectIcon, SelectTrigger, useForwardProps } from "reka-ui";
 import { cn } from "@chestnut-chat/ui/lib/utils";
@@ -29,7 +29,7 @@ const forwardedProps = useForwardProps(delegatedProps);
   >
     <slot />
     <SelectIcon as-child>
-      <ChevronDownIcon class="size-4 opacity-50" />
+      <RiIcon name="arrow-down-s-line" class="size-4 opacity-50" />
     </SelectIcon>
   </SelectTrigger>
 </template>

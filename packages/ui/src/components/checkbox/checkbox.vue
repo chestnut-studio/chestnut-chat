@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useId } from "vue";
-import { MinusIcon } from "@radix-icons/vue";
+import RiIcon from "../icon/ri-icon.vue";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 export interface CheckboxProps {
@@ -29,7 +29,8 @@ function update(value: boolean | "indeterminate") {
       :name="name"
       :class="size === 'sm' ? 'size-3.5' : undefined"
       @update:model-value="update"
-      ><template v-if="indeterminate" #default><MinusIcon class="size-3.5" /></template
+      ><template v-if="indeterminate" #default
+        ><RiIcon name="subtract-line" class="size-3.5" /></template
     ></Checkbox>
     <Label v-if="$slots.default" :for="id"><slot /></Label>
   </div>

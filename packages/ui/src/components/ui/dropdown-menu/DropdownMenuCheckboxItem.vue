@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuCheckboxItemEmits, DropdownMenuCheckboxItemProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
-import { CheckIcon } from "@radix-icons/vue";
+import RiIcon from "../../icon/ri-icon.vue";
 import { reactiveOmit } from "@vueuse/core";
 import { DropdownMenuCheckboxItem, DropdownMenuItemIndicator, useForwardPropsEmits } from "reka-ui";
 import { cn } from "@chestnut-chat/ui/lib/utils";
@@ -28,7 +28,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     <span class="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
       <DropdownMenuItemIndicator>
         <slot name="indicator-icon">
-          <CheckIcon class="size-4" />
+          <RiIcon name="check-line" class="size-4" />
         </slot>
       </DropdownMenuItemIndicator>
     </span>

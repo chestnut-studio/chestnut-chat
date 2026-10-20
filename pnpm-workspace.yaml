@@ -20,3 +20,6 @@ catalog:
   "@orpc/zod": ^1.13.14
   better-auth: 1.6.11
   "@orpc/client": ^1.13.14
+nodeLinker: isolated
+shamefullyHoist: true
+strictPeerDependencies: false

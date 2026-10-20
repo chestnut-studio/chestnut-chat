@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DropdownMenuSubTriggerProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
-import { ChevronRightIcon } from "@radix-icons/vue";
+import RiIcon from "../../icon/ri-icon.vue";
 import { reactiveOmit } from "@vueuse/core";
 import { DropdownMenuSubTrigger, useForwardProps } from "reka-ui";
 import { cn } from "@chestnut-chat/ui/lib/utils";
@@ -27,6 +27,6 @@ const forwardedProps = useForwardProps(delegatedProps);
     "
   >
     <slot />
-    <ChevronRightIcon class="ml-auto size-4" />
+    <RiIcon name="arrow-right-s-line" class="ml-auto size-4" />
   </DropdownMenuSubTrigger>
 </template>

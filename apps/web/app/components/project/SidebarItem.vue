@@ -8,7 +8,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
 } from "@chestnut-chat/ui/components/ui/sidebar";
-import { projectIconColorClass, projectIconName } from "@chestnut-chat/api/project/icons";
 
 import type { ProjectRow } from "~/composables/useProjects";
 import type { ChatRow } from "~/utils/group-chats";
@@ -62,8 +61,6 @@ const items = computed<DropdownItem[][]>(() => [
     },
   ],
 ]);
-
-const iconColorClass = computed(() => projectIconColorClass(props.project.iconColor));
 </script>
 
 <template>
@@ -74,22 +71,17 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
         :aria-current="isActive ? 'page' : undefined"
         @click="emit('select', project)"
       >
-        <span v-if="project.iconKind === 'emoji'">{{ project.iconValue }}</span>
-        <BIcon v-else :name="projectIconName(project.iconValue)" :class="iconColorClass" />
         <span>{{ project.name }}</span>
       </NuxtLink>
     </SidebarMenuButton>
     <button
       type="button"
-      class="absolute left-1 top-1.5 flex size-5 items-center justify-center rounded-md text-text-secondary hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+      class="absolute left-1.5 top-2 flex size-5 items-center justify-center rounded-md text-text-secondary hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
       :aria-label="expanded ? $t('project.collapse') : $t('project.expand')"
       :aria-expanded="expanded"
       @click="emit('toggle')"
     >
-      <BIcon
-        :name="expanded ? 'i-ri-arrow-down-s-line' : 'i-ri-arrow-right-s-line'"
-        class="size-4"
-      />
+      <BIcon :name="expanded ? 'i-ri-folder-open-line' : 'i-ri-folder-line'" class="size-4" />
     </button>
     <BDropdown :items="items">
       <SidebarMenuAction show-on-hover :aria-label="`${$t('project.section')}: ${project.name}`">
@@ -97,12 +89,13 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
       </SidebarMenuAction>
     </BDropdown>
 
-    <SidebarMenuSub v-if="expanded">
+    <SidebarMenuSub v-if="expanded" class="mx-0 ml-3.5 gap-0 border-l-0 pr-0 pl-3">
       <ChatHistoryItem
         v-for="chat in chats"
         :key="chat.id"
         :chat="chat"
         :active="chat.id === activeChatId"
+        tree
         @rename="emit('renameChat', $event)"
         @pin="emit('pinChat', $event)"
         @archive="emit('archiveChat', $event)"

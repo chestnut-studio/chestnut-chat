@@ -8,6 +8,12 @@
   "sidebar": {
     "newChat": "New chat",
     "search": "Search chats and projects",
+    "searchEmpty": "No results found",
+    "searchEmptyHint": "Try a different keyword.",
+    "searchNavigate": "Navigate",
+    "searchOpen": "Open",
+    "searchHint": "Type to filter chats and projects, use arrow keys to navigate.",
+    "quickSearch": "Quick search",
     "chats": "Chats",
     "empty": "No chats yet.",
     "signIn": "Sign in",

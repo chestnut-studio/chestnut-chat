@@ -62,6 +62,7 @@ export type { PopoverProps } from "./components/overlay/popover.vue";
 export { default as BTooltip } from "./components/overlay/tooltip.vue";
 export { default as BDropdown } from "./components/dropdown/dropdown.vue";
 export type { DropdownItem } from "./components/dropdown/dropdown.vue";
+export { default as BRiIcon } from "./components/icon/ri-icon.vue";
 export { default as BSkeleton } from "./components/skeleton/skeleton.vue";
 export { default as BCard } from "./components/card/card.vue";
 

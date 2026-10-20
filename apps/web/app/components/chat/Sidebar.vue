@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { Minus, PanelLeftClose, PanelLeftOpen, Plus, Search } from "~/utils/icons";
-import { projectIconName } from "@chestnut-chat/api/project/icons";
-import { BButton, BInput, BModal, BSelect } from "@chestnut-chat/ui";
+import { Minus, Plus, Search } from "~/utils/icons";
 import {
   Collapsible,
   CollapsibleContent,
@@ -13,8 +11,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -22,49 +18,39 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarRail,
+  SidebarTrigger,
   useSidebar,
 } from "@chestnut-chat/ui/components/ui/sidebar";
 import { Button } from "@chestnut-chat/ui/components/ui/button";
-import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import type SidebarDialogs from "./SidebarDialogs.vue";
 
 const { state: sidebarState, isMobile, setOpenMobile, toggleSidebar } = useSidebar();
 const { t } = useI18n();
-const { list, rename, setPinned, setArchived, remove, create: createChat } = useChats();
-const { list: projects, remove: removeProject } = useProjects();
+const { list, setPinned, setArchived, create: createChat } = useChats();
+const { list: projects } = useProjects();
 const { state, toggleChats, toggleProjects, isProjectOpen, toggleProject, setProjectOpen } =
   useSidebarExpansion();
 const authSession = useAuthSession();
 const { show: showLogin } = useLoginModal();
 const route = useRoute();
-const { $orpc } = useNuxtApp();
-const queryClient = useQueryClient();
-const { mutateAsync: moveChat, isPending: isMoving } = useMutation(
-  $orpc.chat.move.mutationOptions(),
-);
 
+const dialogs = useTemplateRef<InstanceType<typeof SidebarDialogs>>("dialogs");
 const collapsed = computed(() => !isMobile.value && sidebarState.value === "collapsed");
 const searchOpen = ref(false);
-const searchQuery = shallowRef("");
-const renameOpen = ref(false);
-const renameTarget = ref<{ id: string; title: string } | null>(null);
-const renameValue = ref("");
-const deleteOpen = ref(false);
-const deleteTarget = ref<{ id: string } | null>(null);
 const projectFormOpen = ref(false);
 const editingProject = ref<ProjectRow | null>(null);
-const deleteProjectOpen = ref(false);
-const deleteProjectTarget = ref<ProjectRow | null>(null);
-const moveOpen = ref(false);
-const moveTarget = ref<ChatRow | null>(null);
-const moveProjectId = ref<string | null>(null);
 
-const chats = computed(() =>
-  ((list.data.value ?? []) as ChatRow[]).filter((chat) => !chat.archived),
-);
 const projectRows = computed(() => (projects.data.value ?? []) as ProjectRow[]);
-
-const partitioned = computed(() => partitionChatsByProject(chats.value));
-const standaloneGroups = computed(() => groupChats(partitioned.value.standalone));
+const partitioned = computed(() =>
+  partitionChatsByProject(((list.data.value ?? []) as ChatRow[]).filter((chat) => !chat.archived)),
+);
+const standaloneChats = computed(() =>
+  [...partitioned.value.standalone].sort(
+    (a, b) =>
+      Number(b.pinned) - Number(a.pinned) ||
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+  ),
+);
 
 const chatsExpanded = computed(() => state.value.chatsOpen);
 const projectsExpanded = computed(() => state.value.projectsOpen);
@@ -87,148 +73,29 @@ const guestSections = computed(() => [
   },
 ]);
 
-const projectNameById = computed(() => {
-  const map = new Map<string, string>();
-  for (const project of projectRows.value) map.set(project.id, project.name);
-  return map;
-});
-
-const paletteGroups = computed(() => [
-  {
-    id: "chats",
-    label: t("sidebar.chats"),
-    items: chats.value.map((chat) => ({
-      label: chat.title,
-      icon: "i-ri-chat-1-line",
-      suffix: chat.projectId ? projectNameById.value.get(chat.projectId) : undefined,
-      onSelect: () => {
-        searchOpen.value = false;
-        void navigateTo(chatPath(chat));
-      },
-    })),
-  },
-  {
-    id: "projects",
-    label: t("project.section"),
-    items: projectRows.value.map((project) => ({
-      label: project.name,
-      icon: project.iconKind === "lucide" ? projectIconName(project.iconValue) : "i-ri-folder-line",
-      onSelect: () => {
-        searchOpen.value = false;
-        void navigateTo(projectPath(project.id));
-      },
-    })),
-  },
-]);
-
-const filteredPaletteGroups = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase();
-  if (!query) return paletteGroups.value;
-  return paletteGroups.value
-    .map((group) => ({
-      ...group,
-      items: group.items.filter((item) =>
-        [item.label, "suffix" in item ? item.suffix : undefined]
-          .filter((value): value is string => typeof value === "string")
-          .some((value) => value.toLowerCase().includes(query)),
-      ),
-    }))
-    .filter((group) => group.items.length > 0);
-});
-
-function onShortcut(event: KeyboardEvent) {
-  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-    event.preventDefault();
-    searchOpen.value = true;
-  }
-}
-
-onMounted(() => window.addEventListener("keydown", onShortcut));
-onBeforeUnmount(() => window.removeEventListener("keydown", onShortcut));
-
-const activeId = computed(
-  () => (route.params.chatId as string | undefined) ?? (route.params.id as string | undefined),
-);
+const activeId = computed(() => (route.params.chatId ?? route.params.id) as string | undefined);
 const routeProjectId = computed(() => route.params.projectId as string | undefined);
-const activeProjectId = computed(() => {
-  // Only highlight the project row on the project home page, not on nested chats.
-  if (route.params.chatId) return undefined;
-  return routeProjectId.value;
-});
+// Only highlight the project row on the project home page, not on nested chats.
+const activeProjectId = computed(() => (route.params.chatId ? undefined : routeProjectId.value));
 
-watch(
-  routeProjectId,
-  (id) => {
-    if (id) setProjectOpen(id, true);
-  },
-  { immediate: true },
-);
-
+watch(routeProjectId, (id) => id && setProjectOpen(id, true), { immediate: true });
 watch(
   () => route.fullPath,
-  () => {
-    setOpenMobile(false);
-  },
+  () => setOpenMobile(false),
 );
 
-async function onNewChat() {
+async function requireSession() {
   const session = await authSession.ensure();
-  if (!session?.user) {
-    showLogin();
-    return;
-  }
-
-  await navigateTo("/");
+  if (!session?.user) showLogin();
+  return !!session?.user;
 }
 
-function openRename(chat: { id: string; title: string }) {
-  renameTarget.value = chat;
-  renameValue.value = chat.title;
-  renameOpen.value = true;
-}
-
-async function confirmRename() {
-  if (renameTarget.value && renameValue.value.trim()) {
-    await rename.mutateAsync({ id: renameTarget.value.id, title: renameValue.value.trim() });
-  }
-  renameOpen.value = false;
-}
-
-function openDelete(chat: { id: string }) {
-  deleteTarget.value = chat;
-  deleteOpen.value = true;
-}
-
-async function confirmDelete() {
-  if (deleteTarget.value) {
-    const wasActive = activeId.value === deleteTarget.value.id;
-    const projectId =
-      (list.data.value ?? []).find((chat) => chat.id === deleteTarget.value?.id)?.projectId ??
-      activeProjectId.value ??
-      null;
-    await remove.mutateAsync({ id: deleteTarget.value.id });
-    if (wasActive) {
-      await navigateTo(projectId ? projectPath(projectId) : "/");
-    }
-  }
-  deleteOpen.value = false;
-}
-
-async function onPin(chat: { id: string; pinned: boolean }) {
-  await setPinned.mutateAsync({ id: chat.id, pinned: !chat.pinned });
-}
-
-async function onArchive(chat: { id: string }) {
-  await setArchived.mutateAsync({ id: chat.id, archived: true });
+async function onNewChat() {
+  if (await requireSession()) await navigateTo("/");
 }
 
 async function openCreateProject() {
-  const session = await authSession.ensure();
-  if (!session?.user) {
-    showLogin();
-    return;
-  }
-
+  if (!(await requireSession())) return;
   editingProject.value = null;
   projectFormOpen.value = true;
 }
@@ -238,81 +105,28 @@ function openEditProject(project: ProjectRow) {
   projectFormOpen.value = true;
 }
 
-function openDeleteProject(project: ProjectRow) {
-  deleteProjectTarget.value = project;
-  deleteProjectOpen.value = true;
-}
-
-async function confirmDeleteProject() {
-  if (!deleteProjectTarget.value) return;
-  const projectId = deleteProjectTarget.value.id;
-  const activeInProject =
-    activeProjectId.value === projectId ||
-    (list.data.value ?? []).some(
-      (chat) => chat.id === activeId.value && chat.projectId === projectId,
-    );
-  await removeProject.mutateAsync({ id: projectId });
-  if (activeInProject) await navigateTo("/");
-  deleteProjectOpen.value = false;
-}
-
 async function onProjectNewChat(project: ProjectRow) {
   const chat = await createChat.mutateAsync({ projectId: project.id });
   await navigateTo(chatPath({ id: chat.id, projectId: project.id }));
 }
 
-function openMove(chat: ChatRow) {
-  moveTarget.value = chat;
-  moveProjectId.value = chat.projectId ?? null;
-  moveOpen.value = true;
-}
-
-async function confirmMove() {
-  if (!moveTarget.value) return;
-  const movedId = moveTarget.value.id;
-  const nextProjectId = moveProjectId.value;
-  await moveChat({
-    chatId: movedId,
-    projectId: nextProjectId,
-  });
-  await list.refetch();
-  // The chat.get cache still holds the old projectId; the workspace watch
-  // would bounce the navigation back to the stale project path otherwise.
-  void queryClient.invalidateQueries({
-    queryKey: $orpc.chat.get.queryKey({ input: { id: movedId } }),
-  });
-  moveOpen.value = false;
-  if (activeId.value === movedId) {
-    await navigateTo(chatPath({ id: movedId, projectId: nextProjectId }));
-  }
-}
-
-async function onProjectCreated(payload: { projectId: string; chatId: string }) {
-  await navigateTo(chatPath({ id: payload.chatId, projectId: payload.projectId }));
-}
-
-function onOpenProject(project: ProjectRow) {
-  setProjectOpen(project.id, true);
-}
-
-const moveItems = computed(() => [
-  { label: t("project.noProject"), value: null as string | null },
-  ...((projects.data.value ?? []) as ProjectRow[]).map((project) => ({
-    label: project.name,
-    value: project.id as string | null,
-  })),
-]);
+const onPin = (chat: { id: string; pinned: boolean }) =>
+  setPinned.mutateAsync({ id: chat.id, pinned: !chat.pinned });
+const onArchive = (chat: { id: string }) =>
+  setArchived.mutateAsync({ id: chat.id, archived: true });
+const onProjectCreated = (payload: { projectId: string; chatId: string }) =>
+  navigateTo(chatPath({ id: payload.chatId, projectId: payload.projectId }));
 </script>
 
 <template>
   <Sidebar collapsible="icon" variant="floating">
     <SidebarHeader
-      :class="cn('h-14 flex-row items-center gap-2', authSession.isAuthenticated ? 'px-4' : 'px-2')"
+      :class="cn('flex-row items-center gap-2', authSession.isAuthenticated ? 'p-4 pb-2' : 'p-2')"
     >
       <Button
         v-if="collapsed"
         variant="ghost"
-        size="icon"
+        size="icon-sm"
         class="group relative"
         :aria-label="$t('sidebar.expand')"
         @click="toggleSidebar"
@@ -322,7 +136,9 @@ const moveItems = computed(() => [
           alt="Chestnut Chat"
           class="size-6 transition-opacity duration-150 group-hover:opacity-0"
         />
-        <PanelLeftOpen
+        <Icon
+          name="ri:side-bar-fill"
+          size="20"
           aria-hidden="true"
           class="absolute opacity-0 transition-opacity duration-150 group-hover:opacity-100"
         />
@@ -338,31 +154,13 @@ const moveItems = computed(() => [
         </NuxtLink>
         <NuxtImg v-else src="/favicon.svg" alt="Chestnut Chat" class="size-6" />
         <span class="truncate text-body-semibold text-text-primary">{{ $t("app.name") }}</span>
-        <Button
-          class="ms-auto"
-          variant="ghost"
-          size="icon"
-          :aria-label="$t('sidebar.collapse')"
-          @click="toggleSidebar"
-        >
-          <PanelLeftClose />
-        </Button>
+        <SidebarTrigger class="ms-auto size-9" :aria-label="$t('sidebar.collapse')">
+          <Icon size="20" name="ri:side-bar-line" />
+        </SidebarTrigger>
       </template>
     </SidebarHeader>
     <SidebarHeader :class="cn(authSession.isAuthenticated ? 'px-4 pb-3 pt-1' : 'px-2 pb-2 pt-0')">
       <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            variant="primary"
-            :tooltip="$t('sidebar.newChat')"
-            :aria-label="$t('sidebar.newChat')"
-            :disabled="authSession.isPending"
-            @click="onNewChat"
-          >
-            <Plus />
-            <span v-if="!collapsed">{{ $t("sidebar.newChat") }}</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton
             variant="outline"
@@ -371,7 +169,25 @@ const moveItems = computed(() => [
             @click="searchOpen = true"
           >
             <Search />
-            <span v-if="!collapsed">{{ $t("sidebar.search") }}</span>
+            <span v-if="!collapsed">{{ $t("sidebar.quickSearch") }}</span>
+            <kbd
+              v-if="!collapsed"
+              class="ml-auto rounded-md bg-background-secondary px-1.5 text-caption-1-regular text-text-tertiary"
+            >
+              ⌘K
+            </kbd>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            :is-active="route.path === '/'"
+            :tooltip="$t('sidebar.newChat')"
+            :aria-label="$t('sidebar.newChat')"
+            :disabled="authSession.isPending"
+            @click="onNewChat"
+          >
+            <Plus />
+            <span v-if="!collapsed">{{ $t("sidebar.newChat") }}</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
@@ -420,87 +236,40 @@ const moveItems = computed(() => [
           @create="openCreateProject"
           @toggle-section="toggleProjects"
           @toggle="toggleProject"
-          @select="onOpenProject"
+          @select="(project) => setProjectOpen(project.id, true)"
           @new-chat="onProjectNewChat"
           @edit="openEditProject"
-          @delete="openDeleteProject"
-          @rename-chat="openRename"
+          @delete="dialogs?.removeProject($event)"
+          @rename-chat="dialogs?.rename($event)"
           @pin-chat="onPin"
           @archive-chat="onArchive"
-          @delete-chat="openDelete"
-          @move-chat="openMove"
+          @delete-chat="dialogs?.remove($event)"
+          @move-chat="dialogs?.move($event)"
         />
 
-        <SidebarGroup>
-          <SidebarGroupLabel as-child>
-            <button type="button" :aria-expanded="chatsExpanded" @click="toggleChats">
-              <BIcon :name="chatsExpanded ? 'i-ri-arrow-down-s-line' : 'i-ri-arrow-right-s-line'" />
-              <span>{{ $t("sidebar.chats") }}</span>
-            </button>
-          </SidebarGroupLabel>
-
-          <SidebarGroupContent v-if="chatsExpanded" class="flex flex-col gap-3">
-            <div v-for="group in standaloneGroups" :key="group.key">
-              <p class="px-2 py-1 text-caption-1-semibold text-text-tertiary">
-                {{ $t(`groups.${group.key}`) }}
-              </p>
-              <SidebarMenu>
-                <ChatHistoryItem
-                  v-for="chat in group.chats"
-                  :key="chat.id"
-                  :chat="chat"
-                  :active="chat.id === activeId"
-                  @rename="openRename"
-                  @pin="onPin"
-                  @archive="onArchive"
-                  @delete="openDelete"
-                  @move="openMove"
-                />
-              </SidebarMenu>
-            </div>
-
-            <p
-              v-if="!standaloneGroups.length && list.status.value === 'success'"
-              class="px-2 text-body-2-regular text-text-secondary"
-            >
-              {{ $t("sidebar.empty") }}
-            </p>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <ChatSidebarChats
+          :chats="standaloneChats"
+          :active-chat-id="activeId"
+          :expanded="chatsExpanded"
+          :loaded="list.status.value === 'success'"
+          @toggle="toggleChats"
+          @rename="dialogs?.rename($event)"
+          @pin="onPin"
+          @archive="onArchive"
+          @delete="dialogs?.remove($event)"
+          @move="dialogs?.move($event)"
+        />
       </div>
     </SidebarContent>
 
-    <SidebarFooter :class="cn(authSession.isAuthenticated ? 'p-4' : 'p-2')">
+    <SidebarFooter :class="cn(authSession.isAuthenticated ? 'p-4 pt-2' : 'p-2')">
       <ChatSidebarFooter :collapsed="collapsed" />
+      <ChatSidebarUser :collapsed="collapsed" />
     </SidebarFooter>
     <SidebarRail v-if="!authSession.isAuthenticated" />
   </Sidebar>
 
-  <BModal v-model:open="searchOpen" :title="$t('sidebar.search')">
-    <template #body>
-      <BInput v-model="searchQuery" :leading-icon="Search" :placeholder="$t('sidebar.search')" />
-      <div class="mt-4 max-h-96 space-y-4 overflow-y-auto">
-        <section v-for="group in filteredPaletteGroups" :key="group.id">
-          <h3 class="px-2 text-caption-1-semibold text-text-tertiary">{{ group.label }}</h3>
-          <button
-            v-for="item in group.items"
-            :key="item.label"
-            type="button"
-            class="mt-1 flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-body-regular text-text-primary hover:bg-background-secondary-hover"
-            @click="item.onSelect"
-          >
-            <span>{{ item.label }}</span>
-            <span
-              v-if="'suffix' in item && item.suffix"
-              class="text-caption-1-regular text-text-tertiary"
-            >
-              {{ item.suffix }}
-            </span>
-          </button>
-        </section>
-      </div>
-    </template>
-  </BModal>
+  <ChatSidebarSearch v-model:open="searchOpen" />
 
   <ProjectFormModal
     v-model:open="projectFormOpen"
@@ -508,76 +277,5 @@ const moveItems = computed(() => [
     @created="onProjectCreated"
   />
 
-  <BModal
-    v-model:open="renameOpen"
-    :title="$t('confirm.renameTitle')"
-    :ui="{ footer: 'justify-end' }"
-  >
-    <template #body>
-      <BInput v-model="renameValue" class="w-full" @keydown.enter="confirmRename" />
-    </template>
-
-    <template #footer="{ close }">
-      <BButton variant="secondary" :disabled="rename.isPending.value" @click="close">
-        {{ $t("actions.cancel") }}
-      </BButton>
-      <BButton :disabled="rename.isPending.value" @click="confirmRename">
-        {{ $t("actions.save") }}
-      </BButton>
-    </template>
-  </BModal>
-
-  <BModal
-    v-model:open="deleteOpen"
-    :title="$t('confirm.deleteTitle')"
-    :description="$t('confirm.deleteDescription')"
-    :ui="{ footer: 'justify-end' }"
-  >
-    <template #footer="{ close }">
-      <BButton variant="secondary" :disabled="remove.isPending.value" @click="close">
-        {{ $t("actions.cancel") }}
-      </BButton>
-      <BButton variant="danger" :disabled="remove.isPending.value" @click="confirmDelete">
-        {{ $t("actions.delete") }}
-      </BButton>
-    </template>
-  </BModal>
-
-  <BModal
-    v-model:open="deleteProjectOpen"
-    :title="$t('project.deleteTitle')"
-    :description="$t('project.deleteDescription')"
-    :ui="{ footer: 'justify-end' }"
-  >
-    <template #footer="{ close }">
-      <BButton variant="secondary" :disabled="removeProject.isPending.value" @click="close">
-        {{ $t("actions.cancel") }}
-      </BButton>
-      <BButton
-        variant="danger"
-        :disabled="removeProject.isPending.value"
-        @click="confirmDeleteProject"
-      >
-        {{ $t("actions.delete") }}
-      </BButton>
-    </template>
-  </BModal>
-
-  <BModal
-    v-model:open="moveOpen"
-    :title="$t('project.moveToProject')"
-    :ui="{ footer: 'justify-end' }"
-  >
-    <template #body>
-      <BSelect v-model="moveProjectId" :items="moveItems" class="w-full" />
-    </template>
-    <template #footer="{ close }">
-      <BButton variant="secondary" :disabled="isMoving" @click="close">
-        {{ $t("actions.cancel") }}
-      </BButton>
-      <BButton :disabled="isMoving" @click="confirmMove">
-        {{ $t("actions.save") }}
-      </BButton>
-    </template>
-  </BModal>
+  <ChatSidebarDialogs ref="dialogs" />
 </template>

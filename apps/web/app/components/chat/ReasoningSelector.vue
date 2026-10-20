@@ -46,12 +46,12 @@ function selectEffort(value: ReasoningEffort) {
 const effortItems = computed<DropdownItem[]>(() => [
   {
     label: t("chat.reasoningOff"),
-    icon: isActive.value ? undefined : "i-ri-check-line",
+    selected: !isActive.value,
     onSelect: selectDisabled,
   },
   ...props.efforts.map((value) => ({
     label: effortLabel(value),
-    icon: isActive.value && effort.value === value ? "i-ri-check-line" : undefined,
+    selected: isActive.value && effort.value === value,
     onSelect: () => selectEffort(value),
   })),
 ]);

@@ -3,6 +3,7 @@ import { Ellipsis } from "~/utils/icons";
 import { BDropdown, type DropdownItem } from "@chestnut-chat/ui";
 import {
   SidebarMenuAction,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@chestnut-chat/ui/components/ui/sidebar";
@@ -13,6 +14,7 @@ import { chatPath } from "~/utils/chat-path";
 const props = defineProps<{
   chat: ChatRow;
   active: boolean;
+  tree?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -60,13 +62,23 @@ const items = computed<DropdownItem[][]>(() => [
 </script>
 
 <template>
-  <SidebarMenuItem>
+  <SidebarMenuItem
+    :class="
+      tree &&
+      'before:absolute before:top-0 before:-left-3 before:h-full before:border-l before:border-sidebar-border after:absolute after:top-0 after:-left-3 after:h-1/2 after:w-2.5 after:rounded-bl-lg after:border-b after:border-l after:border-sidebar-border last:before:hidden'
+    "
+  >
     <SidebarMenuButton as-child :is-active="active">
       <NuxtLink :to="chatPath(chat)" :aria-current="active ? 'page' : undefined">
         <BIcon v-if="chat.pinned" name="i-ri-pushpin-line" />
         <span>{{ chat.title }}</span>
       </NuxtLink>
     </SidebarMenuButton>
+    <SidebarMenuBadge
+      class="right-2 bg-background-secondary font-normal text-text-tertiary group-hover/menu-item:hidden"
+    >
+      {{ formatShortAge(chat.updatedAt) }}
+    </SidebarMenuBadge>
     <BDropdown :items="items">
       <SidebarMenuAction show-on-hover :aria-label="`${$t('sidebar.chats')}: ${chat.title}`">
         <Ellipsis />

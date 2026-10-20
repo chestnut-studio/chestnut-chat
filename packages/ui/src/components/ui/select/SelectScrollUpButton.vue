@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SelectScrollUpButtonProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
-import { ChevronUpIcon } from "@radix-icons/vue";
+import RiIcon from "../../icon/ri-icon.vue";
 import { reactiveOmit } from "@vueuse/core";
 import { SelectScrollUpButton, useForwardProps } from "reka-ui";
 import { cn } from "@chestnut-chat/ui/lib/utils";
@@ -20,7 +20,7 @@ const forwardedProps = useForwardProps(delegatedProps);
     :class="cn('flex cursor-default items-center justify-center py-1', props.class)"
   >
     <slot>
-      <ChevronUpIcon class="size-4" />
+      <RiIcon name="arrow-up-s-line" class="size-4" />
     </slot>
   </SelectScrollUpButton>
 </template>

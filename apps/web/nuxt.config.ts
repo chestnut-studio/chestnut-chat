@@ -25,7 +25,7 @@ export default defineNuxtConfig({
   icon: {
     localApiEndpoint: "/_nuxt_icon",
     clientBundle: {
-      icons: ["simple-icons:github", "simple-icons:google"],
+      icons: ["ri:github-fill", "ri:google-fill"],
     },
   },
   app: {

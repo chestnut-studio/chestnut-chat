@@ -109,7 +109,7 @@ async function sendOtp() {
               @click="social('github')"
             >
               <Icon
-                name="simple-icons:github"
+                name="ri:github-fill"
                 mode="svg"
                 class="mr-2 size-5 shrink-0"
                 aria-hidden="true"
@@ -123,7 +123,7 @@ async function sendOtp() {
               @click="social('google')"
             >
               <Icon
-                name="simple-icons:google"
+                name="ri:google-fill"
                 mode="svg"
                 class="mr-2 size-5 shrink-0"
                 aria-hidden="true"
