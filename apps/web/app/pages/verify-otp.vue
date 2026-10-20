@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft } from "lucide-vue-next";
+import { ArrowLeft } from "~/utils/icons";
 import { toast } from "vue-sonner";
 import { BButton, BCard, BLinkButton, BOtpInput } from "@chestnut-chat/ui";
 
@@ -150,7 +150,7 @@ function goBack() {
           <div
             class="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-primary/10"
           >
-            <BIcon name="i-lucide-mail" class="size-6 text-primary" />
+            <BIcon name="i-ri-mail-line" class="size-6 text-primary" />
           </div>
           <h1 class="text-xl font-semibold text-default">{{ $t("verifyOtp.title") }}</h1>
           <p class="mt-1.5 text-sm text-muted">

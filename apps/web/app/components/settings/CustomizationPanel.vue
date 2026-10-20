@@ -1,13 +1,6 @@
 <script setup lang="ts">
-import { ArrowUp, Check, Monitor, Moon, RotateCcw, Sparkles, Sun } from "lucide-vue-next";
-import { Button } from "@chestnut-chat/ui/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@chestnut-chat/ui/components/ui/card";
+import { ArrowUp, Check, Monitor, Moon, RotateCcw, Sparkles, Sun } from "~/utils/icons";
+import { BButton } from "@chestnut-chat/ui";
 import {
   Select,
   SelectContent,
@@ -16,29 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@chestnut-chat/ui/components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "@chestnut-chat/ui/components/ui/toggle-group";
-import { THEME_PRESETS, THEME_RADIUS_OPTIONS } from "~/utils/theme";
+import { ACCENTS } from "~/utils/theme";
 
 const colorMode = useColorMode();
 const { locale, locales, setLocale, t } = useI18n();
-const { preset, radius, reset } = useThemePreferences();
-const mode = computed({
-  get: () => colorMode.preference,
-  set: (value: string) => {
-    if (value) colorMode.preference = value;
-  },
-});
+const { accent, reset } = useThemePreferences();
+
 const colorModeOptions = computed(() => [
   { value: "system", label: t("settings.system"), icon: Monitor },
   { value: "light", label: t("settings.light"), icon: Sun },
   { value: "dark", label: t("settings.dark"), icon: Moon },
 ]);
-const themeOptions = computed(() =>
-  THEME_PRESETS.map((option) => ({
-    ...option,
-    swatches: colorMode.value === "dark" ? option.theme.dark : option.theme.light,
-  })),
-);
 
 function resetTheme() {
   reset();
@@ -50,199 +31,134 @@ function resetTheme() {
   <div class="mt-6 flex flex-col gap-6">
     <div class="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <h2 class="text-xl font-semibold">{{ $t("settings.appearance") }}</h2>
-        <p class="mt-1 text-sm text-muted-foreground">{{ $t("settings.appearanceDescription") }}</p>
+        <h2 class="text-title-3-semibold text-text-primary">{{ $t("settings.appearance") }}</h2>
+        <p class="mt-1 text-body-2-regular text-text-secondary">
+          {{ $t("settings.appearanceDescription") }}
+        </p>
       </div>
-      <Button variant="ghost" size="sm" @click="resetTheme">
-        <RotateCcw data-icon="inline-start" />{{ $t("settings.resetTheme") }}
-      </Button>
+      <BButton variant="ghost" size="small" :leading-icon="RotateCcw" @click="resetTheme">
+        {{ $t("settings.resetTheme") }}
+      </BButton>
     </div>
 
     <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
       <div class="flex min-w-0 flex-col gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{{ $t("settings.colorMode") }}</CardTitle>
-            <CardDescription>{{ $t("settings.colorModeDescription") }}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ClientOnly>
-              <ToggleGroup
-                v-model="mode"
-                type="single"
-                variant="outline"
-                :spacing="2"
-                :aria-label="$t('settings.colorMode')"
-                class="grid w-full grid-cols-3"
-              >
-                <ToggleGroupItem
-                  v-for="option in colorModeOptions"
-                  :key="option.value"
-                  :value="option.value"
-                >
-                  <component :is="option.icon" data-icon="inline-start" />{{ option.label }}
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </ClientOnly>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{{ $t("settings.themePreset") }}</CardTitle>
-            <CardDescription>{{ $t("settings.themePresetDescription") }}</CardDescription>
-          </CardHeader>
-          <CardContent class="flex flex-col gap-6">
-            <ToggleGroup
-              :model-value="preset"
-              type="single"
-              variant="outline"
-              :spacing="3"
-              :aria-label="$t('settings.themePreset')"
-              class="grid w-full grid-cols-2 sm:grid-cols-3"
-              @update:model-value="
-                (value) => {
-                  if (typeof value === 'string' && value) preset = value;
-                }
-              "
+        <section
+          class="rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card"
+        >
+          <h3 class="text-body-semibold text-text-primary">{{ $t("settings.colorMode") }}</h3>
+          <p class="mt-1 text-body-2-regular text-text-secondary">
+            {{ $t("settings.colorModeDescription") }}
+          </p>
+          <ClientOnly>
+            <div
+              role="radiogroup"
+              :aria-label="$t('settings.colorMode')"
+              class="mt-4 grid grid-cols-3 gap-1 rounded-xl bg-segmented-control-background p-1"
             >
-              <ToggleGroupItem
-                v-for="option in themeOptions"
-                :key="option.id"
-                :value="option.id"
-                :aria-label="option.label"
-                class="h-auto min-w-0 flex-col items-stretch gap-3 p-3"
+              <button
+                v-for="option in colorModeOptions"
+                :key="option.value"
+                type="button"
+                role="radio"
+                :aria-checked="colorMode.preference === option.value"
+                class="flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-body-2-medium text-text-secondary transition-colors hover:text-text-primary aria-checked:bg-segmented-control-selected-background aria-checked:text-text-primary aria-checked:shadow-card"
+                @click="colorMode.preference = option.value"
               >
-                <span
-                  class="flex h-16 overflow-hidden rounded-md border"
-                  :style="{
-                    borderColor: option.swatches.border,
-                    backgroundColor: option.swatches.background,
-                  }"
-                  aria-hidden="true"
-                >
-                  <span
-                    class="flex w-1/3 flex-col gap-1.5 border-r p-2"
-                    :style="{
-                      backgroundColor: option.swatches.sidebar,
-                      borderColor: option.swatches.border,
-                    }"
-                  >
-                    <span
-                      class="h-1.5 w-full rounded-sm"
-                      :style="{ backgroundColor: option.swatches.primary }"
-                    />
-                    <span
-                      class="h-1.5 w-2/3 rounded-sm"
-                      :style="{ backgroundColor: option.swatches.muted }"
-                    />
-                  </span>
-                  <span class="flex flex-1 flex-col justify-center gap-1.5 p-2">
-                    <span
-                      class="h-2 w-4/5 rounded-sm"
-                      :style="{ backgroundColor: option.swatches.foreground }"
-                    />
-                    <span
-                      class="h-1.5 w-full rounded-sm"
-                      :style="{ backgroundColor: option.swatches.muted }"
-                    />
-                    <span
-                      class="h-3 w-1/2 rounded-sm"
-                      :style="{ backgroundColor: option.swatches.primary }"
-                    />
-                  </span>
-                </span>
-                <span class="flex items-center justify-between gap-1">
-                  <span class="truncate">{{ option.label }}</span>
-                  <Check v-if="preset === option.id" aria-hidden="true" />
-                </span>
-              </ToggleGroupItem>
-            </ToggleGroup>
-            <a
-              href="https://tweakcn.com/editor/theme"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-sm text-muted-foreground underline underline-offset-4"
-              >{{ $t("settings.themesFromTweakcn") }} ↗</a
-            >
-
-            <div class="flex flex-col gap-3">
-              <label for="theme-radius" class="text-sm font-medium">{{
-                $t("settings.radius")
-              }}</label>
-              <Select v-model="radius">
-                <SelectTrigger id="theme-radius" class="w-full"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="preset">{{ $t("settings.presetDefault") }}</SelectItem>
-                    <SelectItem
-                      v-for="option in THEME_RADIUS_OPTIONS"
-                      :key="option"
-                      :value="String(option)"
-                      >{{ option * 16 }}px</SelectItem
-                    >
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <p class="text-xs text-muted-foreground">{{ $t("settings.radiusDescription") }}</p>
+                <component :is="option.icon" class="size-4" />{{ option.label }}
+              </button>
             </div>
-          </CardContent>
-        </Card>
+          </ClientOnly>
+        </section>
+
+        <section
+          class="rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card"
+        >
+          <h3 class="text-body-semibold text-text-primary">{{ $t("settings.accent") }}</h3>
+          <p class="mt-1 text-body-2-regular text-text-secondary">
+            {{ $t("settings.accentDescription") }}
+          </p>
+          <div
+            role="radiogroup"
+            :aria-label="$t('settings.accent')"
+            class="mt-4 flex flex-wrap gap-3"
+          >
+            <button
+              v-for="option in ACCENTS"
+              :key="option.id"
+              type="button"
+              role="radio"
+              :aria-checked="accent === option.id"
+              :aria-label="$t(`settings.accents.${option.id}`)"
+              :title="$t(`settings.accents.${option.id}`)"
+              class="flex size-9 items-center justify-center rounded-full text-white outline-none ring-offset-2 ring-offset-background-primary-default transition-shadow focus-visible:ring-2 focus-visible:ring-border-focus-ring aria-checked:ring-2 aria-checked:ring-border-button-active"
+              :style="{ backgroundColor: option.ramp ? option.ramp[500] : 'var(--color-blue-500)' }"
+              @click="accent = option.id"
+            >
+              <Check v-if="accent === option.id" class="size-4" aria-hidden="true" />
+            </button>
+          </div>
+        </section>
       </div>
 
       <div class="flex flex-col gap-3 xl:sticky xl:top-6">
-        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {{ $t("settings.livePreview") }}
-        </p>
-        <Card>
-          <CardHeader
-            ><CardTitle class="flex items-center gap-2"
-              ><Sparkles class="size-4" />{{ $t("app.name") }}</CardTitle
-            ></CardHeader
+        <p class="text-caption-1-semibold text-text-secondary">{{ $t("settings.livePreview") }}</p>
+        <div
+          class="flex flex-col gap-4 rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card"
+        >
+          <div class="flex items-center gap-2 text-body-semibold text-text-primary">
+            <Sparkles class="size-4" />{{ $t("app.name") }}
+          </div>
+          <div
+            class="ml-6 rounded-2xl bg-background-secondary-default p-3 text-caption-1-regular text-text-primary"
           >
-          <CardContent class="flex flex-col gap-4">
-            <div class="ml-6 rounded-lg bg-muted p-3 text-xs leading-5">
-              {{ $t("settings.previewPrompt") }}
-            </div>
-            <p class="text-xs leading-5">{{ $t("settings.previewResponse") }}</p>
-            <div class="flex items-center gap-2 rounded-md border p-2">
-              <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">{{
-                $t("settings.previewPlaceholder")
-              }}</span>
-              <Button size="icon" :aria-label="$t('chat.send')"><ArrowUp /></Button>
-            </div>
-          </CardContent>
-        </Card>
-        <p class="text-xs text-muted-foreground">{{ $t("settings.savedAutomatically") }}</p>
+            {{ $t("settings.previewPrompt") }}
+          </div>
+          <p class="text-caption-1-regular text-text-primary">
+            {{ $t("settings.previewResponse") }}
+          </p>
+          <div class="flex items-center gap-2 rounded-xl border border-border-button-default p-2">
+            <span class="min-w-0 flex-1 truncate text-caption-1-regular text-text-placeholder">{{
+              $t("settings.previewPlaceholder")
+            }}</span>
+            <span
+              class="flex size-7 items-center justify-center rounded-lg bg-button-primary text-text-white"
+              ><ArrowUp class="size-4"
+            /></span>
+          </div>
+        </div>
+        <p class="text-caption-1-regular text-text-secondary">
+          {{ $t("settings.savedAutomatically") }}
+        </p>
       </div>
     </div>
 
-    <Card>
-      <CardHeader>
-        <CardTitle>{{ $t("settings.language") }}</CardTitle>
-        <CardDescription>{{ $t("settings.languageDescription") }}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Select
-          :model-value="locale"
-          @update:model-value="
-            (value) => {
-              if (value === 'en' || value === 'zh') setLocale(value);
-            }
-          "
+    <section
+      class="rounded-3xl border border-border-button-default bg-background-primary-default p-5 shadow-card"
+    >
+      <h3 class="text-body-semibold text-text-primary">{{ $t("settings.language") }}</h3>
+      <p class="mt-1 text-body-2-regular text-text-secondary">
+        {{ $t("settings.languageDescription") }}
+      </p>
+      <Select
+        :model-value="locale"
+        @update:model-value="
+          (value) => {
+            if (value === 'en' || value === 'zh') setLocale(value);
+          }
+        "
+      >
+        <SelectTrigger :aria-label="$t('settings.language')" class="mt-4 w-full sm:w-44"
+          ><SelectValue
+        /></SelectTrigger>
+        <SelectContent
+          ><SelectGroup
+            ><SelectItem v-for="item in locales" :key="item.code" :value="item.code">{{
+              item.name
+            }}</SelectItem></SelectGroup
+          ></SelectContent
         >
-          <SelectTrigger :aria-label="$t('settings.language')" class="w-full sm:w-44"
-            ><SelectValue
-          /></SelectTrigger>
-          <SelectContent
-            ><SelectGroup
-              ><SelectItem v-for="item in locales" :key="item.code" :value="item.code">{{
-                item.name
-              }}</SelectItem></SelectGroup
-            ></SelectContent
-          >
-        </Select>
-      </CardContent>
-    </Card>
+      </Select>
+    </section>
   </div>
 </template>

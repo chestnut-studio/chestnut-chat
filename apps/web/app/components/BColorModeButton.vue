@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Moon, Sun } from "lucide-vue-next";
+import { Moon, Sun } from "~/utils/icons";
 import { BIconButton } from "@chestnut-chat/ui";
 
 const colorMode = useColorMode();

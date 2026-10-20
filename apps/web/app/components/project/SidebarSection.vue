@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plus } from "lucide-vue-next";
+import { Plus } from "~/utils/icons";
 import {
   SidebarGroup,
   SidebarGroupAction,
@@ -46,7 +46,7 @@ const emit = defineEmits<{
         :aria-expanded="expanded"
         @click="emit('toggleSection')"
       >
-        <BIcon :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" />
+        <BIcon :name="expanded ? 'i-ri-arrow-down-s-line' : 'i-ri-arrow-right-s-line'" />
         <span class="truncate">{{ $t("project.section") }}</span>
       </button>
     </SidebarGroupLabel>

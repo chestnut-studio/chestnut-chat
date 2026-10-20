@@ -52,21 +52,21 @@ const hasCapabilities = computed(
   <div v-if="hasCapabilities" class="flex shrink-0 flex-wrap items-center gap-1">
     <BTooltip v-if="supportsReasoning" :text="$t('settings.supportsReasoning')">
       <BChip variant="caption" color="blue" :aria-label="$t('settings.supportsReasoning')">
-        <BIcon name="i-lucide-brain" class="size-3.5 shrink-0" />
+        <BIcon name="i-ri-brain-line" class="size-3.5 shrink-0" />
         <span v-if="!compact">{{ $t("settings.reasoningTag") }}</span>
       </BChip>
     </BTooltip>
 
     <BTooltip v-if="supportsVision" :text="$t('settings.supportsVision')">
       <BChip variant="caption" color="cyan" :aria-label="$t('settings.supportsVision')">
-        <BIcon name="i-lucide-image" class="size-3.5 shrink-0" />
+        <BIcon name="i-ri-image-line" class="size-3.5 shrink-0" />
         <span v-if="!compact">{{ $t("settings.visionTag") }}</span>
       </BChip>
     </BTooltip>
 
     <BTooltip v-if="supportsMultimodal" :text="$t('settings.supportsMultimodal')">
       <BChip variant="caption" color="yellow" :aria-label="$t('settings.supportsMultimodal')">
-        <BIcon name="i-lucide-sparkles" class="size-3.5 shrink-0" />
+        <BIcon name="i-ri-sparkling-2-line" class="size-3.5 shrink-0" />
         <span v-if="!compact">{{ $t("settings.multimodalTag") }}</span>
       </BChip>
     </BTooltip>

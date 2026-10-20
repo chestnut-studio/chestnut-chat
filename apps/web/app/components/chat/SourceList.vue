@@ -35,7 +35,7 @@ defineProps<{
             />
             <span class="truncate text-xs text-muted">{{ sourceSiteLabel(source) }}</span>
             <BIcon
-              name="i-lucide-arrow-up-right"
+              name="i-ri-arrow-right-up-line"
               class="ml-auto size-3.5 shrink-0 text-dimmed opacity-0 transition-opacity group-hover:opacity-100"
             />
           </div>

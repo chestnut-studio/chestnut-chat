@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LogIn, LogOut } from "lucide-vue-next";
+import { LogIn, LogOut } from "~/utils/icons";
 import { BButton, BSkeleton } from "@chestnut-chat/ui";
 
 const authSession = useAuthSession();

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plus } from "lucide-vue-next";
+import { Plus } from "~/utils/icons";
 import { BButton, BDropdown, BFormField, BInput, BModal, BSkeleton } from "@chestnut-chat/ui";
 
 const {
@@ -78,7 +78,7 @@ onMounted(() => {
       v-else-if="!hasAnyProvider && !providerDraft"
       class="border-default rounded-xl border border-dashed py-14 text-center"
     >
-      <BIcon name="i-lucide-key-round" class="text-muted mx-auto mb-3 size-10" />
+      <BIcon name="i-ri-key-2-line" class="text-muted mx-auto mb-3 size-10" />
       <p class="font-medium">{{ $t("settings.noProvidersYet") }}</p>
       <p class="text-muted mt-1 text-sm">{{ $t("settings.noProvidersYetHint") }}</p>
     </div>

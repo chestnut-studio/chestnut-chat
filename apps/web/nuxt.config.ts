@@ -8,7 +8,20 @@ export default defineNuxtConfig({
   experimental: {
     payloadExtraction: "client",
   },
-  modules: ["@nuxt/icon", "@nuxtjs/color-mode", "vue-sonner/nuxt", "@nuxtjs/i18n", "@nuxt/image"],
+  modules: [
+    "@nuxt/fonts",
+    "@nuxt/icon",
+    "@nuxtjs/color-mode",
+    "vue-sonner/nuxt",
+    "@nuxtjs/i18n",
+    "@nuxt/image",
+  ],
+  fonts: {
+    families: [
+      { name: "Inter", provider: "google", weights: [400, 500, 600, 700] },
+      { name: "JetBrains Mono", provider: "google", weights: [400, 500] },
+    ],
+  },
   icon: {
     localApiEndpoint: "/_nuxt_icon",
     clientBundle: {

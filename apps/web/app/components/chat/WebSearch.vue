@@ -86,9 +86,7 @@ function onStatusClick() {
         "
       >
         <BIcon
-          :name="
-            isError ? 'i-lucide-globe-off' : isPending ? 'i-lucide-loader-circle' : 'i-lucide-radar'
-          "
+          :name="isError ? 'i-ri-earth-line' : isPending ? 'i-ri-loader-4-line' : 'i-ri-radar-line'"
           class="size-3.5"
           :class="isPending ? 'animate-spin' : undefined"
         />
@@ -103,7 +101,7 @@ function onStatusClick() {
 
       <BIcon
         v-if="canOpenSources"
-        name="i-lucide-panel-right"
+        name="i-ri-layout-right-line"
         class="mt-1 size-3.5 shrink-0 text-dimmed"
       />
     </button>

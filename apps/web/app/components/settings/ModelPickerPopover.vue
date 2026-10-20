@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileSearch, Search } from "lucide-vue-next";
+import { FileSearch, Search } from "~/utils/icons";
 import { BButton, BInput, BPopover, BTooltip } from "@chestnut-chat/ui";
 import type { ProviderModel } from "~/composables/useProviderKeys";
 
@@ -83,7 +83,7 @@ function isConfigured(modelId: string) {
             v-if="loading && !models.length"
             class="text-muted flex min-h-32 items-center justify-center gap-2 text-sm"
           >
-            <BIcon name="i-lucide-loader-circle" class="size-4 animate-spin" />
+            <BIcon name="i-ri-loader-4-line" class="size-4 animate-spin" />
             <span>{{ $t("settings.fetchingModels") }}</span>
           </div>
 
@@ -116,7 +116,7 @@ function isConfigured(modelId: string) {
               </span>
               <SettingsModelCapabilityIcons :provider-id="providerId" :model="model" compact />
               <BIcon
-                :name="isConfigured(model.id) ? 'i-lucide-check' : 'i-lucide-plus'"
+                :name="isConfigured(model.id) ? 'i-ri-check-line' : 'i-ri-add-line'"
                 class="text-muted size-4 shrink-0"
               />
             </button>
@@ -125,7 +125,7 @@ function isConfigured(modelId: string) {
 
         <div v-if="!loading" class="border-default border-t p-2">
           <BButton variant="ghost" class="w-full" @click="emit('refresh')">
-            <BIcon name="i-lucide-refresh-cw" class="size-5 shrink-0" />
+            <BIcon name="i-ri-refresh-line" class="size-5 shrink-0" />
             {{ $t("settings.refreshCatalog") }}
           </BButton>
         </div>

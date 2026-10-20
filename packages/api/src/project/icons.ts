@@ -56,6 +56,43 @@ export const PROJECT_LUCIDE_ALLOWLIST = [
   "mail",
 ] as const;
 
+// Stored values keep their original keys (and the "lucide" kind) so existing
+// projects keep working; each key resolves to a Remix icon for display.
+const PROJECT_ICON_REMIX: Record<(typeof PROJECT_LUCIDE_ALLOWLIST)[number], string> = {
+  folder: "folder-line",
+  "circle-dollar-sign": "money-dollar-circle-line",
+  lightbulb: "lightbulb-line",
+  image: "image-line",
+  play: "play-circle-line",
+  music: "music-2-line",
+  sparkles: "sparkling-2-line",
+  pencil: "pencil-line",
+  briefcase: "briefcase-line",
+  globe: "global-line",
+  "graduation-cap": "graduation-cap-line",
+  wallet: "wallet-3-line",
+  heart: "heart-line",
+  circle: "checkbox-blank-circle-line",
+  utensils: "restaurant-line",
+  coffee: "cup-line",
+  "code-xml": "code-s-slash-line",
+  leaf: "leaf-line",
+  cat: "bear-smile-line",
+  dog: "footprint-line",
+  car: "car-line",
+  "book-open": "book-open-line",
+  umbrella: "umbrella-line",
+  calendar: "calendar-line",
+  monitor: "computer-line",
+  "volume-2": "volume-up-line",
+  "chart-line": "line-chart-line",
+  mail: "mail-line",
+};
+
+export function projectIconName(value: string) {
+  return `i-ri-${PROJECT_ICON_REMIX[value as keyof typeof PROJECT_ICON_REMIX] ?? "folder-line"}`;
+}
+
 export const PROJECT_ICON_COLORS = [
   { key: "neutral", className: "text-highlighted", swatch: "bg-inverted" },
   { key: "red", className: "text-red-500", swatch: "bg-red-500" },

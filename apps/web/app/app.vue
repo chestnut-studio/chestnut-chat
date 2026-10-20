@@ -6,10 +6,12 @@ const { preferences } = useThemePreferences();
 const sonnerTheme = computed(() => (colorMode.value === "dark" ? "dark" : "light"));
 
 useHead(() => ({
-  htmlAttrs: { "data-theme": preferences.value.preset },
+  htmlAttrs: {
+    "data-accent": preferences.value.accent === "blue" ? undefined : preferences.value.accent,
+  },
   style: [
     {
-      key: "theme-preset",
+      key: "theme-accent",
       innerHTML: getThemeCss(preferences.value),
     },
   ],

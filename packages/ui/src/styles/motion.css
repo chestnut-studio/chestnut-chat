@@ -1,0 +1,172 @@
+/* BoardUI motion recipes. Every animation is disabled under reduced motion. */
+@theme {
+  --ease-modal: cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-blur-in: blur-in 150ms ease-out both;
+  --animate-blur-out: blur-out 120ms ease-in both;
+  --animate-modal-in: modal-in 300ms var(--ease-modal) both;
+  --animate-modal-out: modal-out 200ms var(--ease-modal) both;
+  --animate-overlay-in: overlay-in 300ms ease-out both;
+  --animate-label-in: label-in 220ms ease-out both;
+  --animate-label-out: label-out 160ms ease-in both;
+  --animate-flap-in: flap-in 260ms var(--ease-modal) both;
+  --animate-flap-out: flap-out 200ms var(--ease-modal) both;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-orbit: orbit 2.4s linear infinite;
+  --animate-wave: wave 1.2s ease-in-out infinite;
+}
+
+@keyframes blur-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+@keyframes blur-out {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.97);
+  }
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes modal-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes label-in {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+@keyframes label-out {
+  from {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(-6px);
+  }
+}
+@keyframes flap-in {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes flap-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@keyframes orbit {
+  to {
+    --orbit-angle: 360deg;
+    transform: rotate(360deg);
+  }
+}
+@keyframes wave {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* Text that sweeps a highlight across itself while work is in progress. */
+@utility text-shimmer {
+  color: transparent;
+  background-image: linear-gradient(
+    90deg,
+    var(--color-text-secondary) 35%,
+    var(--color-text-primary) 50%,
+    var(--color-text-secondary) 65%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: shimmer 2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-blur-"],
+  [class*="animate-modal-"],
+  [class*="animate-overlay-"],
+  [class*="animate-label-"],
+  [class*="animate-flap-"],
+  [class*="animate-orbit"],
+  [class*="animate-wave"],
+  .text-shimmer {
+    animation: none !important;
+  }
+  .text-shimmer {
+    color: var(--color-text-secondary);
+    background-image: none;
+  }
+}

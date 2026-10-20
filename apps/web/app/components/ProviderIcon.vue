@@ -64,7 +64,7 @@ const CONFIGS: Record<ProviderIconId, ProviderConfig> = {
   deepseek: { icon: "i-simple-icons-deepseek", background: "#4D6BFE", color: "#fff" },
   openrouter: { icon: "i-simple-icons-openrouter", background: "#6566F1", color: "#fff" },
   "opencode-go": { icon: "i-simple-icons-opencode", background: "#18181B", color: "#fff" },
-  custom: { icon: "i-lucide-cpu", background: "#6B7280", color: "#fff" },
+  custom: { icon: "i-ri-cpu-line", background: "#6B7280", color: "#fff" },
 };
 
 const config = computed(() => CONFIGS[props.provider as ProviderIconId] ?? CONFIGS.custom);
@@ -83,7 +83,7 @@ const badgeClass = computed(() => {
   />
   <BIcon
     v-else-if="variant === 'glyph'"
-    :name="config.icon ?? 'i-lucide-cpu'"
+    :name="config.icon ?? 'i-ri-cpu-line'"
     :class="[iconClass, 'text-muted shrink-0']"
   />
   <div
@@ -100,7 +100,7 @@ const badgeClass = computed(() => {
     />
     <BIcon
       v-else
-      :name="config.icon ?? 'i-lucide-cpu'"
+      :name="config.icon ?? 'i-ri-cpu-line'"
       :class="iconClass"
       :style="{ color: config.color }"
     />

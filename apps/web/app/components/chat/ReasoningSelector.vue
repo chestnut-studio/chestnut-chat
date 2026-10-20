@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Brain, ChevronDown } from "lucide-vue-next";
+import { Brain, ChevronDown } from "~/utils/icons";
 import { BButton, BDropdown, BTooltip, type DropdownItem } from "@chestnut-chat/ui";
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
 
@@ -46,12 +46,12 @@ function selectEffort(value: ReasoningEffort) {
 const effortItems = computed<DropdownItem[]>(() => [
   {
     label: t("chat.reasoningOff"),
-    icon: isActive.value ? undefined : "i-lucide-check",
+    icon: isActive.value ? undefined : "i-ri-check-line",
     onSelect: selectDisabled,
   },
   ...props.efforts.map((value) => ({
     label: effortLabel(value),
-    icon: isActive.value && effort.value === value ? "i-lucide-check" : undefined,
+    icon: isActive.value && effort.value === value ? "i-ri-check-line" : undefined,
     onSelect: () => selectEffort(value),
   })),
 ]);

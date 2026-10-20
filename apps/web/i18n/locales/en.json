@@ -107,12 +107,6 @@
     "systemDescription": "Match your device",
     "lightDescription": "Bright and clear",
     "darkDescription": "Easy on the eyes",
-    "themePreset": "Theme preset",
-    "themePresetDescription": "A complete palette, typography, radius, and shadows for the whole interface.",
-    "themesFromTweakcn": "Themes from tweakcn",
-    "presetDefault": "Preset default",
-    "radius": "Corner radius",
-    "radiusDescription": "Adjust how sharp or rounded the interface feels.",
     "resetTheme": "Reset theme",
     "livePreview": "Live preview",
     "previewPrompt": "Help me plan a focused afternoon.",
@@ -208,7 +202,17 @@
     "creditsRemaining": "{amount} remaining",
     "creditsBalance": "Balance: {amount}",
     "creditsUsageRemaining": "{amount} quota left (5h)",
-    "creditsTokensRemaining": "{amount} requests left (5h)"
+    "creditsTokensRemaining": "{amount} requests left (5h)",
+    "accent": "Accent color",
+    "accentDescription": "Tints buttons, selections and highlights across the app.",
+    "accents": {
+      "blue": "Blue",
+      "violet": "Violet",
+      "green": "Green",
+      "orange": "Orange",
+      "rose": "Rose",
+      "neutral": "Neutral"
+    }
   },
   "login": {
     "title": "Sign in",

@@ -15,10 +15,10 @@ const SUGGESTIONS: Array<{
   id: ChatSuggestionId;
   icon: string;
 }> = [
-  { id: "write", icon: "i-lucide-pen-line" },
-  { id: "code", icon: "i-lucide-code-xml" },
-  { id: "explain", icon: "i-lucide-lightbulb" },
-  { id: "plan", icon: "i-lucide-map" },
+  { id: "write", icon: "i-ri-quill-pen-line" },
+  { id: "code", icon: "i-ri-code-s-slash-line" },
+  { id: "explain", icon: "i-ri-lightbulb-line" },
+  { id: "plan", icon: "i-ri-map-line" },
 ];
 
 const items = computed(() =>
@@ -66,7 +66,7 @@ function onSelect(prompt: string) {
         </span>
 
         <BIcon
-          name="i-lucide-arrow-up-right"
+          name="i-ri-arrow-right-up-line"
           class="mt-1 size-3.5 shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100"
         />
       </button>

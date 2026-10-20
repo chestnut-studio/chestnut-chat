@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { DocumentAttachment } from "@chestnut-chat/api/chat/attachments";
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
-import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
+import { projectIconColorClass, projectIconName } from "@chestnut-chat/api/project/icons";
 import { useQuery } from "@tanstack/vue-query";
 import type { FileUIPart } from "ai";
 import { toast } from "vue-sonner";
 
-import { Settings2 } from "lucide-vue-next";
+import { Settings2 } from "~/utils/icons";
 import { BButton, BInput, BModal, BSkeleton } from "@chestnut-chat/ui";
 
 import type { ProjectRow } from "~/composables/useProjects";
@@ -156,7 +156,7 @@ function openChat(chat: ChatRow) {
           <span v-if="project.iconKind === 'emoji'">{{ project.iconValue }}</span>
           <BIcon
             v-else
-            :name="`i-lucide-${project.iconValue}`"
+            :name="projectIconName(project.iconValue)"
             class="size-5"
             :class="iconColorClass"
           />

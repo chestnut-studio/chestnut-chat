@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Search } from "lucide-vue-next";
+import { Search } from "~/utils/icons";
 import { BButton, BInput, BPopover } from "@chestnut-chat/ui";
 import type { ModelOption } from "~/utils/models";
 
@@ -62,7 +62,7 @@ function selectModel(value: string) {
     >
       <ModelIcon :icon="selectedProviderIcon" />
       <span class="min-w-0 truncate text-left">{{ selectedLabel }}</span>
-      <BIcon name="i-lucide-chevron-down" class="size-4 shrink-0 text-muted" />
+      <BIcon name="i-ri-arrow-down-s-line" class="size-4 shrink-0 text-muted" />
     </BButton>
 
     <template #content>
@@ -136,7 +136,7 @@ function selectModel(value: string) {
 
               <BIcon
                 v-if="item.value === model"
-                name="i-lucide-check"
+                name="i-ri-check-line"
                 class="size-4 shrink-0 text-primary"
               />
             </button>

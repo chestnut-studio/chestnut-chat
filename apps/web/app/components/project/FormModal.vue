@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, Paperclip, Trash2, X } from "lucide-vue-next";
+import { ChevronDown, Paperclip, Trash2, X } from "~/utils/icons";
 import { BButton, BChip, BFormField, BInput, BModal, BSelect, BTextarea } from "@chestnut-chat/ui";
 
 import {
@@ -242,7 +242,7 @@ async function onSubmit() {
                 :key="file.id"
                 class="flex items-center gap-2 rounded-md bg-elevated px-2 py-1.5 text-sm"
               >
-                <BIcon name="i-lucide-file-text" class="size-4 shrink-0 text-muted" />
+                <BIcon name="i-ri-file-text-line" class="size-4 shrink-0 text-muted" />
                 <span class="min-w-0 flex-1 truncate">{{ file.filename }}</span>
                 <BChip variant="caption" color="soft">{{ file.status }}</BChip>
                 <BButton
@@ -260,7 +260,7 @@ async function onSubmit() {
                 :key="`${file.name}-${index}`"
                 class="flex items-center gap-2 rounded-md bg-elevated px-2 py-1.5 text-sm"
               >
-                <BIcon name="i-lucide-upload" class="size-4 shrink-0 text-muted" />
+                <BIcon name="i-ri-upload-2-line" class="size-4 shrink-0 text-muted" />
                 <span class="min-w-0 flex-1 truncate">{{ file.name }}</span>
                 <BButton
                   variant="ghost"

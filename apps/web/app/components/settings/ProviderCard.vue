@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleCheck, CircleHelp, CircleX, Pencil, Plus, Trash2 } from "lucide-vue-next";
+import { CircleCheck, CircleHelp, CircleX, Pencil, Plus, Trash2 } from "~/utils/icons";
 import { BButton, BChip, BTooltip } from "@chestnut-chat/ui";
 import type { ProviderModel } from "~/composables/useProviderKeys";
 import type {
@@ -102,7 +102,7 @@ const connectionIconComponent = computed(() => {
         <div v-if="showCredits" class="mt-1 flex items-center gap-1.5">
           <BIcon
             v-if="credits.state === 'loading'"
-            name="i-lucide-loader-circle"
+            name="i-ri-loader-4-line"
             class="text-muted size-3.5 animate-spin"
           />
           <BChip v-else variant="caption" :color="creditsColor" class="max-w-full truncate">
@@ -201,7 +201,7 @@ const connectionIconComponent = computed(() => {
           class="border-default flex min-h-12 items-center gap-3 border-b px-3 py-2 last:border-b-0"
         >
           <BIcon
-            :name="model.source === 'manual' ? 'i-lucide-pencil-line' : 'i-lucide-box'"
+            :name="model.source === 'manual' ? 'i-ri-pencil-line' : 'i-ri-box-3-line'"
             class="text-muted size-4 shrink-0"
           />
           <div class="min-w-0 flex-1">

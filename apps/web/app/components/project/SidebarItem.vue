@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ellipsis } from "lucide-vue-next";
+import { Ellipsis } from "~/utils/icons";
 import { BDropdown, type DropdownItem } from "@chestnut-chat/ui";
 import {
   SidebarMenuItem,
@@ -8,7 +8,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
 } from "@chestnut-chat/ui/components/ui/sidebar";
-import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
+import { projectIconColorClass, projectIconName } from "@chestnut-chat/api/project/icons";
 
 import type { ProjectRow } from "~/composables/useProjects";
 import type { ChatRow } from "~/utils/group-chats";
@@ -44,19 +44,19 @@ const items = computed<DropdownItem[][]>(() => [
   [
     {
       label: t("project.newChat"),
-      icon: "i-lucide-plus",
+      icon: "i-ri-add-line",
       onSelect: () => emit("newChat", props.project),
     },
     {
       label: t("project.edit"),
-      icon: "i-lucide-settings-2",
+      icon: "i-ri-settings-3-line",
       onSelect: () => emit("edit", props.project),
     },
   ],
   [
     {
       label: t("actions.delete"),
-      icon: "i-lucide-trash-2",
+      icon: "i-ri-delete-bin-line",
       color: "danger",
       onSelect: () => emit("delete", props.project),
     },
@@ -75,7 +75,7 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
         @click="emit('select', project)"
       >
         <span v-if="project.iconKind === 'emoji'">{{ project.iconValue }}</span>
-        <BIcon v-else :name="`i-lucide-${project.iconValue}`" :class="iconColorClass" />
+        <BIcon v-else :name="projectIconName(project.iconValue)" :class="iconColorClass" />
         <span>{{ project.name }}</span>
       </NuxtLink>
     </SidebarMenuButton>
@@ -86,7 +86,10 @@ const iconColorClass = computed(() => projectIconColorClass(props.project.iconCo
       :aria-expanded="expanded"
       @click="emit('toggle')"
     >
-      <BIcon :name="expanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" class="size-4" />
+      <BIcon
+        :name="expanded ? 'i-ri-arrow-down-s-line' : 'i-ri-arrow-right-s-line'"
+        class="size-4"
+      />
     </button>
     <BDropdown :items="items">
       <SidebarMenuAction show-on-hover :aria-label="`${$t('project.section')}: ${project.name}`">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BChip, BSkeleton, BTooltip } from "@chestnut-chat/ui";
-import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
+import { projectIconColorClass, projectIconName } from "@chestnut-chat/api/project/icons";
 
 import type { ChatBoxProject } from "./Box.vue";
 import ModelIcon from "./ModelIcon.vue";
@@ -61,7 +61,7 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
         <span v-if="project.iconKind === 'emoji'" aria-hidden="true">{{ project.iconValue }}</span>
         <BIcon
           v-else
-          :name="`i-lucide-${project.iconValue}`"
+          :name="projectIconName(project.iconValue)"
           class="size-3.5"
           :class="projectIconColorClass(project.iconColor)"
         />
@@ -87,10 +87,10 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
         <span class="max-w-44 truncate font-medium sm:max-w-64">{{ modelLabel }}</span>
         <BIcon
           v-if="reasoningActive"
-          name="i-lucide-brain"
+          name="i-ri-brain-line"
           class="size-3.5 shrink-0 text-primary"
         />
-        <BIcon v-if="webSearch" name="i-lucide-globe" class="size-3.5 shrink-0 text-muted" />
+        <BIcon v-if="webSearch" name="i-ri-global-line" class="size-3.5 shrink-0 text-muted" />
       </span>
 
       <template #content>
@@ -114,11 +114,11 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
               :vision="modelOption.vision"
             />
             <BChip v-if="reasoningActive" variant="caption" color="blue">
-              <BIcon name="i-lucide-brain" class="size-3.5 shrink-0" />
+              <BIcon name="i-ri-brain-line" class="size-3.5 shrink-0" />
               {{ t("chat.reasoningActive") }}
             </BChip>
             <BChip v-if="webSearch" variant="caption" color="neutral">
-              <BIcon name="i-lucide-globe" class="size-3.5 shrink-0" />
+              <BIcon name="i-ri-global-line" class="size-3.5 shrink-0" />
               {{ t("chat.webSearch") }}
             </BChip>
           </div>

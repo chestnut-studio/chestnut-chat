@@ -107,12 +107,6 @@
     "systemDescription": "跟随设备设置",
     "lightDescription": "明亮清晰",
     "darkDescription": "柔和护眼",
-    "themePreset": "主题预设",
-    "themePresetDescription": "为整个界面应用完整的配色、字体、圆角和阴影。",
-    "themesFromTweakcn": "主题来自 tweakcn",
-    "presetDefault": "预设默认值",
-    "radius": "圆角",
-    "radiusDescription": "调整界面边角的锐利或圆润程度。",
     "resetTheme": "重置主题",
     "livePreview": "实时预览",
     "previewPrompt": "帮我规划一个专注高效的下午。",
@@ -208,7 +202,17 @@
     "creditsRemaining": "剩余 {amount}",
     "creditsBalance": "余额：{amount}",
     "creditsUsageRemaining": "5 小时窗口剩余 {amount}",
-    "creditsTokensRemaining": "5 小时窗口剩余 {amount} 次请求"
+    "creditsTokensRemaining": "5 小时窗口剩余 {amount} 次请求",
+    "accent": "强调色",
+    "accentDescription": "为按钮、选中状态和高亮应用主题色。",
+    "accents": {
+      "blue": "蓝色",
+      "violet": "紫色",
+      "green": "绿色",
+      "orange": "橙色",
+      "rose": "玫红",
+      "neutral": "中性"
+    }
   },
   "login": {
     "title": "登录",

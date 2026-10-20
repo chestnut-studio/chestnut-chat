@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ArrowUp, Globe, LoaderCircle, Paperclip, RotateCcw, Square } from "lucide-vue-next";
+import { ArrowUp, Globe, LoaderCircle, Paperclip, RotateCcw, Square } from "~/utils/icons";
 import { BButton, BChip, BTooltip } from "@chestnut-chat/ui";
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
-import { projectIconColorClass } from "@chestnut-chat/api/project/icons";
+import { projectIconColorClass, projectIconName } from "@chestnut-chat/api/project/icons";
 import type { ChatStatus, FileUIPart } from "ai";
 import { toast } from "vue-sonner";
 
@@ -260,7 +260,7 @@ async function submitSuggestion(text: string) {
         variant="caption"
         color="neutral"
       >
-        <BIcon name="i-lucide-paperclip" class="size-3.5 shrink-0" />
+        <BIcon name="i-ri-attachment-2" class="size-3.5 shrink-0" />
         {{ file.name }}
         <button
           type="button"
@@ -268,7 +268,7 @@ async function submitSuggestion(text: string) {
           :aria-label="$t('chat.attachRemove')"
           @click="removeFile(index)"
         >
-          <BIcon name="i-lucide-x" class="size-3.5 shrink-0" />
+          <BIcon name="i-ri-close-line" class="size-3.5 shrink-0" />
         </button>
       </BChip>
     </div>
@@ -283,7 +283,7 @@ async function submitSuggestion(text: string) {
           </span>
           <BIcon
             v-else
-            :name="`i-lucide-${project.iconValue}`"
+            :name="projectIconName(project.iconValue)"
             class="size-4"
             :class="projectIconColorClass(project.iconColor)"
           />

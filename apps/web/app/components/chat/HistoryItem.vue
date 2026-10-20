@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ellipsis } from "lucide-vue-next";
+import { Ellipsis } from "~/utils/icons";
 import { BDropdown, type DropdownItem } from "@chestnut-chat/ui";
 import {
   SidebarMenuAction,
@@ -29,29 +29,29 @@ const items = computed<DropdownItem[][]>(() => [
   [
     {
       label: t("actions.rename"),
-      icon: "i-lucide-pencil",
+      icon: "i-ri-pencil-line",
       onSelect: () => emit("rename", props.chat),
     },
     {
       label: props.chat.pinned ? t("actions.unpin") : t("actions.pin"),
-      icon: "i-lucide-pin",
+      icon: "i-ri-pushpin-line",
       onSelect: () => emit("pin", props.chat),
     },
     {
       label: t("actions.archive"),
-      icon: "i-lucide-archive",
+      icon: "i-ri-archive-line",
       onSelect: () => emit("archive", props.chat),
     },
     {
       label: t("project.moveToProject"),
-      icon: "i-lucide-folder-input",
+      icon: "i-ri-folder-transfer-line",
       onSelect: () => emit("move", props.chat),
     },
   ],
   [
     {
       label: t("actions.delete"),
-      icon: "i-lucide-trash-2",
+      icon: "i-ri-delete-bin-line",
       color: "danger",
       onSelect: () => emit("delete", props.chat),
     },
@@ -63,7 +63,7 @@ const items = computed<DropdownItem[][]>(() => [
   <SidebarMenuItem>
     <SidebarMenuButton as-child :is-active="active">
       <NuxtLink :to="chatPath(chat)" :aria-current="active ? 'page' : undefined">
-        <BIcon v-if="chat.pinned" name="i-lucide-pin" />
+        <BIcon v-if="chat.pinned" name="i-ri-pushpin-line" />
         <span>{{ chat.title }}</span>
       </NuxtLink>
     </SidebarMenuButton>

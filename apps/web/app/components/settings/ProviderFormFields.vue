@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ExternalLink } from "lucide-vue-next";
+import { ExternalLink } from "~/utils/icons";
 import { BButton, BButtonLink, BFormField, BInput } from "@chestnut-chat/ui";
 import type { ProviderFormFields } from "~/types/providers";
 

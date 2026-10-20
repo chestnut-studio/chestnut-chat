@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Copy, GitFork, Pencil, RefreshCw } from "lucide-vue-next";
+import { Copy, GitFork, Pencil, RefreshCw } from "~/utils/icons";
 import type { Component } from "vue";
 import { BButton, BTooltip } from "@chestnut-chat/ui";
 import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
@@ -605,7 +605,7 @@ onBeforeUnmount(() => {
                 v-else-if="part.type === 'data-document'"
                 class="mb-2 inline-flex max-w-full items-center gap-2 rounded-md bg-elevated px-2.5 py-1.5 text-sm text-muted"
               >
-                <BIcon name="i-lucide-file-text" class="size-4 shrink-0" />
+                <BIcon name="i-ri-file-text-line" class="size-4 shrink-0" />
                 <span class="truncate" :title="part.data.filename">{{ part.data.filename }}</span>
                 <span class="sr-only">{{ $t("chat.attachedDocument") }}</span>
               </div>
@@ -621,7 +621,7 @@ onBeforeUnmount(() => {
                   v-else
                   class="inline-flex max-w-full items-center gap-2 rounded-md bg-elevated px-2.5 py-1.5 text-sm text-muted"
                 >
-                  <BIcon name="i-lucide-paperclip" class="size-4 shrink-0" />
+                  <BIcon name="i-ri-attachment-2" class="size-4 shrink-0" />
                   <span class="truncate">{{ part.filename || part.mediaType }}</span>
                 </div>
               </div>
@@ -647,7 +647,7 @@ onBeforeUnmount(() => {
                 class="mb-3 inline-flex items-center gap-2 rounded-xl border border-border-button-default bg-background-secondary-default px-3 py-2 text-body-2-medium text-text-secondary"
               >
                 <BIcon
-                  :name="isToolStreaming(part) ? 'i-lucide-loader-circle' : 'i-lucide-wrench'"
+                  :name="isToolStreaming(part) ? 'i-ri-loader-4-line' : 'i-ri-tools-line'"
                   class="size-4"
                   :class="isToolStreaming(part) ? 'animate-spin' : undefined"
                 />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft } from "lucide-vue-next";
+import { ArrowLeft } from "~/utils/icons";
 import { toast } from "vue-sonner";
 import {
   BAvatar,

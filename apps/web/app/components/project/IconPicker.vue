@@ -5,6 +5,7 @@ import {
   PROJECT_ICON_COLORS,
   PROJECT_LUCIDE_ALLOWLIST,
   projectIconColorClass,
+  projectIconName,
   type ProjectIconColor,
   type ProjectIconKind,
 } from "@chestnut-chat/api/project/icons";
@@ -52,7 +53,7 @@ const colorClass = computed(() => projectIconColorClass(color.value));
       :aria-expanded="open"
     >
       <span v-if="kind === 'emoji'" class="text-lg leading-none">{{ value }}</span>
-      <BIcon v-else :name="`i-lucide-${value}`" class="size-5" :class="colorClass" />
+      <BIcon v-else :name="projectIconName(value)" class="size-5" :class="colorClass" />
     </button>
 
     <template #content>
@@ -98,7 +99,7 @@ const colorClass = computed(() => projectIconColorClass(color.value));
             @click="selectLucide(icon)"
           >
             <BIcon
-              :name="`i-lucide-${icon}`"
+              :name="projectIconName(icon)"
               class="size-5"
               :class="projectIconColorClass(color)"
             />

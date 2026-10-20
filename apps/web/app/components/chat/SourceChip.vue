@@ -61,7 +61,7 @@ const previewTitle = computed(() => sourceTitle(props.source));
           <span class="min-w-0 flex-1 truncate text-sm font-medium text-default">
             {{ displayLabel }}
           </span>
-          <BIcon name="i-lucide-arrow-up-right" class="size-3.5 shrink-0 text-dimmed" />
+          <BIcon name="i-ri-arrow-right-up-line" class="size-3.5 shrink-0 text-dimmed" />
         </div>
 
         <p class="mt-2.5 line-clamp-2 text-sm leading-5 font-semibold text-default">

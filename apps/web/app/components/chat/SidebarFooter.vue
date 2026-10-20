@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LogIn } from "lucide-vue-next";
+import { LogIn } from "~/utils/icons";
 import { BAvatar, BDropdown, BSkeleton, type DropdownItem } from "@chestnut-chat/ui";
 import {
   SidebarMenu,
@@ -27,14 +27,14 @@ const menuItems = computed<DropdownItem[][]>(() => [
   [
     {
       label: t("settings.title"),
-      icon: "i-lucide-settings",
+      icon: "i-ri-settings-3-line",
       to: "/settings",
     },
   ],
   [
     {
       label: t("settings.signOut"),
-      icon: "i-lucide-log-out",
+      icon: "i-ri-logout-box-r-line",
       color: "danger",
       onSelect: signOut,
     },

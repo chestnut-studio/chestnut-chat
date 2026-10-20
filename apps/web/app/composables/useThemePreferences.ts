@@ -1,6 +1,7 @@
 import {
   DEFAULT_THEME_PREFERENCES,
   normalizeThemePreferences,
+  type AccentId,
   type ThemePreferences,
 } from "~/utils/theme";
 
@@ -12,19 +13,10 @@ export function useThemePreferences() {
   });
   const preferences = computed(() => normalizeThemePreferences(cookie.value));
 
-  const preset = computed<string>({
-    get: () => preferences.value.preset,
+  const accent = computed<AccentId>({
+    get: () => preferences.value.accent,
     set: (value) => {
-      cookie.value = normalizeThemePreferences({ preset: value, radius: null });
-    },
-  });
-  const radius = computed<string>({
-    get: () => (preferences.value.radius === null ? "preset" : String(preferences.value.radius)),
-    set: (value) => {
-      cookie.value = normalizeThemePreferences({
-        ...preferences.value,
-        radius: value === "preset" ? null : Number(value),
-      });
+      cookie.value = normalizeThemePreferences({ accent: value });
     },
   });
 
@@ -32,5 +24,5 @@ export function useThemePreferences() {
     cookie.value = { ...DEFAULT_THEME_PREFERENCES };
   }
 
-  return { preferences, preset, radius, reset };
+  return { preferences, accent, reset };
 }

@@ -1,7 +1,11 @@
 <script setup lang="ts">
-defineProps<{ name: string }>();
+const props = defineProps<{ name: string }>();
+
+const iconName = computed(() =>
+  props.name.replace(/^i-ri-/, "ri:").replace(/^i-simple-icons-/, "simple-icons:"),
+);
 </script>
 
 <template>
-  <Icon :name="name.replace('i-lucide-', 'lucide:').replace('i-simple-icons-', 'simple-icons:')" />
+  <Icon :name="iconName" />
 </template>

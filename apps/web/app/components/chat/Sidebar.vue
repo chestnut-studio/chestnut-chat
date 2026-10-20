@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Minus, PanelLeftClose, PanelLeftOpen, Plus, Search } from "lucide-vue-next";
+import { Minus, PanelLeftClose, PanelLeftOpen, Plus, Search } from "~/utils/icons";
+import { projectIconName } from "@chestnut-chat/api/project/icons";
 import { BButton, BInput, BModal, BSelect } from "@chestnut-chat/ui";
 import {
   Collapsible,
@@ -99,7 +100,7 @@ const paletteGroups = computed(() => [
     label: t("sidebar.chats"),
     items: chats.value.map((chat) => ({
       label: chat.title,
-      icon: "i-lucide-message-circle",
+      icon: "i-ri-chat-1-line",
       suffix: chat.projectId ? projectNameById.value.get(chat.projectId) : undefined,
       onSelect: () => {
         searchOpen.value = false;
@@ -112,7 +113,7 @@ const paletteGroups = computed(() => [
     label: t("project.section"),
     items: projectRows.value.map((project) => ({
       label: project.name,
-      icon: project.iconKind === "lucide" ? `i-lucide-${project.iconValue}` : "i-lucide-folder",
+      icon: project.iconKind === "lucide" ? projectIconName(project.iconValue) : "i-ri-folder-line",
       onSelect: () => {
         searchOpen.value = false;
         void navigateTo(projectPath(project.id));
@@ -438,7 +439,7 @@ const moveItems = computed(() => [
         <SidebarGroup>
           <SidebarGroupLabel as-child>
             <button type="button" :aria-expanded="chatsExpanded" @click="toggleChats">
-              <BIcon :name="chatsExpanded ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'" />
+              <BIcon :name="chatsExpanded ? 'i-ri-arrow-down-s-line' : 'i-ri-arrow-right-s-line'" />
               <span>{{ $t("sidebar.chats") }}</span>
             </button>
           </SidebarGroupLabel>
