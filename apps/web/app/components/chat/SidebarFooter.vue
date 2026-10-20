@@ -22,14 +22,16 @@ function toggleColorMode() {
 
 <template>
   <SidebarMenu>
-    <SidebarMenuItem>
+    <SidebarMenuItem v-if="!collapsed">
+      <ChatModeSwitcher />
+    </SidebarMenuItem>
+    <SidebarMenuItem v-else>
       <SidebarMenuButton
         :tooltip="t(isDark ? 'settings.light' : 'settings.dark')"
         :aria-label="t(isDark ? 'settings.light' : 'settings.dark')"
         @click="toggleColorMode"
       >
         <component :is="isDark ? Sun : Moon" />
-        <span v-if="!collapsed">{{ t(isDark ? "settings.light" : "settings.dark") }}</span>
       </SidebarMenuButton>
     </SidebarMenuItem>
     <SidebarMenuItem>

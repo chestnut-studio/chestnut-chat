@@ -136,6 +136,7 @@ Drizzle config loads environment from `apps/server/.env`. Do not commit `.env` f
 - Avoid unused locals/parameters; TypeScript is configured to reject them.
 - Prefer explicit type imports where the existing code does.
 - Keep ESM syntax and avoid CommonJS.
+- Naming conventions (enforced by `unicorn/filename-case` in `.oxlintrc.json`): TypeScript files use kebab-case (`web-search.ts`); Vue components use PascalCase; Nuxt composables use camelCase `useXxx.ts`; Nuxt dynamic routes keep `[param]` names. Use camelCase for variables/functions, PascalCase for types and components, and UPPER_SNAKE_CASE for constants. CLI-managed `packages/ui/src/components/ui/**` is excluded from linting.
 - Let Oxfmt handle formatting. Do not introduce a second formatter.
 - Keep comments rare and useful; prefer readable names and small functions.
 

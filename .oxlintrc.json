@@ -4,9 +4,52 @@
   "categories": {
     "correctness": "error"
   },
-  "rules": {},
+  "rules": {
+    "unicorn/filename-case": [
+      "error",
+      {
+        "case": "kebabCase",
+        "ignore": ["^\\[.+\\]$", "\\.config$"]
+      }
+    ]
+  },
   "env": {
     "builtin": true
   },
-  "ignorePatterns": ["node_modules", ".agents", ".codex", ".cursor", "docs"]
+  "ignorePatterns": [
+    "node_modules",
+    ".agents",
+    ".codex",
+    ".cursor",
+    "docs",
+    "packages/ui/src/components/ui/**"
+  ],
+  "overrides": [
+    {
+      "files": ["apps/web/app/composables/**/*.ts"],
+      "rules": {
+        "unicorn/filename-case": [
+          "error",
+          {
+            "case": "camelCase"
+          }
+        ]
+      }
+    },
+    {
+      "files": ["**/*.vue"],
+      "rules": {
+        "unicorn/filename-case": [
+          "error",
+          {
+            "cases": {
+              "pascalCase": true,
+              "kebabCase": true
+            },
+            "ignore": ["^\\[.+\\]$"]
+          }
+        ]
+      }
+    }
+  ]
 }
