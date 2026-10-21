@@ -2,7 +2,7 @@
 import type { TooltipContentEmits, TooltipContentProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
-import { TooltipArrow, TooltipContent, TooltipPortal, useForwardPropsEmits } from "reka-ui";
+import { TooltipContent, TooltipPortal, useForwardPropsEmits } from "reka-ui";
 import { cn } from "@chestnut-chat/ui/lib/utils";
 
 defineOptions({
@@ -29,16 +29,12 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
       v-bind="{ ...forwarded, ...$attrs }"
       :class="
         cn(
-          'bg-text-primary text-background-full data-[state=open]:animate-blur-in data-[state=closed]:animate-blur-out z-50 w-fit rounded-lg px-3 py-1.5 text-caption-1-medium text-balance',
+          'bg-text-primary text-background-full shadow-card data-[state=open]:animate-blur-in data-[state=closed]:animate-blur-out z-50 w-fit rounded-xl px-3 py-1.5 text-caption-1-medium text-balance',
           props.class,
         )
       "
     >
       <slot />
-
-      <TooltipArrow
-        class="bg-text-primary fill-text-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-xs"
-      />
     </TooltipContent>
   </TooltipPortal>
 </template>

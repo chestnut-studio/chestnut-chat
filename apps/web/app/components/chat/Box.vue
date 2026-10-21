@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ArrowUp, Globe, LoaderCircle, Paperclip, RotateCcw, Square } from "~/utils/icons";
-import { BButton, BChip, BTooltip } from "@chestnut-chat/ui";
+import { BButton, BTooltip } from "@chestnut-chat/ui";
 import type { ReasoningEffort } from "@chestnut-chat/api/providers/model-capabilities";
 import { projectIconColorClass, projectIconName } from "@chestnut-chat/api/project/icons";
 import type { ChatStatus, FileUIPart } from "ai";
 import { toast } from "vue-sonner";
+import { h } from "vue";
 
 import type { DocumentAttachment } from "@chestnut-chat/api/chat/attachments";
 import {
@@ -62,6 +63,7 @@ const isUploading = ref(false);
 const { t } = useI18n();
 const config = useRuntimeConfig();
 const { modelOptions, findModelOption, isLoading: areProvidersLoading } = useModelOptions();
+const SpinnerIcon = () => h(LoaderCircle, { class: "animate-spin" });
 const isBusy = computed(
   () => props.status === "submitted" || props.status === "streaming" || isUploading.value,
 );
@@ -165,6 +167,32 @@ function onPickFiles(event: Event) {
   if (fileInput.value) fileInput.value.value = "";
 }
 
+type FilePreview = { file: File; url: string | null; extension: string; size: string };
+
+function formatSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+const previews = ref<FilePreview[]>([]);
+watch(
+  files,
+  (list, _previous, onCleanup) => {
+    const items = list.map((file) => ({
+      file,
+      url: isImageFile(file) ? URL.createObjectURL(file) : null,
+      extension: file.name.includes(".") ? file.name.split(".").pop()!.slice(0, 4) : "file",
+      size: formatSize(file.size),
+    }));
+    previews.value = items;
+    onCleanup(() => {
+      for (const item of items) if (item.url) URL.revokeObjectURL(item.url);
+    });
+  },
+  { immediate: true },
+);
+
 function removeFile(index: number) {
   files.value = files.value.filter((_, i) => i !== index);
 }
@@ -258,30 +286,69 @@ async function submitSuggestion(text: string) {
 
 <template>
   <div class="w-full">
-    <div v-if="files.length" class="mb-2 flex flex-wrap gap-2">
-      <BChip
-        v-for="(file, index) in files"
-        :key="`${file.name}-${file.size}-${index}`"
-        variant="caption"
-        color="neutral"
-      >
-        <BIcon name="i-ri-attachment-2" class="size-3.5 shrink-0" />
-        {{ file.name }}
-        <button
-          type="button"
-          class="ml-0.5 inline-flex cursor-pointer items-center rounded-sm p-0.5 hover:text-text-primary"
-          :aria-label="$t('chat.attachRemove')"
-          @click="removeFile(index)"
-        >
-          <BIcon name="i-ri-close-line" class="size-3.5 shrink-0" />
-        </button>
-      </BChip>
-    </div>
-
     <ChatComposerLoader :active="isBusy" class="relative z-10">
       <div
-        class="rounded-3xl border border-border-button-default bg-background-primary-default p-3 shadow-card transition-shadow focus-within:ring-2 focus-within:ring-border-focus-ring/40"
+        class="rounded-3xl border bg-background-primary-default p-3 shadow-card transition-[border-color,box-shadow] duration-150 focus-within:border-border-focus-ring focus-within:ring-2 focus-within:ring-border-focus-ring/30"
+        :class="isBusy ? 'border-transparent' : 'border-border-button-default'"
       >
+        <TransitionGroup
+          v-if="previews.length"
+          tag="ul"
+          enter-active-class="animate-blur-in"
+          class="mb-2 flex flex-wrap gap-2 px-1 pt-1"
+        >
+          <li
+            v-for="(item, index) in previews"
+            :key="`${item.file.name}-${item.file.size}-${index}`"
+            class="group relative"
+          >
+            <div
+              v-if="item.url"
+              class="relative size-16 overflow-hidden rounded-2xl border border-border-button-default bg-background-secondary-default"
+            >
+              <img :src="item.url" :alt="item.file.name" class="size-full object-cover" />
+            </div>
+            <div
+              v-else
+              class="flex h-16 w-44 items-center gap-2.5 rounded-2xl border border-border-button-default bg-background-secondary-default px-2.5"
+            >
+              <span
+                class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-button-ghost-background text-button-ghost-foreground"
+              >
+                <BIcon name="i-ri-file-text-line" class="size-5" />
+              </span>
+              <span class="flex min-w-0 flex-col">
+                <span class="truncate text-caption-1-medium text-text-primary">
+                  {{ item.file.name }}
+                </span>
+                <span class="truncate text-caption-1-regular text-text-tertiary uppercase">
+                  {{ item.extension }} · {{ item.size }}
+                </span>
+              </span>
+            </div>
+
+            <span
+              v-if="isUploading"
+              class="pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-accent-500/70 ring-offset-0"
+              :class="item.url ? 'bg-background-full/50' : 'bg-background-full/40'"
+            >
+              <LoaderCircle
+                class="absolute top-1/2 left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 animate-spin text-accent-600"
+              />
+            </span>
+
+            <button
+              v-else
+              type="button"
+              class="absolute -top-1.5 -right-1.5 flex size-5 cursor-pointer items-center justify-center rounded-full border border-border-button-default bg-background-primary-default text-foreground-icon-secondary opacity-0 shadow-card transition-[opacity,color,background-color] duration-150 group-focus-within:opacity-100 group-hover:opacity-100 hover:bg-background-primary-hover hover:text-foreground-icon-primary focus-visible:ring-2 focus-visible:ring-border-focus-ring focus-visible:outline-none"
+              :aria-label="`${$t('chat.attachRemove')}: ${item.file.name}`"
+              @click="removeFile(index)"
+            >
+              <BIcon name="i-ri-close-line" class="size-3" />
+            </button>
+          </li>
+        </TransitionGroup>
+
         <textarea
           v-model="input"
           :placeholder="$t('chat.placeholder')"
@@ -294,19 +361,20 @@ async function submitSuggestion(text: string) {
         <div class="flex items-end justify-between gap-2">
           <div class="flex min-w-0 flex-wrap items-center gap-1.5">
             <BTooltip
+              side="top"
               :text="
                 selectedModelSupportsVision ? $t('chat.attach') : $t('chat.attachDocumentsOnly')
               "
             >
-              <button
-                type="button"
-                class="flex size-8 shrink-0 items-center justify-center rounded-full bg-ai-chat-composer-add-background text-foreground-icon-secondary transition-colors hover:bg-ai-chat-composer-add-hover-background hover:text-foreground-icon-primary focus-visible:ring-2 focus-visible:ring-border-focus-ring disabled:opacity-50"
+              <BButton
+                variant="secondary"
+                size="small"
+                icon-only
+                :leading-icon="Paperclip"
                 :disabled="isUploading"
                 :aria-label="$t('chat.attach')"
                 @click="fileInput?.click()"
-              >
-                <Paperclip class="size-4" />
-              </button>
+              />
             </BTooltip>
 
             <ChatModelSelector
@@ -324,9 +392,9 @@ async function submitSuggestion(text: string) {
               :efforts="selectedModelReasoningEfforts"
             />
 
-            <BTooltip :text="$t('chat.webSearch')">
+            <BTooltip side="top" :text="$t('chat.webSearch')">
               <BButton
-                :variant="webSearch ? 'ghost' : 'tertiary'"
+                :variant="webSearch ? 'ghost' : 'secondary'"
                 size="small"
                 icon-only
                 :leading-icon="Globe"
@@ -352,6 +420,7 @@ async function submitSuggestion(text: string) {
 
           <BButton
             v-if="promptStatus === 'error'"
+            variant="secondary"
             size="small"
             icon-only
             :leading-icon="RotateCcw"
@@ -360,9 +429,10 @@ async function submitSuggestion(text: string) {
           />
           <BButton
             v-else-if="isBusy"
+            variant="secondary"
             size="small"
             icon-only
-            :leading-icon="promptStatus === 'submitted' ? LoaderCircle : Square"
+            :leading-icon="promptStatus === 'submitted' ? SpinnerIcon : Square"
             :aria-label="$t('chat.stop')"
             @click="emit('stop')"
           />
@@ -370,6 +440,7 @@ async function submitSuggestion(text: string) {
             v-else
             size="small"
             icon-only
+            class="shadow-none"
             :leading-icon="ArrowUp"
             :aria-label="$t('chat.send')"
             :disabled="!input.trim() && files.length === 0"

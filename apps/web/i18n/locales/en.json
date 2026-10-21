@@ -283,6 +283,8 @@
     "webSearchReading": "Reading {sites}",
     "webSearchSources": "Sources",
     "webSearchSourcesDescription": "{count} web pages used for this answer",
+    "models": "Models",
+    "quickSearch": "Quick Search",
     "attach": "Attach files",
     "attachDocumentsOnly": "Attach documents (PDF, Word, text). Switch to a vision model for images.",
     "attachRemove": "Remove file",

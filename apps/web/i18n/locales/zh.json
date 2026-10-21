@@ -283,6 +283,8 @@
     "webSearchReading": "正在阅读 {sites}",
     "webSearchSources": "来源",
     "webSearchSourcesDescription": "本回答参考了 {count} 个网页",
+    "models": "模型",
+    "quickSearch": "快速搜索",
     "attach": "附加文件",
     "attachDocumentsOnly": "可附加文档（PDF、Word、文本）。图片需切换到支持视觉的模型。",
     "attachRemove": "移除文件",

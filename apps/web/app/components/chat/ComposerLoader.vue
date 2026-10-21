@@ -33,6 +33,20 @@ defineProps<{ active?: boolean }>();
     linear-gradient(#000 0 0) content-box exclude,
     linear-gradient(#000 0 0);
 }
+.composer-loader::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  box-shadow: inset 0 0 24px -8px var(--color-accent-400);
+}
+.composer-loader[data-active]::after {
+  opacity: 0.35;
+}
 .composer-loader[data-active]::before {
   opacity: 1;
   animation: orbit 2.4s linear infinite;

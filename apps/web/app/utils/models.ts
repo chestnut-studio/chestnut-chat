@@ -46,10 +46,6 @@ function encodeChatModelPart(value: string) {
   return encodeURIComponent(value);
 }
 
-function modelOptionLabel(providerName: string, model: ProviderModel) {
-  return `${providerName} - ${model.name?.trim() || model.id}`;
-}
-
 export function encodeChatModelValue(target: ChatModelTarget) {
   return [
     target.kind,
@@ -115,7 +111,7 @@ export function buildProviderModelOptions(
         providerId: provider.id,
         modelId: model.id,
       }),
-      label: modelOptionLabel(provider.name, model),
+      label: model.id,
       providerIcon: provider.iconProvider,
       providerName: provider.name,
       reasoning: modelSupportsReasoning(provider.id, model.id, model.supportsReasoning),

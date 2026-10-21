@@ -63,7 +63,7 @@ function toggleReasoning() {
 </script>
 
 <template>
-  <BTooltip :text="statusLabel">
+  <BTooltip side="top" :text="statusLabel">
     <span class="inline-flex">
       <BDropdown
         v-if="supported && supportsEffortSelection"
@@ -72,7 +72,7 @@ function toggleReasoning() {
       >
         <BButton
           type="button"
-          :variant="isActive ? 'primary' : 'ghost'"
+          :variant="isActive ? 'ghost' : 'secondary'"
           size="small"
           :leading-icon="Brain"
           :trailing-icon="ChevronDown"
@@ -86,12 +86,12 @@ function toggleReasoning() {
       <BButton
         v-else
         type="button"
-        :variant="isActive ? 'primary' : 'ghost'"
+        :variant="isActive ? 'ghost' : 'secondary'"
         size="small"
         icon-only
         :leading-icon="Brain"
         :disabled="!supported"
-        :class="required ? 'cursor-default' : 'disabled:text-text-tertiary disabled:opacity-40'"
+        :class="required ? 'cursor-default' : ''"
         :aria-label="statusLabel"
         :aria-disabled="!supported || required"
         :aria-pressed="isActive"
