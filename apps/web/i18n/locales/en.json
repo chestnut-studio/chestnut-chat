@@ -227,6 +227,8 @@
     "google": "Continue with Google",
     "or": "or",
     "email": "Email address",
+    "emailHint": "We'll email you a sign-in code. No password needed.",
+    "sendingCode": "Sending code…",
     "otp": "6-digit code",
     "sendCode": "Continue with email",
     "verify": "Verify & sign in",

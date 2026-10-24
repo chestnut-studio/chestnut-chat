@@ -227,6 +227,8 @@
     "google": "使用 Google 登录",
     "or": "或",
     "email": "邮箱地址",
+    "emailHint": "我们会向您的邮箱发送登录验证码，无需密码。",
+    "sendingCode": "正在发送验证码…",
     "otp": "6 位验证码",
     "sendCode": "发送验证码",
     "verify": "验证并登录",

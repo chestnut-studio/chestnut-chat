@@ -5,6 +5,7 @@ import { BButton, BCloseButton, BDivider, BInput } from "@chestnut-chat/ui";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogClose,
@@ -31,6 +32,9 @@ const authOptions = ref<AuthProviderOptions>({
   callbackOrigin: "",
   emailOtp: true,
 });
+const hasSocialProviders = computed(() =>
+  Object.values(authOptions.value.socialProviders).some(Boolean),
+);
 
 async function loadAuthOptions() {
   authOptionsPending.value = true;
@@ -82,67 +86,74 @@ async function sendOtp() {
     <Dialog v-model:open="open">
       <DialogContent
         :show-close-button="false"
-        :aria-describedby="undefined"
-        class="overflow-y-auto p-6 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:content-start max-sm:rounded-none max-sm:border-0 max-sm:pt-[max(1rem,env(safe-area-inset-top))] max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-h-[calc(100dvh-2rem)] sm:max-w-md"
+        class="max-h-[calc(100dvh-2rem)] gap-6 overflow-y-auto rounded-2xl p-6 sm:max-w-[420px] sm:p-8"
       >
         <DialogClose as-child>
           <BCloseButton class="absolute top-3 right-3" size="sm" :aria-label="$t('login.close')" />
         </DialogClose>
-        <DialogHeader class="items-center gap-2 pt-4 text-center">
+        <DialogHeader class="items-center gap-2 pt-2 text-center sm:text-center">
           <span
-            class="flex size-12 items-center justify-center rounded-2xl border border-border-button-default bg-background-primary-default shadow-card"
+            class="mb-2 flex size-12 items-center justify-center rounded-2xl bg-background-secondary-default"
           >
-            <NuxtImg src="/favicon.svg" alt="" class="size-7" />
+            <NuxtImg src="/favicon.svg" alt="" class="size-8" />
           </span>
           <DialogTitle class="text-title-3-semibold text-text-primary">{{
             $t("login.title")
           }}</DialogTitle>
-          <p class="text-body-2-regular text-text-secondary">{{ $t("login.subtitle") }}</p>
+          <DialogDescription>{{ $t("login.subtitle") }}</DialogDescription>
         </DialogHeader>
 
         <form @submit.prevent="sendOtp">
           <FieldGroup class="gap-3">
             <BButton
-              class="w-full"
+              v-if="authOptions.socialProviders.github"
+              class="h-11 w-full"
               variant="secondary"
-              :disabled="!authOptions.socialProviders.github || authOptionsPending"
+              :disabled="authOptionsPending || loading"
               @click="social('github')"
             >
-              <Icon
-                name="ri:github-fill"
-                mode="svg"
-                class="mr-2 size-5 shrink-0"
-                aria-hidden="true"
-              />
+              <Icon name="ri:github-fill" mode="svg" data-icon="inline-start" aria-hidden="true" />
               {{ $t("login.github") }}
             </BButton>
             <BButton
-              class="w-full"
+              v-if="authOptions.socialProviders.google"
+              class="h-11 w-full"
               variant="secondary"
-              :disabled="!authOptions.socialProviders.google || authOptionsPending"
+              :disabled="authOptionsPending || loading"
               @click="social('google')"
             >
-              <Icon
-                name="ri:google-fill"
-                mode="svg"
-                class="mr-2 size-5 shrink-0"
-                aria-hidden="true"
-              />
+              <Icon name="ri:google-fill" mode="svg" data-icon="inline-start" aria-hidden="true" />
               {{ $t("login.google") }}
             </BButton>
 
-            <BDivider>{{ $t("login.or") }}</BDivider>
+            <BDivider v-if="hasSocialProviders" class="my-2">{{ $t("login.or") }}</BDivider>
 
             <BInput
               v-model="email"
               type="email"
               autocomplete="email"
-              :aria-label="$t('login.email')"
-              :placeholder="$t('login.email')"
+              name="email"
+              :label="$t('login.email')"
+              placeholder="you@example.com"
+              :hint="$t('login.emailHint')"
+              :disabled="loading"
               class="w-full"
             />
-            <BButton type="submit" class="w-full" :disabled="!email || loading">
-              {{ $t("login.sendCode") }}
+            <BButton
+              type="submit"
+              class="mt-1 h-11 w-full"
+              :variant="email ? 'primary' : 'tertiary'"
+              :disabled="!email || loading"
+              :aria-busy="loading"
+            >
+              <Icon
+                v-if="loading"
+                name="ri:loader-4-line"
+                mode="svg"
+                class="animate-spin motion-reduce:animate-none"
+                aria-hidden="true"
+              />
+              {{ $t(loading ? "login.sendingCode" : "login.sendCode") }}
             </BButton>
           </FieldGroup>
         </form>
