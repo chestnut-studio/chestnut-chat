@@ -1,0 +1,17 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "chestnut-chat-api",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-21",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "triggers": {
+    "crons": ["* * * * *"],
+  },
+  // Secrets (DATABASE_URL, BETTER_AUTH_SECRET, provider keys, ...) are managed with `wrangler secret`.
+  "vars": {
+    "BETTER_AUTH_URL": "https://chestnut-chat.bobbylin.top",
+    "CORS_ORIGIN": "https://chestnut-chat.bobbylin.top",
+  },
+}

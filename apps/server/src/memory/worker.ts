@@ -236,6 +236,19 @@ async function tick() {
   }
 }
 
+/** Cron-driven alternative to the poll loop for runtimes without long-lived timers. */
+export async function drainMemoryJobs(budgetMs: number) {
+  const deadline = Date.now() + budgetMs;
+  let processed = 0;
+  while (Date.now() < deadline) {
+    const job = await claimNextJob();
+    if (!job) break;
+    await processJob(job);
+    processed += 1;
+  }
+  return processed;
+}
+
 export function startMemoryWorker() {
   if (started) return;
   started = true;

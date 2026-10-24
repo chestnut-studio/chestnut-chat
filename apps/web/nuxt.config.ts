@@ -1,5 +1,9 @@
 import "@chestnut-chat/env/web";
+import { fileURLToPath } from "node:url";
+
 import tailwindcss from "@tailwindcss/vite";
+
+const emptyModule = fileURLToPath(new URL("./server/stubs/empty-module.ts", import.meta.url));
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -81,6 +85,18 @@ export default defineNuxtConfig({
         "markdown-it-emoji",
         "markstream-vue",
       ],
+    },
+  },
+  nitro: {
+    alias: {
+      // markstream-vue imports this without an extension, which Rollup cannot resolve when
+      // Nitro bundles dependencies (Cloudflare preset). Use the package's exports entry.
+      "katex/dist/contrib/mhchem": "katex/contrib/mhchem",
+      // Optional markstream-vue peers load via guarded dynamic imports; Cloudflare bundles forbid
+      // unresolved externals, so point the uninstalled ones at an empty module.
+      ...Object.fromEntries(
+        ["@terrastruct/d2", "stream-monaco"].map((name) => [name, emptyModule]),
+      ),
     },
   },
   runtimeConfig: {
