@@ -119,7 +119,12 @@ const onProjectCreated = (payload: { projectId: string; chatId: string }) =>
 <template>
   <Sidebar collapsible="icon" variant="floating">
     <SidebarHeader
-      :class="cn('flex-row items-center gap-2', authSession.isAuthenticated ? 'p-4 pb-2' : 'p-2')"
+      :class="
+        cn(
+          'flex-row items-center gap-2 group-data-[collapsible=icon]:justify-center',
+          authSession.isAuthenticated ? 'p-4 pb-2' : 'p-2',
+        )
+      "
     >
       <Button
         v-if="collapsed"
@@ -158,7 +163,7 @@ const onProjectCreated = (payload: { projectId: string; chatId: string }) =>
       </template>
     </SidebarHeader>
     <SidebarHeader :class="cn(authSession.isAuthenticated ? 'px-4 pb-3 pt-1' : 'px-2 pb-2 pt-0')">
-      <SidebarMenu>
+      <SidebarMenu class="group-data-[collapsible=icon]:items-center">
         <SidebarMenuItem>
           <SidebarMenuButton
             variant="outline"
@@ -253,7 +258,14 @@ const onProjectCreated = (payload: { projectId: string; chatId: string }) =>
       </div>
     </SidebarContent>
 
-    <SidebarFooter :class="cn(authSession.isAuthenticated ? 'p-4 pt-2' : 'p-2')">
+    <SidebarFooter
+      :class="
+        cn(
+          'group-data-[collapsible=icon]:[&_[data-sidebar=menu]]:items-center',
+          authSession.isAuthenticated ? 'p-4 pt-2' : 'p-2',
+        )
+      "
+    >
       <ChatSidebarFooter :collapsed="collapsed" />
       <ChatSidebarUser :collapsed="collapsed" />
     </SidebarFooter>
