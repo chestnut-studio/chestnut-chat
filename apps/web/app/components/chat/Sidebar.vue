@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Minus, Plus, Search } from "~/utils/icons";
+import { Plus, Search } from "~/utils/icons";
 import {
   Collapsible,
   CollapsibleContent,
@@ -11,12 +11,12 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
   SidebarRail,
   SidebarTrigger,
   useSidebar,
@@ -146,7 +146,7 @@ const onProjectCreated = (payload: { projectId: string; chatId: string }) =>
           v-if="!authSession.isAuthenticated"
           to="/"
           :aria-label="$t('app.name')"
-          class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
+          class="flex size-6 shrink-0 items-center justify-center rounded-md outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
         >
           <NuxtImg src="/favicon.svg" alt="" class="size-6" />
         </NuxtLink>
@@ -192,36 +192,31 @@ const onProjectCreated = (payload: { projectId: string; chatId: string }) =>
     </SidebarHeader>
 
     <SidebarContent>
-      <SidebarGroup v-if="!collapsed && !authSession.isAuthenticated">
-        <SidebarMenu>
-          <Collapsible
-            v-for="section in guestSections"
-            :key="section.key"
-            :open="section.open"
-            class="group/collapsible"
-            @update:open="section.toggle"
-          >
-            <SidebarMenuItem>
+      <div v-if="!collapsed && !authSession.isAuthenticated" class="flex flex-col px-2">
+        <SidebarGroup v-for="section in guestSections" :key="section.key" as-child class="py-1">
+          <Collapsible :open="section.open" @update:open="section.toggle">
+            <SidebarGroupLabel as-child>
               <CollapsibleTrigger as-child>
-                <SidebarMenuButton>
+                <button type="button" class="w-full gap-1">
+                  <Icon
+                    size="16"
+                    :name="section.open ? 'ri:arrow-down-s-line' : 'ri:arrow-right-s-line'"
+                    aria-hidden="true"
+                  />
                   <span>{{ section.label }}</span>
-                  <Plus class="ml-auto group-data-[state=open]/collapsible:hidden" />
-                  <Minus class="ml-auto group-data-[state=closed]/collapsible:hidden" />
-                </SidebarMenuButton>
+                </button>
               </CollapsibleTrigger>
-              <CollapsibleContent>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <p class="py-2 text-caption-1-regular text-text-secondary">
-                      {{ section.hint }}
-                    </p>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
-              </CollapsibleContent>
-            </SidebarMenuItem>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <p class="px-2 py-1 text-caption-1-regular text-text-secondary">
+                  {{ section.hint }}
+                </p>
+              </SidebarGroupContent>
+            </CollapsibleContent>
           </Collapsible>
-        </SidebarMenu>
-      </SidebarGroup>
+        </SidebarGroup>
+      </div>
       <div v-else-if="!collapsed" class="flex flex-col px-2">
         <ProjectSidebarSection
           :projects="projectRows"
