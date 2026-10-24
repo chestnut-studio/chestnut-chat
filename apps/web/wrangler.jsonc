@@ -1,0 +1,15 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "chestnut-chat-web",
+  "main": ".output/server/index.mjs",
+  "compatibility_date": "2026-10-21",
+  "compatibility_flags": ["nodejs_compat", "no_nodejs_compat_v2"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "binding": "ASSETS",
+    "directory": ".output/public",
+  },
+  "services": [{ "binding": "API", "service": "chestnut-chat-api" }],
+  "routes": [{ "pattern": "chestnut-chat.bobbylin.top", "custom_domain": true }],
+}

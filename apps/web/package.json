@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
+    "build:cloudflare": "NITRO_PRESET=cloudflare_module nuxt build",
+    "deploy:cloudflare": "wrangler deploy --keep-vars",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
