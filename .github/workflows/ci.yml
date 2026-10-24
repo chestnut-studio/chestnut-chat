@@ -51,7 +51,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment: production
+    environment: "chestnut-chat / production"
     concurrency:
       group: deploy-production
       cancel-in-progress: false
