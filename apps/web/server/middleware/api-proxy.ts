@@ -8,7 +8,7 @@
 const API_PREFIX = /^\/(api|ai|rpc|api-reference)(\/|$)/;
 
 interface CloudflareApiBinding {
-  fetch(request: Request): Promise<Response>;
+  fetch(request: Request, init?: { redirect?: "manual" | "follow" }): Promise<Response>;
 }
 
 export default defineEventHandler((event) => {
@@ -16,7 +16,9 @@ export default defineEventHandler((event) => {
 
   const binding = (event.context.cloudflare as { env?: { API?: CloudflareApiBinding } } | undefined)
     ?.env?.API;
-  if (binding) return binding.fetch(toWebRequest(event));
+  // Binding fetches follow redirects by default, which would swallow the
+  // OAuth callback's 302 and its Set-Cookie headers; the browser must see them.
+  if (binding) return binding.fetch(toWebRequest(event), { redirect: "manual" });
 
   // Amp portal URLs end with "/" — strip it so paths join correctly.
   const fromEnv = (process.env.NUXT_SERVER_URL ?? "").replace(/\/+$/, "");
