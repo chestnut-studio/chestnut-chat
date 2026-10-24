@@ -14,12 +14,19 @@ type AuthSessionError =
 
 export function useAuthSession() {
   const { $authClient } = useNuxtApp();
+  const { show: showLogin } = useLoginModal();
 
   const data = useState<AuthSessionData>("auth-session:data", () => null);
   const error = useState<AuthSessionError>("auth-session:error", () => null);
   const initialized = useState("auth-session:initialized", () => false);
   const isPending = useState("auth-session:pending", () => false);
   const isAuthenticated = computed(() => Boolean(data.value?.user));
+
+  function requireAuth() {
+    if (isAuthenticated.value) return true;
+    showLogin();
+    return false;
+  }
 
   async function refresh() {
     if (import.meta.client && clientRefreshPromise) {
@@ -76,6 +83,7 @@ export function useAuthSession() {
     initialized: readonly(initialized),
     isPending: readonly(isPending),
     isAuthenticated,
+    requireAuth,
     refresh,
     ensure,
     clear,

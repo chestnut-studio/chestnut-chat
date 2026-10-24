@@ -36,7 +36,14 @@ const route = useRoute();
 
 const dialogs = useTemplateRef<InstanceType<typeof SidebarDialogs>>("dialogs");
 const collapsed = computed(() => !isMobile.value && sidebarState.value === "collapsed");
-const searchOpen = ref(false);
+const searchVisible = ref(false);
+const searchOpen = computed({
+  get: () => searchVisible.value,
+  set: (open: boolean) => {
+    if (open && !authSession.requireAuth()) return;
+    searchVisible.value = open;
+  },
+});
 const projectFormOpen = ref(false);
 const editingProject = ref<ProjectRow | null>(null);
 

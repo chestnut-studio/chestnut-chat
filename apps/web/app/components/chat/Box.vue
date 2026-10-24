@@ -61,6 +61,7 @@ const files = ref<File[]>([]);
 const fileInput = ref<HTMLInputElement | null>(null);
 const isUploading = ref(false);
 const { t } = useI18n();
+const authSession = useAuthSession();
 const config = useRuntimeConfig();
 const { modelOptions, findModelOption, isLoading: areProvidersLoading } = useModelOptions();
 const SpinnerIcon = () => h(LoaderCircle, { class: "animate-spin" });
@@ -219,6 +220,7 @@ function clearFiles() {
 }
 
 async function submitPayload(text: string) {
+  if (!authSession.requireAuth()) return false;
   const trimmed = text.trim();
   if ((!trimmed && files.value.length === 0) || isBusy.value) return false;
 
@@ -282,10 +284,26 @@ async function onSubmit() {
 async function submitSuggestion(text: string) {
   await submitPayload(text);
 }
+
+function guardInteraction(event: Event) {
+  if (event instanceof KeyboardEvent && event.key === "Tab") return;
+  if (authSession.requireAuth()) return;
+  event.preventDefault();
+  event.stopPropagation();
+  if (event.target instanceof HTMLElement) event.target.blur();
+}
 </script>
 
 <template>
-  <div class="w-full">
+  <div
+    class="w-full"
+    @pointerdown.capture="guardInteraction"
+    @click.capture="guardInteraction"
+    @keydown.capture="guardInteraction"
+    @beforeinput.capture="guardInteraction"
+    @paste.capture="guardInteraction"
+    @drop.capture="guardInteraction"
+  >
     <ChatComposerLoader :active="isBusy" class="relative z-10">
       <div
         class="rounded-3xl border bg-background-primary-default p-3 shadow-card transition-[border-color,box-shadow] duration-150 focus-within:border-border-focus-ring focus-within:ring-2 focus-within:ring-border-focus-ring/30"
@@ -351,10 +369,12 @@ async function submitSuggestion(text: string) {
 
         <textarea
           v-model="input"
+          :readonly="!authSession.isAuthenticated"
           :placeholder="$t('chat.placeholder')"
           rows="2"
           class="max-h-40 min-h-12 w-full resize-none bg-transparent px-1 py-2 text-body-regular text-text-primary outline-none placeholder:text-text-placeholder"
           @paste="onPaste"
+          @focus="guardInteraction"
           @keydown="onPromptKeydown"
         />
 
@@ -443,7 +463,7 @@ async function submitSuggestion(text: string) {
             class="shadow-none"
             :leading-icon="ArrowUp"
             :aria-label="$t('chat.send')"
-            :disabled="!input.trim() && files.length === 0"
+            :disabled="authSession.isAuthenticated && !input.trim() && files.length === 0"
             @click="onSubmit"
           />
         </div>
