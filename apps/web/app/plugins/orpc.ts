@@ -6,7 +6,9 @@ import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
   const serverUrl = (import.meta.server && config.serverUrl) || config.public.serverUrl;
-  const rpcUrl = `${serverUrl}/rpc`;
+  // RPCLink calls `new URL(url)`, which rejects relative paths like "/rpc".
+  const origin = serverUrl || useRequestURL().origin;
+  const rpcUrl = `${origin.replace(/\/+$/, "")}/rpc`;
 
   const rpcLink = new RPCLink({
     url: rpcUrl,
