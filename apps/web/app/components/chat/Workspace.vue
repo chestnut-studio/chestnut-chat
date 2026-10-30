@@ -463,7 +463,10 @@ function confirmEdit() {
 </script>
 
 <template>
-  <main :id="`chat-${chatId}`" class="flex min-w-0 flex-1 flex-col overflow-hidden">
+  <main
+    :id="`chat-${chatId}`"
+    class="flex min-w-0 flex-1 flex-col overflow-hidden bg-background-secondary-default md:my-3 md:me-3 md:rounded-3xl"
+  >
     <ChatHeader
       :title="chatTitle"
       :model="headerModel"

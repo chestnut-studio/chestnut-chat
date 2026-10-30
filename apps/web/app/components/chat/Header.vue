@@ -70,11 +70,8 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
 
     <BTooltip
       v-else
-      :content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
-      :ui="{
-        content:
-          'bg-background-primary-default text-text-primary shadow-dropdown rounded-xl border border-border-button-default h-auto p-3 select-none pointer-events-auto',
-      }"
+      align="end"
+      content-class="w-64 select-none rounded-2xl border border-border-button-default bg-background-primary-default p-3 text-start text-text-primary shadow-dropdown"
     >
       <span
         class="flex min-w-0 items-center gap-1.5 rounded-full border border-border-button-default bg-background-primary-default py-1 pe-3 ps-2 text-caption-1-regular text-text-primary shadow-card"
@@ -95,15 +92,19 @@ const showModelSkeleton = computed(() => areModelsLoading.value && !modelOption.
       </span>
 
       <template #content>
-        <div class="max-w-64 space-y-1.5">
+        <div class="flex flex-col gap-2.5">
           <p class="text-caption-2-semibold uppercase tracking-wide text-text-tertiary">
             {{ t("chat.modelUsed") }}
           </p>
 
-          <div class="flex items-center gap-2">
-            <ModelIcon :icon="modelIcon" />
+          <div class="flex items-center gap-2.5">
+            <span
+              class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-background-secondary-default"
+            >
+              <ModelIcon :icon="modelIcon" />
+            </span>
             <div class="min-w-0">
-              <p class="wrap-break-word text-body-2-medium">{{ modelLabel }}</p>
+              <p class="wrap-break-word text-body-2-medium text-text-primary">{{ modelLabel }}</p>
               <p v-if="providerName" class="truncate text-caption-1-regular text-text-secondary">
                 {{ providerName }}
               </p>

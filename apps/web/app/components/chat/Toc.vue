@@ -124,11 +124,6 @@ onBeforeUnmount(() => {
       role="navigation"
       :aria-label="t('chat.toc.label')"
     >
-      <span
-        aria-hidden="true"
-        class="absolute top-1/2 right-0 h-[calc(100%_-_0.5rem)] w-[2.125rem] -translate-y-1/2 rounded-2xl bg-background-full/70 backdrop-blur-sm"
-      />
-
       <div
         class="toc-popover pointer-events-none absolute right-0 flex max-h-full w-60 flex-col items-stretch overflow-hidden rounded-2xl"
       >

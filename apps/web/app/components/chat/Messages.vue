@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Copy, GitFork, Pencil, RefreshCw } from "~/utils/icons";
 import type { Component } from "vue";
-import { BButton, BTooltip } from "@chestnut-chat/ui";
+import { BTooltip } from "@chestnut-chat/ui";
 import type { WebSearchSource } from "@chestnut-chat/api/chat/web-search";
 import {
   getToolName,
@@ -581,14 +581,14 @@ onBeforeUnmount(() => {
       <article
         v-for="message in props.messages"
         :key="message.id"
-        class="group/message flex flex-col gap-2"
-        :class="message.role === 'user' ? 'items-end' : 'items-start'"
+        class="group/message flex flex-col gap-1"
+        :class="message.role === 'user' ? 'items-end' : 'items-start px-1'"
       >
         <div
           class="min-w-0 text-body-regular text-text-primary"
           :class="
             message.role === 'user'
-              ? 'max-w-[85%] rounded-3xl bg-background-secondary-default px-4 py-3'
+              ? 'max-w-[75%] rounded-2xl bg-background-primary-default px-3 py-[11px] shadow-card'
               : 'w-full'
           "
         >
@@ -673,15 +673,15 @@ onBeforeUnmount(() => {
           class="flex items-center gap-1 opacity-0 transition-opacity group-hover/message:opacity-100 group-focus-within/message:opacity-100"
         >
           <BTooltip v-for="action in actionsFor(message)" :key="action.label" :text="action.label">
-            <BButton
-              variant="ghost"
-              size="small"
-              icon-only
-              :leading-icon="action.icon"
+            <button
+              type="button"
+              class="flex size-7 cursor-pointer items-center justify-center rounded-md text-foreground-icon-tertiary transition-colors hover:bg-background-primary-default hover:text-foreground-icon-secondary focus-visible:ring-2 focus-visible:ring-border-focus-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
               :disabled="action.disabled"
               :aria-label="action.label"
               @click="action.onClick"
-            />
+            >
+              <component :is="action.icon" class="size-4" aria-hidden="true" />
+            </button>
           </BTooltip>
         </div>
       </article>

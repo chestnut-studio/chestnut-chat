@@ -8,6 +8,7 @@ withDefaults(
     text?: string;
     align?: "start" | "center" | "end";
     side?: "top" | "right" | "bottom" | "left";
+    contentClass?: string;
   }>(),
   { align: "center", side: "bottom" },
 );
@@ -19,7 +20,11 @@ withDefaults(
         ><span v-bind="$attrs" class="inline-flex" @focusin="open = true" @focusout="open = false"
           ><slot /></span
       ></TooltipTrigger>
-      <TooltipContent :align="align" :side="side" :side-offset="8" class="max-w-72"
+      <TooltipContent
+        :align="align"
+        :side="side"
+        :side-offset="8"
+        :class="['max-w-72', contentClass]"
         ><slot name="content">{{ text }}</slot></TooltipContent
       >
     </Tooltip>
