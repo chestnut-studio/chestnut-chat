@@ -236,17 +236,31 @@ async function tick() {
   }
 }
 
-/** Cron-driven alternative to the poll loop for runtimes without long-lived timers. */
+/** Drain on queue delivery, retaining retries and leases across invocations. */
 export async function drainMemoryJobs(budgetMs: number) {
   const deadline = Date.now() + budgetMs;
   let processed = 0;
   while (Date.now() < deadline) {
     const job = await claimNextJob();
-    if (!job) break;
+    if (!job) {
+      const [waiting] = await db
+        .select({ leaseUntil: memoryJob.leaseUntil })
+        .from(memoryJob)
+        .where(or(eq(memoryJob.status, "pending"), eq(memoryJob.status, "running")))
+        .orderBy(asc(memoryJob.leaseUntil))
+        .limit(1);
+
+      return {
+        processed,
+        retryAfterMs: waiting
+          ? Math.max(0, (waiting.leaseUntil?.getTime() ?? 0) - Date.now())
+          : null,
+      };
+    }
     await processJob(job);
     processed += 1;
   }
-  return processed;
+  return { processed, retryAfterMs: 0 };
 }
 
 export function startMemoryWorker() {

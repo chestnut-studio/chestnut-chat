@@ -1,12 +1,12 @@
 import { db } from "@chestnut-chat/db";
 import { chat } from "@chestnut-chat/db/schema/chat";
-import { memoryItem, memoryJob } from "@chestnut-chat/db/schema/memory";
+import { memoryItem } from "@chestnut-chat/db/schema/memory";
 import { project, projectFile } from "@chestnut-chat/db/schema/project";
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { buildDedupeKey } from "../memory/jobs";
+import { enqueueChatReindex } from "../memory/queue";
 import { protectedProcedure } from "../index";
 import { isAllowedProjectIcon, isAllowedProjectIconColor } from "../project/icons";
 
@@ -65,18 +65,6 @@ async function getOwnedProject(projectId: string, userId: string) {
     .where(and(eq(project.id, projectId), eq(project.userId, userId)))
     .limit(1);
   return assertOwnedProject(row);
-}
-
-async function enqueueChatReindex(userId: string, chatId: string, projectId: string | null) {
-  await db.insert(memoryJob).values({
-    userId,
-    type: "chat_reindex",
-    status: "pending",
-    chatId,
-    projectId,
-    dedupeKey: buildDedupeKey(["chat_reindex", chatId, projectId ?? "global", String(Date.now())]),
-    payload: JSON.stringify({ chatId, projectId }),
-  });
 }
 
 export const projectRouter = {

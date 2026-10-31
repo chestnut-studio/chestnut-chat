@@ -1,12 +1,12 @@
 import { db } from "@chestnut-chat/db";
 import { chat, message, type ChatLastOptions } from "@chestnut-chat/db/schema/chat";
-import { memoryItem, memoryJob } from "@chestnut-chat/db/schema/memory";
+import { memoryItem } from "@chestnut-chat/db/schema/memory";
 import { project } from "@chestnut-chat/db/schema/project";
 import { ORPCError } from "@orpc/server";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { buildDedupeKey } from "../memory/jobs";
+import { enqueueChatReindex } from "../memory/queue";
 import { protectedProcedure } from "../index";
 
 function assertReturnedRow<T>(row: T | undefined): T {
@@ -37,18 +37,6 @@ async function assertOwnedProject(projectId: string, userId: string) {
   }
 
   return row.id;
-}
-
-async function enqueueChatReindex(userId: string, chatId: string, projectId: string | null) {
-  await db.insert(memoryJob).values({
-    userId,
-    type: "chat_reindex",
-    status: "pending",
-    chatId,
-    projectId,
-    dedupeKey: buildDedupeKey(["chat_reindex", chatId, projectId ?? "global", String(Date.now())]),
-    payload: JSON.stringify({ chatId, projectId }),
-  });
 }
 
 export const chatRouter = {

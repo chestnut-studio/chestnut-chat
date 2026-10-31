@@ -7,7 +7,20 @@
   "workers_dev": false,
   "preview_urls": false,
   "triggers": {
-    "crons": ["* * * * *"],
+    "crons": ["0 * * * *"],
+  },
+  "queues": {
+    "producers": [{ "binding": "MEMORY_QUEUE", "queue": "chestnut-chat-memory" }],
+    "consumers": [
+      {
+        "queue": "chestnut-chat-memory",
+        "max_batch_size": 10,
+        "max_batch_timeout": 0,
+        "max_concurrency": 1,
+        "max_retries": 100,
+        "retry_delay": 5,
+      },
+    ],
   },
   // Secrets (DATABASE_URL, BETTER_AUTH_SECRET, provider keys, ...) are managed with `wrangler secret`.
   "vars": {

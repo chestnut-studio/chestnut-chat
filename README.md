@@ -47,6 +47,19 @@ pnpm run dev
 Open [http://localhost:3011](http://localhost:3011) in your browser to see the web application.
 The API is running at [http://localhost:3010](http://localhost:3010).
 
+## Memory Worker
+
+On Cloudflare, the API produces and consumes notifications through the
+`chestnut-chat-memory` Queue (`MEMORY_QUEUE` binding). New jobs notify the consumer
+immediately, with no batching delay. Postgres remains the source of truth for job
+deduplication, leases, and retries. Ensure the queue exists when deploying the API;
+Wrangler can provision it with the appropriate Queues permissions.
+
+An hourly cron recovers jobs whose notification was lost or that were inserted by
+offline tools. It replaces minute-by-minute polling so Neon can suspend between
+requests. The Node server keeps its immediate in-process wake-up and hourly idle
+reconciliation. Run `pnpm run test` for the API and isolated Postgres worker tests.
+
 ## Git Hooks and Formatting
 
 - Run checks: `pnpm run check`

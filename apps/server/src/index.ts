@@ -1,12 +1,17 @@
 import { serve } from "@hono/node-server";
+import { withMemoryJobNotifier } from "@chestnut-chat/api/memory/queue";
 import { env } from "@chestnut-chat/env/server";
 
 import { app } from "./app";
-import { startMemoryWorker } from "./memory/worker";
+import { startMemoryWorker, wakeMemoryWorker } from "./memory/worker";
 
 serve(
   {
-    fetch: app.fetch,
+    fetch: (request, ...args) =>
+      withMemoryJobNotifier(
+        async () => wakeMemoryWorker(),
+        () => app.fetch(request, ...args),
+      ),
     port: env.PORT,
   },
   (info) => {

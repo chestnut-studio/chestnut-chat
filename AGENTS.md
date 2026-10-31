@@ -29,7 +29,7 @@ Use pnpm from the repository root. `package.json` pins pnpm 11.11.0.
 - `pnpm run check-types`: Type-check all configured workspaces.
 - `pnpm --filter web exec nuxt typecheck`: Type-check the Nuxt frontend explicitly; it currently has no `check-types` script, so the root command does not check it.
 - `pnpm run check`: Run Oxlint, then Oxfmt in write mode (may format unrelated files).
-- `pnpm run test`: Run the API package's Vitest suite, not all workspace tests.
+- `pnpm run test`: Run the API and server Vitest suites, including isolated PGlite memory-worker tests.
 - `bun test apps/web/tests/theme.test.ts`: Run frontend theme regression tests.
 - `pnpm run memory:backfill`: Enqueue extraction jobs for existing standalone chats; writes to the configured database.
 - `pnpm run db:push`: Push Drizzle schema changes.
@@ -145,7 +145,7 @@ Drizzle config loads environment from `apps/server/.env`. Do not commit `.env` f
 For code changes, run the narrowest useful checks first, then broaden when needed.
 
 - Frontend or shared UI changes: render and inspect the affected states, run `pnpm --filter web exec nuxt typecheck` plus `pnpm run check-types`, and run theme tests when changing appearance preferences.
-- Server/API changes: run relevant endpoint checks and `pnpm run test`, then `pnpm run check-types`. API tests live alongside source files as `*.test.ts` and run in Vitest's Node environment.
+- Server/API changes: run relevant endpoint checks and `pnpm run test`, then `pnpm run check-types`. API and server tests live alongside source files as `*.test.ts` and run in Vitest's Node environment. Memory-worker tests use isolated PGlite, never the configured Neon database.
 - Database schema changes: generate and review migrations, and report any remaining apply step. Do not treat a shared database push/migration or memory backfill as a routine verification command.
 - For non-mutating lint/format checks, use `pnpm exec oxlint` and `pnpm exec oxfmt --check <changed-files>`. Use `pnpm exec oxfmt --write <changed-files>` to format only the files you changed.
 
